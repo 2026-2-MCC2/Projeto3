@@ -14,7 +14,7 @@ Vide tutoriais do PI.
 
 ## Nome do Grupo
 
-## Integrantes: <a href="https://www.linkedin.com/in/victorbarq/">Cintya Mendoza Apaza</a>, <a href="https://www.linkedin.com/in/davi-moraes-675642260/">Davi Moraes Muniz</a>, <a href="https://www.linkedin.com/in/victorbarq/">Gustavo Cordeiro</a>, <a href="https://www.linkedin.com/in/nicolasbmoumdjian/">Nicolas Moumdjian</a>
+## Integrantes: <a href="www.linkedin.com/in/cintya-mendoza-apaza-7691433b0">Cintya Mendoza Apaza</a>, <a href="https://www.linkedin.com/in/davi-moraes-675642260/">Davi Moraes Muniz</a>, <a href="https://www.linkedin.com/in/victorbarq/">Gustavo Cordeiro</a>, <a href="https://www.linkedin.com/in/nicolasbmoumdjian/">Nicolas Moumdjian</a>
 
 ## Professores Orientadores: <a href="https://www.linkedin.com/in/victorbarq/">Dr. Victor Von Doom</a>, <a href="https://www.linkedin.com/in/victorbarq/">Me. Saitama</a>, <a href="https://www.linkedin.com/in/victorbarq/">Dr. Strange</a>, <a href="https://www.linkedin.com/in/victorbarq/">Me. Yoda</a>, <a href="https://www.linkedin.com/in/victorbarq/">Dr. Gero</a>
 
