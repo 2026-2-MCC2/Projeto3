@@ -34,32 +34,40 @@ A solução busca simplificar a jornada do público, oferecendo uma experiência
 
 ## 🛠 Estrutura de pastas
 
-├── Raiz
+# Estrutura do Projeto
+
+```text
+Raiz/
 │
-├── Projeto3
-│   ├── Entrega 1
-│   │   ├── Cálculo
-│   │   ├── DesenvolvimentoWebFullStack
-│   │   ├── GestãoEmpresarial
-│   │   ├── ProjetoBancodeDados
-│   │   └── ProjetoInterdisciplinar
-│   └── Entrega 2
-│   |    ├── Cálculo
-│   |    ├── DesenvolvimentoWebFullStack
-│   |    ├── GestãoEmpresarial
-│   |    ├── ProjetoBancodeDados
-│   |    └── ProjetoInterdisciplinar
-|   ├── Banner 
-|   ├── Projeto de Extensão
-|   └── readme.md
-│ └── git.ignore
-|
-├── Src
-|   ├── Entrega 1
-│   └── Entrega 2
-|
-|  
-└── README.md
+├── Projeto3/
+│
+├── Entrega 1/
+│   ├── Cálculo/
+│   ├── DesenvolvimentoWebFullStack/
+│   ├── GestãoEmpresarial/
+│   ├── ProjetoBancodeDados/
+│   └── ProjetoInterdisciplinar/
+│
+├── Entrega 2/
+│   ├── Cálculo/
+│   ├── DesenvolvimentoWebFullStack/
+│   ├── GestãoEmpresarial/
+│   ├── ProjetoBancodeDados/
+│   └── ProjetoInterdisciplinar/
+│
+├── Banner/
+│
+├── Projeto de Extensão/
+│
+├── README.md
+│
+├── .gitignore
+│
+└── Src/
+    ├── Entrega 1/
+    └── Entrega 2/
+```
+
 
 A pasta raiz contem dois arquivos que devem ser alterados:
 
