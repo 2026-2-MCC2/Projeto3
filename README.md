@@ -10,9 +10,9 @@ Vide tutoriais do PI.
 <a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0"></a>
 </p>
 
-# Nome do Projeto
+# TrocaTicket – Plataforma de Planejamento e Precificação de Eventos
 
-## Nome do Grupo
+## Golden Ticket
 
 ## Integrantes: <a href="www.linkedin.com/in/cintya-mendoza-apaza-7691433b0">Cintya Mendoza Apaza</a>, <a href="https://www.linkedin.com/in/davi-moraes-675642260/">Davi Moraes Muniz</a>, <a href="https://www.linkedin.com/in/victorbarq/">Gustavo Cordeiro</a>, <a href="https://www.linkedin.com/in/nicolasbmoumdjian/">Nicolas Moumdjian</a>
 
@@ -21,16 +21,15 @@ Vide tutoriais do PI.
 ## Descrição
 
 <p align="center">
-<img src="https://pix4free.org/assets/library/2021-01-20/originals/game.jpg" alt="NOME DO JOGO" border="0">
-  Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
+<img width="2104" height="747" alt="logotipo_troca_ticket" src="https://github.com/user-attachments/assets/a29f49a0-94ed-4d78-b632-5a282dcc3f94" />
+
 </p>
 
+<br><br>
 
-De um a dois parágrafos sobre o que é seu projeto e o que ele faz.
+O **TrocaTicket** é uma plataforma voltada à gestão e comercialização de ingressos para eventos, reunindo em um único ecossistema recursos para compra, acesso digital, revenda e gerenciamento de eventos.
 <br><br>
-Meu projeto ajuda estudantes FECAP a configurarem seus githubs.
-<br><br>
-May the force be with you!
+A solução busca simplificar a jornada do público, oferecendo uma experiência integrada desde a descoberta do evento até o acesso ao ingresso digital. Para organizadores, disponibiliza ferramentas para criação de eventos, configuração de lotes, acompanhamento de vendas e gestão da operação.
 <br><br>
 
 ## 🛠 Estrutura de pastas
