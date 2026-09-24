@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "nome": "Marina Souza",
+    "email": "organizador@trocaticket.com.br",
+    "senha": "Troca@2026",
+    "perfil": "organizador"
+  },
+  {
+    "id": 2,
+    "nome": "Carlos Lima",
+    "email": "fornecedor@trocaticket.com.br",
+    "senha": "Troca@2026",
+    "perfil": "fornecedor"
+  },
+  {
+    "id": 3,
+    "nome": "Auditoria TrocaTicket",
+    "email": "gestao.auditoria@trocaticket.com.br",
+    "senha": "Admin@2026",
+    "perfil": "admin",
+    "mfa": "123456"
+  }
+]

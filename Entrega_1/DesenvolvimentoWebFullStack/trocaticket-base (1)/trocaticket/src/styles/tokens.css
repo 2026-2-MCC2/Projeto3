@@ -1,0 +1,61 @@
+/* Tokens extraídos do Figma (tela "Escolha de Perfil") */
+:root {
+  /* cores */
+  --color-bg: #f9faf5;
+  --color-surface: #ffffff;
+  --color-primary: #424953;
+  --color-primary-hover: #2c333c;
+  --color-on-primary: #ffffff;
+  --color-text-strong: #2c333c;
+  --color-text: #44474b;
+  --color-text-muted: #536069;
+  --color-neutral-100: #f3f4ef;
+  --color-neutral-200: #e7e9e4;
+  --color-border: #e2e4dc;
+
+  /* tipografia */
+  --font-sans: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-display: 3rem;      /* 48px */
+  --fs-title: 1.375rem;    /* 22px */
+  --fs-brand: 1.25rem;     /* 20px */
+  --fs-body: 0.875rem;     /* 14px */
+  --fs-small: 0.8125rem;   /* 13px */
+  --fs-caption: 0.75rem;   /* 12px */
+  --fs-overline: 0.6875rem;/* 11px */
+
+  /* espaçamento */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* raios e sombras */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 9999px;
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-card-raised: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* layout */
+  --container-max: 1120px;
+  --header-height: 64px;
+}
+
+/* Acesso / autenticação */
+:root {
+  --color-danger: #ba1a1a;
+  --color-danger-bg: #ffdad6;
+  --color-danger-text: #93000a;
+  --color-info-soft: #d6e5ee;
+  --color-info-bg: #dbe1ff;
+  --color-info-text: #00174b;
+  --color-link: #0051d5;
+  --color-border-strong: #c5c6cb;
+  --color-text-admin: #1a1c19;
+  --font-admin: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --shadow-auth: 0 4px 30px 0 rgba(44, 51, 60, 0.06);
+  --shadow-admin: 0 1px 3px 0 rgba(30, 41, 59, 0.04), 0 6px 16px 0 rgba(30, 41, 59, 0.06);
+}
