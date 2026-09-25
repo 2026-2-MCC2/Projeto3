@@ -13,7 +13,6 @@
   box-shadow: var(--shadow-auth);
 }
 
-/* coluna editorial: escondida no mobile */
 .login__editorial {
   display: none;
   align-items: center;

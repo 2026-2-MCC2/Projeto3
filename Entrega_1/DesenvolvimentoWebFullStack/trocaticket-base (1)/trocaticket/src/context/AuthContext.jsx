@@ -15,25 +15,16 @@ function lerSessao() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(lerSessao);
 
-  // lembrar=true guarda no localStorage (persiste); senão só na aba (sessionStorage)
   const entrar = useCallback((usuario, lembrar) => {
-    try {
-      localStorage.removeItem(CHAVE);
-      sessionStorage.removeItem(CHAVE);
-      (lembrar ? localStorage : sessionStorage).setItem(CHAVE, JSON.stringify(usuario));
-    } catch {
-      /* storage indisponível: segue só em memória */
-    }
+    localStorage.removeItem(CHAVE);
+    sessionStorage.removeItem(CHAVE);
+    (lembrar ? localStorage : sessionStorage).setItem(CHAVE, JSON.stringify(usuario));
     setUser(usuario);
   }, []);
 
   const sair = useCallback(() => {
-    try {
-      localStorage.removeItem(CHAVE);
-      sessionStorage.removeItem(CHAVE);
-    } catch {
-      /* ignora */
-    }
+    localStorage.removeItem(CHAVE);
+    sessionStorage.removeItem(CHAVE);
     setUser(null);
   }, []);
 

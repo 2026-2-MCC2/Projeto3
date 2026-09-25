@@ -1,5 +1,3 @@
-// "API" mockada: os usuários ficam em public/mock/usuarios.json e são lidos com fetch.
-// Para trocar por uma API real, basta mudar a URL e o método aqui.
 const URL_USUARIOS = "/mock/usuarios.json";
 const LATENCIA_MS = 800;
 
@@ -18,14 +16,9 @@ async function buscarUsuarios() {
   return resposta.json();
 }
 
-/**
- * Autentica um usuário.
- * @param {{email: string, senha: string, mfa?: string, admin?: boolean}} credenciais
- * @returns {Promise<{id: number, nome: string, email: string, perfil: string}>}
- */
 export async function autenticar({ email, senha, mfa, admin = false }) {
   const usuarios = await buscarUsuarios();
-  await esperar(LATENCIA_MS); // simula o tempo de resposta de uma API
+  await esperar(LATENCIA_MS);
 
   const usuario = usuarios.find(
     (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.senha === senha

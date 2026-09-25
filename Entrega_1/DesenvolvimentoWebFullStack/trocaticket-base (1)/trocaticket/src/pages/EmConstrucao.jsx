@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 
-// Tela provisória: cada integrante substitui pela página real do Figma.
 export default function EmConstrucao({ titulo }) {
   const { pathname } = useLocation();
   return (

@@ -1,13 +1,8 @@
 import { useEffect, useRef } from "react";
 import "./OtpInput.css";
 
-/**
- * Campo de código de N dígitos (MFA). O valor é uma string só com números.
- * Avança sozinho ao digitar, volta com Backspace e aceita colar o código inteiro.
- */
 export default function OtpInput({ value, onChange, length = 6, invalid = false, labelledBy, describedBy }) {
   const refs = useRef([]);
-  // valor mais recente, para o onFocus não usar um valor antigo logo após digitar
   const atual = useRef(value);
   useEffect(() => {
     atual.current = value;
@@ -68,7 +63,6 @@ export default function OtpInput({ value, onChange, length = 6, invalid = false,
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
           onFocus={(e) => {
-            // não deixa pular casas vazias: o foco vai para o próximo dígito a preencher
             if (i > atual.current.length) {
               focar(atual.current.length);
             } else {

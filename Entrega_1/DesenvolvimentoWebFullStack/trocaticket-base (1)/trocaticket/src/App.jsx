@@ -5,14 +5,11 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
+import Cadastro from "./pages/Cadastro.jsx";
 import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
-// Telas do Figma que ainda viram página real: [caminho, título]
-// Cada integrante troca o <EmConstrucao> pela página verdadeira.
 const publicas = [
-  ["/cadastro/organizador", "Cadastro — Organizador"],
-  ["/cadastro/fornecedor", "Cadastro — Fornecedor"],
   ["/cadastro/status", "Análise Cadastral"],
   ["/recuperar-senha", "Recuperar senha"],
   ["/ajuda", "Central de Ajuda"],
@@ -35,10 +32,11 @@ const protegidas = {
 export default function App() {
   return (
     <Routes>
-      {/* layout padrão (header + footer) */}
       <Route element={<Layout />}>
         <Route path="/" element={<EscolhaPerfil />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
+        <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
         {publicas.map(([path, titulo]) => (
           <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
         ))}
@@ -53,8 +51,6 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Route>
-
-      {/* portal administrativo tem header e footer próprios */}
       <Route element={<AdminLayout />}>
         <Route path="/login-admin" element={<LoginAdmin />} />
       </Route>

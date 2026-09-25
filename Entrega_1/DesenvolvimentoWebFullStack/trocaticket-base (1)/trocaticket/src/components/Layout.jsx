@@ -4,7 +4,7 @@ import Footer from "./Footer.jsx";
 
 export default function Layout() {
   return (
-    <div className="layout" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Header />
       <main style={{ flex: 1 }}>
         <Outlet />

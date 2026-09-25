@@ -26,7 +26,6 @@ export default function Login() {
     const { name, type, checked, value } = e.target;
     const novo = type === "checkbox" ? checked : value;
     setValores((v) => ({ ...v, [name]: novo }));
-    // depois do primeiro erro, revalida enquanto a pessoa corrige
     if (erros[name]) setErros((er) => ({ ...er, [name]: validadores[name](novo) }));
   }
 
@@ -48,7 +47,7 @@ export default function Login() {
     const primeiroInvalido = Object.keys(novosErros).find((campo) => novosErros[campo]);
     if (primeiroInvalido) {
       form.elements[primeiroInvalido]?.focus();
-      return; // não envia enquanto houver erro
+      return;
     }
 
     setCarregando(true);
@@ -66,8 +65,6 @@ export default function Login() {
     <div className="login">
       <div className="login__card">
         <aside className="login__editorial">
-          {/* Para usar a foto do Figma: exporte a imagem para src/assets e
-              adicione url(...) no background-image de .login__editorial em Login.css */}
           <div className="login__editorial-text">
             <h2>Acesse sua central de gestão de eventos, ingressos e parcerias.</h2>
             <p>

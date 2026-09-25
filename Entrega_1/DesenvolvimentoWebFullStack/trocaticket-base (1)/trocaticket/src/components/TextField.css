@@ -88,7 +88,6 @@
   color: var(--color-danger);
 }
 
-/* variante do portal administrativo: campo branco com borda */
 .field--outline .field__label {
   font-family: var(--font-admin);
   font-size: var(--fs-body);
@@ -116,4 +115,17 @@
 
 .field--outline.field--invalid .field__input {
   border-color: var(--color-danger);
+}
+
+.field--select .field__input {
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.field__chevron {
+  position: absolute;
+  right: 14px;
+  color: var(--color-text-muted);
+  pointer-events: none;
 }

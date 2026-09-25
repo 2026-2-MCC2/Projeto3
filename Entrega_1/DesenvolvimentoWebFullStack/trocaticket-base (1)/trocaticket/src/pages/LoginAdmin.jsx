@@ -53,7 +53,6 @@ export default function LoginAdmin() {
 
     const primeiro = Object.keys(novosErros).find((campo) => novosErros[campo]);
     if (primeiro) {
-      // o MFA tem vários inputs: foca o primeiro dígito do grupo
       const alvo = primeiro === "mfa" ? form.querySelector(".otp__digit") : form.elements[primeiro];
       alvo?.focus();
       return;
