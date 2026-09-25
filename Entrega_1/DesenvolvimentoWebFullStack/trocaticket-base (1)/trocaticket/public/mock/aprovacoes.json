@@ -1,0 +1,203 @@
+[
+  {
+    "id": 101,
+    "tipo": "Fornecedor",
+    "nome": "AudioMaster Sonorização ME",
+    "categoria": "Som, Iluminação & Painéis LED",
+    "cnpj": "12.345.678/0001-90",
+    "inscricaoEstadual": "112.443.901.002",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Roberto Mendes",
+    "contatoEmail": "contato@audiomaster.com.br",
+    "contatoTelefone": "(11) 98765-4321",
+    "endereco": "Av. Paulista, 1800 - Conjunto 42",
+    "cidadeUf": "Bela Vista • São Paulo / SP - CEP 01310-200",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Eventos até 45.000 pax",
+      "linha2": "Equipamentos próprios homologados"
+    },
+    "documentos": [
+      { "nome": "Contrato_Social_2026.pdf", "tamanho": "2.4 MB", "origem": "Autenticado digitalmente" },
+      { "nome": "Comprovante_CNPJ_Ativo.pdf", "tamanho": "1.1 MB", "origem": "Receita Federal" }
+    ],
+    "submetidoEm": "2026-05-24T09:42:00",
+    "alerta": null
+  },
+  {
+    "id": 102,
+    "tipo": "Organizador",
+    "nome": "Prime Entretenimento e Eventos Ltda",
+    "categoria": "Feiras e congressos",
+    "cnpj": "98.765.432/0001-10",
+    "inscricaoEstadual": "223.556.780.011",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Carlos Eduardo",
+    "contatoEmail": "diretoria@primeeventos.com",
+    "contatoTelefone": "(41) 99887-1122",
+    "endereco": "Rua XV de Novembro, 540 - Centro",
+    "cidadeUf": "Curitiba / PR - CEP 80020-310",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Eventos corporativos de médio e grande porte",
+      "linha2": "Equipe própria de produção"
+    },
+    "documentos": [
+      { "nome": "Contrato_Social.pdf", "tamanho": "1.8 MB", "origem": "Autenticado digitalmente" },
+      { "nome": "Certidao_Negativa.pdf", "tamanho": "0.6 MB", "origem": "Receita Federal" },
+      { "nome": "Alvara_Funcionamento.pdf", "tamanho": "0.9 MB", "origem": "Prefeitura" }
+    ],
+    "submetidoEm": "2026-05-23T18:15:00",
+    "alerta": null
+  },
+  {
+    "id": 103,
+    "tipo": "Fornecedor",
+    "nome": "SegurPro Segurança Privada",
+    "categoria": "Segurança e brigada",
+    "cnpj": "34.567.890/0001-44",
+    "inscricaoEstadual": "334.221.900.070",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Fernanda Alves",
+    "contatoEmail": "operacional@segurpro.com.br",
+    "contatoTelefone": "(31) 98211-4090",
+    "endereco": "Av. do Contorno, 3200 - Floresta",
+    "cidadeUf": "Belo Horizonte / MG - CEP 30110-006",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Equipes de até 120 profissionais",
+      "linha2": "Brigada certificada CBMMG"
+    },
+    "documentos": [
+      { "nome": "Docs_PF_PJ.pdf", "tamanho": "1.3 MB", "origem": "Autenticado digitalmente" }
+    ],
+    "submetidoEm": "2026-05-24T14:02:00",
+    "alerta": "Alvará vencendo"
+  },
+  {
+    "id": 104,
+    "tipo": "Organizador",
+    "nome": "CulturaViva Festivais Ltda",
+    "categoria": "Festivais e shows",
+    "cnpj": "56.789.012/0001-33",
+    "inscricaoEstadual": "556.334.220.088",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Felipe Antunes",
+    "contatoEmail": "contato@culturaviva.com.br",
+    "contatoTelefone": "(21) 97654-3210",
+    "endereco": "Rua Voluntários da Pátria, 90 - Botafogo",
+    "cidadeUf": "Rio de Janeiro / RJ - CEP 22270-000",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Festivais de até 20.000 pessoas",
+      "linha2": "Histórico de 12 edições anteriores"
+    },
+    "documentos": [
+      { "nome": "Contrato_Social.pdf", "tamanho": "2.1 MB", "origem": "Autenticado digitalmente" },
+      { "nome": "Certidao_Negativa.pdf", "tamanho": "0.5 MB", "origem": "Receita Federal" },
+      { "nome": "Portfolio_Eventos.pdf", "tamanho": "4.2 MB", "origem": "Anexo do organizador" },
+      { "nome": "Alvara_Cultural.pdf", "tamanho": "0.8 MB", "origem": "Prefeitura" }
+    ],
+    "submetidoEm": "2026-05-23T11:30:00",
+    "alerta": null
+  },
+  {
+    "id": 105,
+    "tipo": "Fornecedor",
+    "nome": "MegaTendas & Estruturas Metálicas",
+    "categoria": "Estruturas e tendas",
+    "cnpj": "77.888.999/0001-55",
+    "inscricaoEstadual": "778.889.990.099",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Juliana Prado",
+    "contatoEmail": "comercial@megatendas.com.br",
+    "contatoTelefone": "(11) 94321-8765",
+    "endereco": "Rod. Anhanguera, km 32 - Galpão 4",
+    "cidadeUf": "São Paulo / SP - CEP 07500-000",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Estruturas para até 15.000 pax",
+      "linha2": "Laudo ART vigente"
+    },
+    "documentos": [
+      { "nome": "ART_Estruturas.pdf", "tamanho": "1.0 MB", "origem": "CREA-SP" }
+    ],
+    "submetidoEm": "2026-05-22T16:45:00",
+    "alerta": null
+  },
+  {
+    "id": 106,
+    "tipo": "Organizador",
+    "nome": "InovaHub Produções Artísticas",
+    "categoria": "Congressos e tecnologia",
+    "cnpj": "22.333.444/0001-66",
+    "inscricaoEstadual": "223.334.440.055",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Mariana Dias",
+    "contatoEmail": "producao@inovahub.com.br",
+    "contatoTelefone": "(51) 99123-4567",
+    "endereco": "Av. Ipiranga, 6681 - Partenon",
+    "cidadeUf": "Porto Alegre / RS - CEP 90619-900",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Congressos de até 8.000 participantes",
+      "linha2": "Estrutura própria de credenciamento"
+    },
+    "documentos": [
+      { "nome": "Contrato_Social.pdf", "tamanho": "1.6 MB", "origem": "Autenticado digitalmente" },
+      { "nome": "Certidao_Negativa.pdf", "tamanho": "0.4 MB", "origem": "Receita Federal" },
+      { "nome": "Comprovante_Endereco.pdf", "tamanho": "0.3 MB", "origem": "Anexo do organizador" }
+    ],
+    "submetidoEm": "2026-05-21T10:20:00",
+    "alerta": null
+  },
+  {
+    "id": 107,
+    "tipo": "Fornecedor",
+    "nome": "Sabor Real Buffet",
+    "categoria": "Alimentação e bebidas",
+    "cnpj": "45.678.901.0001-77",
+    "inscricaoEstadual": "445.667.880.033",
+    "cnpjAtivoReceita": false,
+    "contatoNome": "André Cunha",
+    "contatoEmail": "contato@saborreal.com.br",
+    "contatoTelefone": "(19) 98877-6655",
+    "endereco": "Rua das Palmeiras, 210 - Cambuí",
+    "cidadeUf": "Campinas / SP - CEP 13024-320",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Serviço para até 3.000 pax",
+      "linha2": "Alvará sanitário em análise"
+    },
+    "documentos": [
+      { "nome": "Alvara_Sanitario.pdf", "tamanho": "0.7 MB", "origem": "Vigilância Sanitária" }
+    ],
+    "submetidoEm": "2026-05-20T09:05:00",
+    "alerta": "CNPJ pendente na Receita"
+  },
+  {
+    "id": 108,
+    "tipo": "Organizador",
+    "nome": "Horizonte Produções",
+    "categoria": "Corporativo",
+    "cnpj": "33.222.111/0001-09",
+    "inscricaoEstadual": "332.221.110.021",
+    "cnpjAtivoReceita": true,
+    "contatoNome": "Bianca Ferreira",
+    "contatoEmail": "bianca@horizonteproducoes.com.br",
+    "contatoTelefone": "(48) 99654-3322",
+    "endereco": "Av. Beira Mar Norte, 1500 - Centro",
+    "cidadeUf": "Florianópolis / SC - CEP 88015-700",
+    "infoExtra": {
+      "titulo": "Capacidade Operacional",
+      "linha1": "Eventos corporativos de pequeno e médio porte",
+      "linha2": "Parcerias com 8 fornecedores homologados"
+    },
+    "documentos": [
+      { "nome": "Contrato_Social.pdf", "tamanho": "1.4 MB", "origem": "Autenticado digitalmente" },
+      { "nome": "Certidao_Negativa.pdf", "tamanho": "0.5 MB", "origem": "Receita Federal" }
+    ],
+    "submetidoEm": "2026-05-19T15:50:00",
+    "alerta": null
+  }
+]

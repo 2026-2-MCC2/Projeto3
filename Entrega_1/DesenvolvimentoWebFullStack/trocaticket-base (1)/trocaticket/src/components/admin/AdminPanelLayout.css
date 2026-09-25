@@ -1,0 +1,18 @@
+.admin-panel {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-bg);
+  font-family: var(--font-admin);
+}
+
+.admin-panel__content {
+  flex: 1;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 32px);
+}
+
+@media (max-width: 860px) {
+  .admin-panel {
+    flex-direction: column;
+  }
+}
