@@ -29,4 +29,7 @@ npm run dev
 
 ## Integrantes
 
-- (preencher)
+- Cintya Mendoza Apaza
+- Davi Moraes Muniz
+- Gustavo Cordeiro
+- Nicolas Moumdjian
