@@ -1,0 +1,131 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--color-text-strong);
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field__icon {
+  position: absolute;
+  left: 14px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.field__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px 0 44px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-neutral-100);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font: inherit;
+  font-size: var(--fs-body);
+  color: var(--color-text-strong);
+}
+
+.field--has-trailing .field__input {
+  padding-right: 48px;
+}
+
+.field__input::placeholder {
+  color: rgba(68, 71, 75, 0.6);
+}
+
+.field__input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0;
+  background: var(--color-surface);
+}
+
+.field--invalid .field__input {
+  border-color: var(--color-danger);
+}
+
+.field--invalid .field__input:focus {
+  outline-color: var(--color-danger);
+}
+
+.field__toggle {
+  position: absolute;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.field__toggle:hover {
+  color: var(--color-primary);
+}
+
+.field__error {
+  font-size: var(--fs-caption);
+  color: var(--color-danger);
+}
+
+.field--outline .field__label {
+  font-family: var(--font-admin);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-text-admin);
+}
+
+.field--outline .field__input {
+  height: 44px;
+  padding-left: 41px;
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  font-family: var(--font-admin);
+  color: var(--color-text-admin);
+}
+
+.field--outline .field__icon {
+  left: 12px;
+}
+
+.field--outline.field--has-trailing .field__input {
+  padding-right: 41px;
+}
+
+.field--outline.field--invalid .field__input {
+  border-color: var(--color-danger);
+}
+
+.field--select .field__input {
+  appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.field__chevron {
+  position: absolute;
+  right: 14px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}

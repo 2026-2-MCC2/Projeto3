@@ -1,0 +1,23 @@
+.visao-geral__periodo {
+  display: flex;
+  gap: 6px;
+}
+
+.visao-geral__section {
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.visao-geral__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.visao-geral__section-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

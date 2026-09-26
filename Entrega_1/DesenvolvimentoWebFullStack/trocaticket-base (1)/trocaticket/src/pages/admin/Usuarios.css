@@ -1,0 +1,104 @@
+.usuarios__card {
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.usuarios__card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.usuarios__controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.usuarios__acao {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-family: var(--font-admin);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.usuarios__acao--suspender {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+}
+
+.usuarios__acao--suspender:hover:not(:disabled) {
+  background: #ffc7c1;
+}
+
+.usuarios__acao--reativar {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.usuarios__acao--reativar:hover:not(:disabled) {
+  background: #cdeacb;
+}
+
+.usuarios__acao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.usuarios__historico {
+  padding: var(--space-5);
+}
+
+.usuarios__historico-titulo {
+  margin-bottom: var(--space-3);
+}
+
+.usuarios__historico-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.usuarios__historico-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-admin);
+}
+
+.usuarios__historico-lista li:last-child {
+  border-bottom: 0;
+}
+
+.usuarios__historico-lista strong {
+  display: block;
+  color: var(--color-text-admin);
+}
+
+.usuarios__historico-lista p {
+  margin-top: 2px;
+  font-size: var(--fs-caption);
+  color: var(--color-text);
+  max-width: 60ch;
+}
+
+.usuarios__historico-lista > li > span {
+  flex-shrink: 0;
+  font-size: var(--fs-caption);
+  color: var(--color-text-muted);
+}
