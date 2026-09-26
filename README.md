@@ -91,9 +91,9 @@ A pasta raiz contem dois arquivos que devem ser alterados:
 
 | Ferramenta | Função | Instalação |
 |---|---|---|
-| [Node.js (LTS)](https://nodejs.org) | Runtime JS + npm | Ver seção [Pré-requisitos](#pré-requisitos) |
+| [Node.js (LTS)](https://nodejs.org) | Runtime JS + npm | https://nodejs.org/pt-br/download |
 | npm | Gerenciador de pacotes | Incluído no Node.js |
-| [Git](https://git-scm.com) | Controle de versão | Ver seção [Pré-requisitos](#pré-requisitos) |
+| [Git](https://git-scm.com) | Controle de versão | https://git-scm.com/install/ |
 | [VS Code](https://code.visualstudio.com) | Editor recomendado | — |
 [Vite](https://vitejs.dev) | Dev server / build | `npm install` |
 | [React Router](https://reactrouter.com) | Roteamento | `npm install` |
