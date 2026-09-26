@@ -2,12 +2,21 @@ import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import AdminLayout from "./components/AdminLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+// Páginas públicas
 import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Cadastro from "./pages/Cadastro.jsx";
 import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
+
+// PÁGINAS CINTYA
+import AnaliseCadastral from './pages/AnaliseCadastral.jsx';
+import PainelFornecedor from './pages/PainelFornecedor.jsx';
+import MinhasPropostas from './pages/MinhasPropostas.jsx';
+import Mensagens from './pages/Mensagens.jsx';
+import ResumoePublicar from './pages/ResumoePublicar.jsx';
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
@@ -37,20 +46,48 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
         <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
-        {publicas.map(([path, titulo]) => (
-          <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
-        ))}
 
-        {Object.entries(protegidas).map(([perfil, telas]) => (
-          <Route key={perfil} element={<ProtectedRoute perfil={perfil} />}>
-            {telas.map(([path, titulo]) => (
-              <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
-            ))}
-          </Route>
-        ))}
+        {/* ✅ ROTA NOVA: Análise Cadastral (pública, após cadastro) */}
+        <Route path="/cadastro/status" element={<AnaliseCadastral />} />
+
+        {publicas
+          .filter(([path]) => path !== "/cadastro/status") // Remove a que já tem rota
+          .map(([path, titulo]) => (
+            <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
+          ))}
+
+        {/* ✅ ROTAS NOVO: Fornecedor */}
+        <Route element={<ProtectedRoute perfil="fornecedor" />}>
+          <Route path="/fornecedor/painel" element={<PainelFornecedor />} />
+          <Route path="/fornecedor" element={<PainelFornecedor />} />
+          <Route path="/fornecedor/minhas-propostas" element={<MinhasPropostas />} />
+          <Route path="/fornecedor/mensagens" element={<Mensagens />} />
+        </Route>
+
+        {/* ✅ ROTA NOVA: Organizador */}
+        <Route element={<ProtectedRoute perfil="organizador" />}>
+          <Route path="/organizador" element={<EmConstrucao titulo="Painel do Organizador" />} />
+          <Route path="/organizador/eventos/novo" element={<EmConstrucao titulo="Criar Evento" />} />
+          <Route path="/organizador/resumo" element={<ResumoePublicar />} />
+        </Route>
+
+        {/* Outras rotas protegidas que já existem */}
+        {Object.entries(protegidas).map(([perfil, telas]) => {
+          const rotasJaAdicionadas = perfil === "fornecedor" || perfil === "organizador";
+          if (rotasJaAdicionadas) return null;
+
+          return (
+            <Route key={perfil} element={<ProtectedRoute perfil={perfil} />}>
+              {telas.map(([path, titulo]) => (
+                <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
+              ))}
+            </Route>
+          );
+        })}
 
         <Route path="*" element={<NotFound />} />
       </Route>
+
       <Route element={<AdminLayout />}>
         <Route path="/login-admin" element={<LoginAdmin />} />
       </Route>
