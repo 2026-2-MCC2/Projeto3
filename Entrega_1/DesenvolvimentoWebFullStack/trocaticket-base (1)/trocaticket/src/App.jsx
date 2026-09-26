@@ -17,6 +17,14 @@ import Usuarios from "./pages/admin/Usuarios.jsx";
 import Eventos from "./pages/admin/Eventos.jsx";
 import Cotacoes from "./pages/admin/Cotacoes.jsx";
 import RelatoriosAuditoria from "./pages/admin/RelatoriosAuditoria.jsx";
+import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
+import PainelOrganizador from "./pages/PainelOrganizador.jsx";
+import CriarEvento from "./pages/CriarEvento.jsx";
+import CustoOrcamento from "./pages/CustoOrcamento.jsx";
+import Proposta from "./pages/Proposta.jsx";
+import Calculo from "./pages/Calculo.jsx";
+import Resumo from "./pages/Resumo.jsx";
+import Publicar from "./pages/Publicar.jsx";
 
 // PÁGINAS CINTYA
 import AnaliseCadastral from './pages/AnaliseCadastral.jsx';
@@ -36,13 +44,7 @@ const publicas = [
   ["/politicas", "Políticas de Concessão"],
 ];
 
-// Painéis dos perfis organizador/fornecedor ainda não implementados por outros
-// integrantes: seguem como EmConstrucao dentro do layout público padrão.
 const protegidas = {
-  organizador: [
-    ["/organizador", "Painel do Organizador"],
-    ["/organizador/eventos/novo", "Criar Evento"],
-  ],
   fornecedor: [["/fornecedor", "Painel do Fornecedor"]],
 };
 
@@ -72,13 +74,6 @@ export default function App() {
           <Route path="/fornecedor/mensagens" element={<Mensagens />} />
         </Route>
 
-        {/* ✅ ROTA NOVA: Organizador */}
-        <Route element={<ProtectedRoute perfil="organizador" />}>
-          <Route path="/organizador" element={<EmConstrucao titulo="Painel do Organizador" />} />
-          <Route path="/organizador/eventos/novo" element={<EmConstrucao titulo="Criar Evento" />} />
-          <Route path="/organizador/resumo" element={<ResumoePublicar />} />
-        </Route>
-
         {/* Outras rotas protegidas que já existem */}
         {Object.entries(protegidas).map(([perfil, telas]) => {
           const rotasJaAdicionadas = perfil === "fornecedor" || perfil === "organizador";
@@ -95,7 +90,21 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Route>
-
+      <Route element={<ProtectedRoute perfil="organizador" />}>
+        <Route path="/organizador" element={<OrganizadorLayout />}>
+          <Route index element={<PainelOrganizador />} />
+          <Route path="eventos/novo" element={<CriarEvento />} />
+          <Route path="eventos/novo/custo" element={<CustoOrcamento />} />
+          <Route path="eventos/novo/proposta" element={<Proposta />} />
+          <Route path="eventos/novo/calculo" element={<Calculo />} />
+          <Route path="eventos/novo/resumo" element={<Resumo />} />
+          <Route path="eventos/novo/publicar" element={<Publicar />} />
+          <Route path="eventos" element={<EmConstrucao titulo="Histórico de Eventos" />} />
+          <Route path="mensagens" element={<EmConstrucao titulo="Mensagens" />} />
+          <Route path="perfil" element={<EmConstrucao titulo="Meu Perfil" />} />
+          <Route path="resumo" element={<ResumoePublicar />} />
+        </Route>
+      </Route>
       <Route element={<AdminLayout />}>
         <Route path="/login-admin" element={<LoginAdmin />} />
       </Route>
