@@ -1,0 +1,18 @@
+{
+  "cadastros": [
+    { "id": 1, "nome": "Alvorada Eventos", "tipo": "Organizador", "cnpj": "12.345.678/0001-90", "categoria": "Corporativo", "aprovadoEm": "2025-02-04", "eventos": 14, "situacao": "Ativo" },
+    { "id": 2, "nome": "Norte Eventos", "tipo": "Organizador", "cnpj": "23.456.789/0001-11", "categoria": "Feiras e congressos", "aprovadoEm": "2025-03-18", "eventos": 9, "situacao": "Ativo" },
+    { "id": 3, "nome": "Planalto", "tipo": "Organizador", "cnpj": "34.567.890/0001-22", "categoria": "Agronegócio", "aprovadoEm": "2025-06-27", "eventos": 6, "situacao": "Suspenso" },
+    { "id": 4, "nome": "SomPro Áudio", "tipo": "Fornecedor", "cnpj": "45.678.901/0001-33", "categoria": "Som e iluminação", "aprovadoEm": "2025-01-11", "eventos": 22, "situacao": "Ativo" },
+    { "id": 5, "nome": "Sabor Real Buffet", "tipo": "Fornecedor", "cnpj": "56.789.012/0001-44", "categoria": "Alimentação", "aprovadoEm": "2025-04-09", "eventos": 17, "situacao": "Suspenso" },
+    { "id": 6, "nome": "Estrutura Sul Montagens", "tipo": "Fornecedor", "cnpj": "67.890.123/0001-55", "categoria": "Estruturas", "aprovadoEm": "2025-08-02", "eventos": 31, "situacao": "Ativo" },
+    { "id": 7, "nome": "Guardião Segurança", "tipo": "Fornecedor", "cnpj": "78.901.234/0001-66", "categoria": "Segurança", "aprovadoEm": "2025-09-15", "eventos": 12, "situacao": "Ativo" },
+    { "id": 8, "nome": "Aurora Cultural", "tipo": "Organizador", "cnpj": "89.012.345/0001-77", "categoria": "Festivais e shows", "aprovadoEm": "2025-05-30", "eventos": 8, "situacao": "Ativo" }
+  ],
+  "historico": [
+    { "id": 1, "cadastroNome": "Sabor Real Buffet", "descricao": "Suspenso por reincidência de atrasos", "autor": "Mariana Costa", "data": "2026-05-11" },
+    { "id": 2, "cadastroNome": "Norte Eventos", "descricao": "Reativação de cadastro após fiscalização e atualização de contrato social", "autor": "Rafael Nunes", "data": "2026-05-09" },
+    { "id": 3, "cadastroNome": "Planalto", "descricao": "Suspensão temporária por pendência documental na certidão negativa", "autor": "Mariana Costa", "data": "2026-04-28" },
+    { "id": 4, "cadastroNome": "SomPro Áudio", "descricao": "Aprovação de ampliação de categoria de fornecimento para grandes estruturas", "autor": "Carlos Eduardo", "data": "2026-04-14" }
+  ]
+}

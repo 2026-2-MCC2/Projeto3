@@ -98,3 +98,10 @@ export function forcaSenha(valor) {
   if (/[^A-Za-z0-9]/.test(valor)) pontos++;
   return pontos; // 0 a 4
 }
+
+export function validarMotivoRejeicao(valor) {
+  const texto = valor.trim();
+  if (!texto) return "Descreva o motivo da rejeição antes de enviar.";
+  if (texto.length < 15) return "Detalhe um pouco mais o motivo (mínimo 15 caracteres).";
+  return "";
+}

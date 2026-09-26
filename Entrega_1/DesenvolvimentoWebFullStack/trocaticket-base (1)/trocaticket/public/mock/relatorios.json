@@ -1,0 +1,33 @@
+{
+  "kpis": {
+    "tempoMedioAprovacaoDias": 3.2,
+    "economiaCotacoes": 214800
+  },
+  "eventosPorPeriodo": [
+    { "mes": "Mar", "eventos": 6, "custo": 148000 },
+    { "mes": "Abr", "eventos": 8, "custo": 197000 },
+    { "mes": "Mai", "eventos": 11, "custo": 312000 },
+    { "mes": "Jun", "eventos": 9, "custo": 255000 },
+    { "mes": "Jul", "eventos": 14, "custo": 482000 },
+    { "mes": "Ago", "eventos": 12, "custo": 362000 }
+  ],
+  "custoPorOrganizador": [
+    { "nome": "Alvorada Eventos", "valor": 482300 },
+    { "nome": "Norte Eventos", "valor": 210900 },
+    { "nome": "Horizonte", "valor": 1120000 },
+    { "nome": "Planalto", "valor": 356000 },
+    { "nome": "Orion", "valor": 98400 }
+  ],
+  "desempenhoFornecedores": [
+    { "nome": "Estrutura Sul Montagens", "cotacoes": 31, "contratado": 14, "tempoRespostaDias": 1.2, "nota": 94 },
+    { "nome": "SomPro Áudio", "cotacoes": 22, "contratado": 9, "tempoRespostaDias": 1.8, "nota": 88 },
+    { "nome": "Guardião Segurança", "cotacoes": 12, "contratado": 5, "tempoRespostaDias": 2.1, "nota": 81 }
+  ],
+  "auditoria": [
+    { "id": 1, "data": "2026-05-24T09:50:00", "autor": "Mariana Costa", "acao": "Aprovou cadastro", "detalhe": "AudioMaster Sonorização ME" },
+    { "id": 2, "data": "2026-05-23T18:40:00", "autor": "Rafael Nunes", "acao": "Reativou cadastro", "detalhe": "Norte Eventos" },
+    { "id": 3, "data": "2026-05-22T11:05:00", "autor": "Mariana Costa", "acao": "Suspendeu cadastro", "detalhe": "Planalto — pendência documental" },
+    { "id": 4, "data": "2026-05-20T15:30:00", "autor": "Carlos Eduardo", "acao": "Exportou relatório", "detalhe": "Relatório gerencial — Trimestre" },
+    { "id": 5, "data": "2026-05-18T08:12:00", "autor": "Mariana Costa", "acao": "Rejeitou cadastro", "detalhe": "Studio K Produções — documentação incompleta" }
+  ]
+}

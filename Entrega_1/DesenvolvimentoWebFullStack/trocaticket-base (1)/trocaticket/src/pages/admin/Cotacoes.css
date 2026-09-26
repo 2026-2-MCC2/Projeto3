@@ -1,0 +1,74 @@
+.cotacoes__card {
+  padding: var(--space-5);
+}
+
+.cotacoes__card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.cotacoes__filtros {
+  margin-bottom: var(--space-4);
+}
+
+.cotacoes__progresso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 90px;
+}
+
+.cotacoes__progresso-barra {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-200);
+  overflow: hidden;
+}
+
+.cotacoes__progresso-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+}
+
+.cotacoes__progresso-fill--warning {
+  background: var(--color-warning);
+}
+
+.cotacoes__progresso-fill--danger {
+  background: var(--color-danger);
+}
+
+.cotacoes__progresso-fill--success {
+  background: var(--color-success);
+}
+
+.cotacoes__progresso span {
+  font-size: var(--fs-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.cotacoes__prazo-msg {
+  display: block;
+  font-weight: 600;
+}
+
+.cotacoes__prazo-msg--warning {
+  color: var(--color-warning-text);
+}
+
+.cotacoes__prazo-msg--danger {
+  color: var(--color-danger-text);
+}
+
+.cotacoes__prazo-msg--success,
+.cotacoes__prazo-msg--info,
+.cotacoes__prazo-msg--neutral {
+  color: var(--color-text-muted);
+}
