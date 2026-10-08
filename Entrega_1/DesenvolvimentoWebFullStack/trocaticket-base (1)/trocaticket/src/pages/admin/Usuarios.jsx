@@ -20,14 +20,24 @@ export default function Usuarios() {
   const [processandoId, setProcessandoId] = useState(null);
   const [erroAcao, setErroAcao] = useState("");
 
-  function carregar() {
-    setEstado({ carregando: true, erro: "", cadastros: [], historico: [] });
-    buscarCadastros()
-      .then(({ cadastros, historico }) => setEstado({ carregando: false, erro: "", cadastros, historico }))
-      .catch((err) => setEstado({ carregando: false, erro: err.message, cadastros: [], historico: [] }));
+  function consultarCadastros() {
+    return buscarCadastros()
+      .then(({ cadastros, historico }) => ({ carregando: false, erro: "", cadastros, historico }))
+      .catch((err) => ({ carregando: false, erro: err.message, cadastros: [], historico: [] }));
   }
 
-  useEffect(carregar, []);
+  function carregar() {
+    setEstado({ carregando: true, erro: "", cadastros: [], historico: [] });
+    consultarCadastros().then(setEstado);
+  }
+
+  useEffect(() => {
+    let ativo = true;
+    consultarCadastros().then((resultado) => {
+      if (ativo) setEstado(resultado);
+    });
+    return () => { ativo = false; };
+  }, []);
 
   const termo = busca.trim().toLowerCase();
   const filtrados = useMemo(

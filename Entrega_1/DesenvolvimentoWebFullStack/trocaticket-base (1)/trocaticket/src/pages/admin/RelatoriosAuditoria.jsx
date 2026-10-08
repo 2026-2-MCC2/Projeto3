@@ -36,14 +36,24 @@ export default function RelatoriosAuditoria() {
   const [periodo, setPeriodo] = useState("Trimestre");
   const [busca, setBusca] = useState("");
 
-  function carregar() {
-    setEstado({ carregando: true, erro: "", dados: null });
-    buscarRelatorios()
-      .then((dados) => setEstado({ carregando: false, erro: "", dados }))
-      .catch((err) => setEstado({ carregando: false, erro: err.message, dados: null }));
+  function consultarRelatorios() {
+    return buscarRelatorios()
+      .then((dados) => ({ carregando: false, erro: "", dados }))
+      .catch((err) => ({ carregando: false, erro: err.message, dados: null }));
   }
 
-  useEffect(carregar, []);
+  function carregar() {
+    setEstado({ carregando: true, erro: "", dados: null });
+    consultarRelatorios().then(setEstado);
+  }
+
+  useEffect(() => {
+    let ativo = true;
+    consultarRelatorios().then((resultado) => {
+      if (ativo) setEstado(resultado);
+    });
+    return () => { ativo = false; };
+  }, []);
 
   const termo = busca.trim().toLowerCase();
   const auditoriaFiltrada = useMemo(() => {

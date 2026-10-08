@@ -10,7 +10,7 @@ const perfis = [
     tag: "Para produtores & gestores",
     titulo: "Organizador",
     atribuicao:
-      "Como Organizador, você cadastra eventos, gerencia emissões, controla transferências de ingressos e acompanha o faturamento da bilheteria.",
+      "Você cria o evento e informa os serviços necessários. Os fornecedores enviam propostas de preço; depois, você compara as opções e escolhe quais deseja contratar. Envio de proposta é feito pelo perfil Fornecedor.",
     textoBotao: "Quero ser Organizador",
     to: "/cadastro/organizador",
   },

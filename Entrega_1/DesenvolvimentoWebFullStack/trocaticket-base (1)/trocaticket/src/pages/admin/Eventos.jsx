@@ -38,14 +38,24 @@ export default function Eventos() {
   const [status, setStatus] = useState("Todos");
   const [busca, setBusca] = useState("");
 
-  function carregar() {
-    setEstado({ carregando: true, erro: "", lista: [] });
-    buscarEventos()
-      .then((lista) => setEstado({ carregando: false, erro: "", lista }))
-      .catch((err) => setEstado({ carregando: false, erro: err.message, lista: [] }));
+  function consultarEventos() {
+    return buscarEventos()
+      .then((lista) => ({ carregando: false, erro: "", lista }))
+      .catch((err) => ({ carregando: false, erro: err.message, lista: [] }));
   }
 
-  useEffect(carregar, []);
+  function carregar() {
+    setEstado({ carregando: true, erro: "", lista: [] });
+    consultarEventos().then(setEstado);
+  }
+
+  useEffect(() => {
+    let ativo = true;
+    consultarEventos().then((resultado) => {
+      if (ativo) setEstado(resultado);
+    });
+    return () => { ativo = false; };
+  }, []);
 
   const termo = busca.trim().toLowerCase();
   const filtrados = useMemo(

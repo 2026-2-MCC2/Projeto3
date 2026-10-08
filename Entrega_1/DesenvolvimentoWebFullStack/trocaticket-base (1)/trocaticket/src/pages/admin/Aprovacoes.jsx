@@ -24,17 +24,29 @@ export default function Aprovacoes() {
   const [processando, setProcessando] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
-  function carregar() {
-    setEstado({ carregando: true, erro: "", lista: [] });
-    buscarAprovacoes()
-      .then((lista) => {
-        setEstado({ carregando: false, erro: "", lista });
-        setSelecionadoId(lista[0]?.id ?? null);
-      })
-      .catch((err) => setEstado({ carregando: false, erro: err.message, lista: [] }));
+  function consultarAprovacoes() {
+    return buscarAprovacoes()
+      .then((lista) => ({ estado: { carregando: false, erro: "", lista }, selecionadoId: lista[0]?.id ?? null }))
+      .catch((err) => ({ estado: { carregando: false, erro: err.message, lista: [] }, selecionadoId: null }));
   }
 
-  useEffect(carregar, []);
+  function aplicarAprovacoes(resultado) {
+    setEstado(resultado.estado);
+    setSelecionadoId(resultado.selecionadoId);
+  }
+
+  function carregar() {
+    setEstado({ carregando: true, erro: "", lista: [] });
+    consultarAprovacoes().then(aplicarAprovacoes);
+  }
+
+  useEffect(() => {
+    let ativo = true;
+    consultarAprovacoes().then((resultado) => {
+      if (ativo) aplicarAprovacoes(resultado);
+    });
+    return () => { ativo = false; };
+  }, []);
 
   const filtrados = useMemo(
     () => (filtro === "todos" ? estado.lista : estado.lista.filter((a) => a.tipo === filtro)),
