@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import {
   CalendarDays,
   Camera,
@@ -11,6 +12,34 @@ import {
 import { Link } from "react-router-dom";
 
 export default function CriarEvento() {
+  const imagemInputRef = useRef(null);
+  const [imagemPreview, setImagemPreview] = useState("");
+  const [erroImagem, setErroImagem] = useState("");
+
+  function selecionarImagem(event) {
+    const arquivo = event.target.files?.[0];
+    event.target.value = "";
+    if (!arquivo) return;
+    if (!arquivo.type.startsWith("image/")) {
+      setErroImagem("Selecione um arquivo de imagem.");
+      return;
+    }
+    if (arquivo.size > 5 * 1024 * 1024) {
+      setErroImagem("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      if (typeof leitor.result === "string") {
+        setImagemPreview(leitor.result);
+        setErroImagem("");
+      }
+    };
+    leitor.onerror = () => setErroImagem("Não foi possível carregar a imagem.");
+    leitor.readAsDataURL(arquivo);
+  }
+
   return (
     <div className="cadastro-evento">
       <header className="cadastro-evento__heading">
@@ -58,8 +87,10 @@ export default function CriarEvento() {
         <aside className="cadastro-evento__side">
           <FormCard icon={Camera} title="Identidade Visual do Evento">
             <div className="event-preview">
-              <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=700&q=85" alt="Preview de um evento musical" />
-              <button type="button" className="event-preview__replace"><UploadCloud size={14} aria-hidden="true" /> Substituir</button>
+              <img src={imagemPreview || "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=700&q=85"} alt="Preview da identidade visual do evento" />
+              <input ref={imagemInputRef} type="file" accept="image/*" hidden onChange={selecionarImagem} />
+              <button type="button" className="event-preview__replace" onClick={() => imagemInputRef.current?.click()}><UploadCloud size={14} aria-hidden="true" /> Substituir</button>
+              {erroImagem && <p role="alert">{erroImagem}</p>}
               <div className="event-preview__caption"><small>PREVIEW OFICIAL</small><strong>Festival Aurora Sound 2026</strong><span><MapPin size={12} aria-hidden="true" /> Anhembi - São Paulo, SP</span></div>
             </div>
           </FormCard>

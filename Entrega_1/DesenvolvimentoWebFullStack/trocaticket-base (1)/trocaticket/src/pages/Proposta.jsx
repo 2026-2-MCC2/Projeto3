@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowLeftRight,
   AudioLines,
@@ -180,6 +181,11 @@ export default function Proposta() {
 
         <ProposalSidebar />
       </div>
+
+      <footer className="proposal-step-actions">
+        <Link to="/organizador/eventos/novo/custo" className="button button--secondary">Voltar aos custos</Link>
+        <Link to="/organizador/eventos/novo/calculo" className="button button--primary">Continuar para cálculo</Link>
+      </footer>
     </div>
   );
 }

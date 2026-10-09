@@ -1,12 +1,44 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ResumoePublicar.css";
 
+const CHAVE_RESUMO = "trocaticket:resumo:aurora";
+
+function lerStatusSalvo() {
+  try {
+    const resumo = JSON.parse(localStorage.getItem(CHAVE_RESUMO) ?? "null");
+    if (!resumo?.salvoEm) return "";
+    return `Salvo neste dispositivo em ${new Date(resumo.salvoEm).toLocaleString("pt-BR")}.`;
+  } catch {
+    return "";
+  }
+}
+
 export default function ResumoePublicar() {
   const navigate = useNavigate();
+  const [statusSalvar, setStatusSalvar] = useState(lerStatusSalvo);
+
+  function salvarResumo() {
+    const resumo = {
+      evento: "Festival Aurora Sound 2026",
+      orcamento: 256000,
+      custosFiscaisOperacionais: 96500,
+      custoTotalProjetado: 352500,
+      breakEven: 100.71,
+      salvoEm: new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem(CHAVE_RESUMO, JSON.stringify(resumo));
+      setStatusSalvar(`Salvo neste dispositivo em ${new Date(resumo.salvoEm).toLocaleString("pt-BR")}.`);
+    } catch {
+      setStatusSalvar("Não foi possível salvar o resumo neste dispositivo.");
+    }
+  }
 
   return (
     <div className="re-page">
-      <main className="re-main">
+      <div className="re-main">
         <div className="re-container">
           
           {/* Header Title Section */}
@@ -31,7 +63,7 @@ export default function ResumoePublicar() {
                   <h2>Festival Aurora Sound 2026</h2>
                 </div>
               </div>
-              <button className="re-btn-edit">
+              <button className="re-btn-edit" onClick={() => navigate('/organizador/eventos/novo')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -220,12 +252,13 @@ export default function ResumoePublicar() {
             </div>
             
             <div className="re-action-right">
-              <button className="re-btn-save">
+              <span className="re-save-status" role="status" aria-live="polite">{statusSalvar}</span>
+              <button className="re-btn-save" onClick={salvarResumo}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                 Salvar Resumo
               </button>
               
-              <button className="re-btn-publish" onClick={() => alert("Publicado com sucesso!")}>
+              <button className="re-btn-publish" onClick={() => navigate('/organizador/eventos/novo/publicar')}>
                 Publicar
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </button>
@@ -233,7 +266,7 @@ export default function ResumoePublicar() {
           </div>
 
         </div>
-      </main>
+      </div>
     </div>
   );
 }

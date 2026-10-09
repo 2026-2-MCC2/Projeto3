@@ -105,6 +105,8 @@
   .organizador-page__header { display: block; }
   .organizador-page__header .button { margin-top: 20px; }
   .resumo-list > div { display: grid; gap: 4px; }
+  .proposal-step-actions { flex-direction: column-reverse; }
+  .proposal-step-actions .button { width: 100%; }
 }
 
 .po-header-content {
@@ -149,6 +151,7 @@
 
 /* Propostas recebidas */
 .propostas-page { max-width: 1120px; margin: 0 auto; color: #303841; }
+.proposal-step-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
 .propostas-page__heading { display: grid; gap: 12px; margin-bottom: 20px; }
 .propostas-page__heading h1 { color: #292f37; font-size: 1.8rem; }
 .proposal-explainer { display: flex; align-items: flex-start; gap: 9px; max-width: 780px; padding: 11px 13px; border: 1px solid #dce5e8; border-radius: 7px; background: #f3f7f8; color: #56666e; }
@@ -367,7 +370,7 @@
 .po-events-title h2 { font-size: 20px; font-weight: 700; color: #424953; margin: 0; }
 .po-badge-outline { font-size: 11px; font-weight: 600; color: #8D9BA4; background-color: white; border: 1px solid #DFE2DA; padding: 4px 12px; border-radius: 20px; }
 
-.po-btn-new { background-color: #424953; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; align-self: flex-start; }
+.po-btn-new { display: inline-flex; align-items: center; justify-content: center; background-color: #424953; color: white; border: none; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background-color 0.2s; align-self: flex-start; }
 .po-btn-new:hover { background-color: #32373e; }
 
 .po-events-list { display: flex; flex-direction: column; gap: 14px; }

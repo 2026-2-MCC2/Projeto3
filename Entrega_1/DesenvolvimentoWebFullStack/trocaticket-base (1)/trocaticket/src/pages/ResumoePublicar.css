@@ -432,6 +432,13 @@
 .re-btn-save:hover { background-color: #E7E9E4; }
 .re-btn-save svg { width: 18px; height: 18px; }
 
+.re-save-status {
+  max-width: 240px;
+  color: #386344;
+  font-size: 12px;
+  text-align: right;
+}
+
 .re-btn-publish {
   display: inline-flex;
   align-items: center;

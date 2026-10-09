@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import "./OrganizadorLayout.css";
 
 export default function PainelOrganizador() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const rotaAtual = pathname.replace(/\/+$/, "") || "/";
 
   // Dados extraídos do script original do Stitch
   const eventosMock = [
@@ -96,13 +98,6 @@ export default function PainelOrganizador() {
     setModalCotacaoAberto(false);
   };
 
-  const novoEvento = () => {
-    const name = prompt('Nome do Novo Evento:', 'Summer Festival 2027');
-    if (name) {
-      alert(`Evento "${name}" criado em modo rascunho. Preencha os itens da Composição de Custos.`);
-    }
-  };
-
   return (
     <div className="po-page">
       {/* HEADER ORGANIZADOR */}
@@ -113,9 +108,9 @@ export default function PainelOrganizador() {
           </div>
           
           <nav className="po-nav">
-            <a href="#eventos" className="po-nav-item active">Meus Eventos</a>
-            <a href="#propostas" className="po-nav-item">Propostas Recebidas</a>
-            <a href="#mensagens" className="po-nav-item">Mensagens <span className="po-dot"></span></a>
+            <Link to="/organizador" className={`po-nav-item${rotaAtual === "/organizador" ? " active" : ""}`}>Meus Eventos</Link>
+            <Link to="/organizador/eventos/novo/proposta" className={`po-nav-item${rotaAtual.endsWith("/proposta") ? " active" : ""}`}>Propostas Recebidas</Link>
+            <Link to="/organizador/mensagens" className={`po-nav-item${rotaAtual.endsWith("/mensagens") ? " active" : ""}`}>Mensagens <span className="po-dot"></span></Link>
           </nav>
           
           <div className="po-profile">
@@ -129,6 +124,8 @@ export default function PainelOrganizador() {
       </header>
 
       <main className="po-main">
+        {rotaAtual === "/organizador" ? (
+          <>
         {/* ONBOARDING STEPS */}
         <section className="po-onboarding">
           <div className="po-section-header">
@@ -176,13 +173,13 @@ export default function PainelOrganizador() {
         <div className="po-workspace">
           
           {/* LADO ESQUERDO: LISTA DE EVENTOS */}
-          <section className="po-events-section">
+          <section className="po-events-section" id="eventos">
             <div className="po-events-header">
               <div className="po-events-title">
                 <h2>Meus Eventos</h2>
                 <span className="po-badge-outline">3 eventos ativos</span>
               </div>
-              <button className="po-btn-new" onClick={novoEvento}>+ Novo Evento</button>
+              <Link className="po-btn-new" to="/organizador/eventos/novo">+ Novo Evento</Link>
             </div>
 
             <div className="po-events-list">
@@ -233,7 +230,7 @@ export default function PainelOrganizador() {
                       <button className="po-btn-manage" onClick={(e) => { e.stopPropagation(); navigate('/organizador/resumo'); }}>
                         Gerenciar ➔
                       </button>
-                      <button className="po-btn-edit" onClick={(e) => { e.stopPropagation(); alert('Editar evento'); }}>✎</button>
+                      <button className="po-btn-edit" onClick={(e) => { e.stopPropagation(); navigate('/organizador/eventos/novo'); }} aria-label={`Editar ${evento.titulo}`}>✎</button>
                     </div>
                   </div>
                 </article>
@@ -247,7 +244,7 @@ export default function PainelOrganizador() {
               <h2>{eventoAtivo.titulo}</h2>
               <p>{eventoAtivo.meta}</p>
               <div className="po-details-actions">
-                <button className="po-btn-outline" onClick={() => alert('Abrindo chat...')}>💬 Chat com Fornecedores</button>
+                <button className="po-btn-outline" onClick={() => navigate('/organizador/mensagens')}>💬 Chat com Fornecedores</button>
                 <button className="po-btn-primary" onClick={() => navigate('/organizador/resumo')}>📊 Resumo Financeiro</button>
               </div>
             </div>
@@ -270,7 +267,7 @@ export default function PainelOrganizador() {
                           className="po-btn-action"
                           onClick={() => {
                             if(item.btnText === "Cotar item") abrirModalCotacao(item);
-                            else alert("Abrindo lista de propostas recebidas...");
+                            else navigate("/organizador/eventos/novo/proposta");
                           }}
                         >
                           {item.btnText}
@@ -289,6 +286,10 @@ export default function PainelOrganizador() {
           </section>
 
         </div>
+          </>
+        ) : (
+          <Outlet />
+        )}
       </main>
 
       {/* MODAL DE COTAÇÃO */}

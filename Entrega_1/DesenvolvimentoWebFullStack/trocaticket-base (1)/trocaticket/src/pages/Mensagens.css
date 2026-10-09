@@ -483,3 +483,72 @@
   .msg-header-content { justify-content: center; position: relative; }
   .msg-header-profile { position: absolute; right: 0; }
 }
+
+.msg-chat-actions { position: relative; }
+
+.msg-options-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid #E2E4DC;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.14);
+}
+
+.msg-options-menu button {
+  width: 100%;
+  border: 0;
+  border-radius: 5px;
+  padding: 9px 10px;
+  background: transparent;
+  color: #1F2937;
+  text-align: left;
+  cursor: pointer;
+}
+
+.msg-options-menu button:hover { background: #F3F4F6; }
+
+.msg-unread-label {
+  margin-left: auto;
+  color: #2F6D45;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.msg-contact-card.active .msg-unread-label { color: #D9F0DE; }
+
+.msg-attachment-pending {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0 0 42px;
+  color: #4B5563;
+  font-size: 12px;
+}
+
+.msg-attachment-pending button {
+  border: 0;
+  background: transparent;
+  color: #4B5563;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.msg-attachment-error {
+  margin: 8px 0 0 42px;
+  color: #A33D33;
+  font-size: 12px;
+}
+
+.msg-attachment-link {
+  display: block;
+  margin-top: 6px;
+  color: inherit;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
