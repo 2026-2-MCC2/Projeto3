@@ -16,24 +16,18 @@ export default function VisaoGeral() {
   const [busca, setBusca] = useState("");
   const [estado, setEstado] = useState({ carregando: true, erro: "", resumo: null, aprovacoes: [], eventos: [] });
 
-  function consultarResumo() {
-    return Promise.all([buscarResumo(), buscarAprovacoes(), buscarEventos()])
-      .then(([resumo, aprovacoes, eventos]) => ({ carregando: false, erro: "", resumo, aprovacoes, eventos }))
-      .catch((err) => ({ carregando: false, erro: err.message, resumo: null, aprovacoes: [], eventos: [] }));
-  }
-
   function carregar() {
     setEstado((e) => ({ ...e, carregando: true, erro: "" }));
-    consultarResumo().then(setEstado);
+    Promise.all([buscarResumo(), buscarAprovacoes(), buscarEventos()])
+      .then(([resumo, aprovacoes, eventos]) => {
+        setEstado({ carregando: false, erro: "", resumo, aprovacoes, eventos });
+      })
+      .catch((err) => {
+        setEstado((e) => ({ ...e, carregando: false, erro: err.message }));
+      });
   }
 
-  useEffect(() => {
-    let ativo = true;
-    consultarResumo().then((resultado) => {
-      if (ativo) setEstado(resultado);
-    });
-    return () => { ativo = false; };
-  }, []);
+  useEffect(carregar, []);
 
   const termo = busca.trim().toLowerCase();
   const aprovacoesFiltradas = useMemo(

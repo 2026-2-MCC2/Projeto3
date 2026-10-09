@@ -7,7 +7,6 @@ import {
   CalendarDays,
   ChevronDown,
   CircleHelp,
-  Info,
   Lightbulb,
   Search,
   Shield,
@@ -121,12 +120,6 @@ export default function Proposta() {
     <div className="propostas-page">
       <header className="propostas-page__heading">
         <h1>Propostas Recebidas</h1>
-        <div className="proposal-explainer">
-          <Info size={17} aria-hidden="true" />
-          <p>
-            <strong>Como funciona:</strong> fornecedores respondem aos itens do seu evento com preço, condições e validade. Compare as ofertas e selecione uma para destacar. Essa seleção não confirma contratação; ela apenas ajuda na análise.
-          </p>
-        </div>
       </header>
 
       <div className="propostas-toolbar">
