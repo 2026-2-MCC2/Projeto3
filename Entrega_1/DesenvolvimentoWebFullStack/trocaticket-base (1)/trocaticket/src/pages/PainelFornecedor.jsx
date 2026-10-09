@@ -20,7 +20,7 @@ export default function PainelFornecedor() {
       try {
         setLoading(true);
         throw new Error("Usando mock para espelhar o design");
-      } catch {
+      } catch (err) {
         const dadosMock = [
           {
             id: 1,

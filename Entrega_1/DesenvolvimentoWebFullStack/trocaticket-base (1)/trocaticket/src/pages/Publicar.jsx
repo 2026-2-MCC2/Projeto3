@@ -16,9 +16,9 @@ export default function Publicar() {
         <Send size={32} aria-hidden="true" />
         <h2>Pronto para publicar</h2>
         <p>Ao publicar, seu evento ficará disponível para divulgação e venda de ingressos.</p>
-        <button className="button button--primary publicar-box__confirm" type="button">
+        <button className="button button--primary" type="button">
           <CheckCircle2 size={17} aria-hidden="true" />
-          Confirmar e publicar evento
+          Publicar evento
         </button>
         <Link to="/organizador">Voltar ao painel</Link>
       </section>
