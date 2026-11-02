@@ -18,6 +18,7 @@ import Eventos from "./pages/admin/Eventos.jsx";
 import Cotacoes from "./pages/admin/Cotacoes.jsx";
 import RelatoriosAuditoria from "./pages/admin/RelatoriosAuditoria.jsx";
 import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
+import EventoRedirect from "./pages/EventoRedirect.jsx";
 import CriarEvento from "./pages/CriarEvento.jsx";
 import CustoOrcamento from "./pages/CustoOrcamento.jsx";
 import Proposta from "./pages/Proposta.jsx";
@@ -91,6 +92,8 @@ export default function App() {
       </Route>
       <Route element={<ProtectedRoute perfil="organizador" />}>
         <Route path="/organizador" element={<OrganizadorLayout />}>
+          <Route path="eventos/:id/custos" element={<CustoOrcamento />} />
+          <Route path="eventos/:id" element={<EventoRedirect />} />
           <Route path="eventos/novo" element={<CriarEvento />} />
           <Route path="eventos/novo/custo" element={<CustoOrcamento />} />
           <Route path="eventos/novo/proposta" element={<Proposta />} />

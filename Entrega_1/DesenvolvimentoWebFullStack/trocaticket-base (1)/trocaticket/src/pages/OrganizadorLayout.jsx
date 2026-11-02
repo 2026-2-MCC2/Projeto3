@@ -1,336 +1,363 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import {
+  Bell,
+  CalendarDays,
+  Calculator,
+  CreditCard,
+  ChevronDown,
+  FileText,
+  MapPin,
+  Pencil,
+  Plus,
+  LogOut,
+  Ticket,
+  TrendingUp,
+  X,
+} from "lucide-react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import "./OrganizadorLayout.css";
+import { useAuth } from "../hooks/useAuth.js";
+import {
+  getStoreSnapshot,
+  setEventoAtivo,
+  subscribe,
+} from "../services/eventoStore.js";
+import {
+  custoTotal,
+  eventosAtivos,
+  ingressoSugerido,
+  margemMediaProjetada,
+  orcamentoConsolidado,
+  percentualOrcamentoAlocado,
+  propostasEmAnalise,
+  totalPropostasEmAnalise,
+} from "../services/calculos.js";
+import "./OrganizadorDashboard.css";
 
-export default function PainelOrganizador() {
+const moeda = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+const moedaSemCentavos = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
+const percentual = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+const inteiro = new Intl.NumberFormat("pt-BR");
+
+const passos = [
+  {
+    numero: 1,
+    icone: Pencil,
+    classe: "blue",
+    titulo: "Cadastre",
+    descricao: "Configure os parâmetros do evento, locais e volumetria de público.",
+  },
+  {
+    numero: 2,
+    icone: FileText,
+    classe: "blue",
+    titulo: "Cotar & Compor",
+    descricao: "Solicite e receba propostas de fornecedores homologados para cada item.",
+  },
+  {
+    numero: 3,
+    icone: TrendingUp,
+    classe: "orange",
+    titulo: "Precifique & Lance",
+    descricao: "Simule o ticket ideal, consolide o orçamento e lance as vendas.",
+  },
+];
+
+const dataPorExtenso = (data) => {
+  if (!data) return "";
+  const [ano, mes, dia] = data.split("-").map(Number);
+  return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export default function OrganizadorLayout() {
+  const store = useSyncExternalStore(subscribe, getStoreSnapshot, getStoreSnapshot);
+  const { user, sair } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const rotaAtual = pathname.replace(/\/+$/, "") || "/";
+  const eventos = store.eventos;
+  const ativos = eventosAtivos(eventos);
+  const notificacoes = store.notificacoes;
+  const [onboardingDispensado, setOnboardingDispensado] = useState(
+    () => localStorage.getItem("trocaticket:onboarding-dispensado") === "true",
+  );
+  const paginaInicial = location.pathname.replace(/\/+$/, "") === "/organizador";
+  const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
+  const nomeUsuario = user?.nome ?? store.usuario.nome;
+  const iniciaisUsuario = user?.iniciais
+    ?? nomeUsuario.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
+  const planoUsuario = user?.plano ?? store.usuario.plano;
 
-  // Dados extraídos do script original do Stitch
-  const eventosMock = [
-    {
-      id: "aurora",
-      titulo: "Aurora Sound Festival 2026",
-      mes: "Out",
-      dia: "24",
-      status: "Vendas Abertas",
-      statusClass: "status-green",
-      tipo: "Festival",
-      hora: "14h00",
-      local: "Sambódromo Anhembi · SP",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuChAXjuzp278WCoQ7yKglKUcbUHtNnUWE249eoX0NMORp5ubfi6Heqf-bdYu4gyq5rSDt0DNJjJsWTuifpHNNJAAh7GjDALd0VlbWmULnwilGCzGan2r8iDUwrzdiW1isxhZNaHZL3OWh6nGlyUKmKk3RGdXCAG8yh8Xo0q-jW99YR3TQUh07HtuVQrSIxvCubrOCXz8fcAGbFLtZ_WohVVju-2W7Af-zbMi3D-uMXvyruGTXoe89uOVA",
-      metricaLabel: "Vendas 85%",
-      metricaValor: "R$ 1.152.000",
-      metricaProgresso: 85,
-      metricaCor: "#2A753C",
-      metricaSub: "12.8k ingressos",
-      meta: "12.800 ingressos vendidos · 24 de outubro · Sambódromo Anhembi, São Paulo - SP",
-      organizador: "Aurora Sound Produções",
-      itens: [
-        { id: 1, nome: "Som & Iluminação Line Array", desc: "Palco principal, DJ e iluminação cênica de arena", unit: "1 kit", badge: "Aprovada", badgeClass: "badge-green", btnText: "Ver Propostas (3)", detail: "R$ 74.000,00 · Fornecedor homologado: SomPro Áudio · Contrato formalizado." },
-        { id: 2, nome: "Estruturas e Palco Geodésico", desc: "Palco 24x18m com cobertura cristal e house mix", unit: "1 projeto", badge: "Em análise", badgeClass: "badge-yellow", btnText: "Ver Propostas (2)", detail: "R$ 62.500,00 · Melhor oferta por StagePro Brasil · Aguardando validação técnica." },
-        { id: 3, nome: "Mobiliário e Camarins", desc: "Mesas, cadeiras, lounges e espelhos camarim", unit: "1 lote", badge: "Enviada / Aguardando", badgeClass: "badge-gray", btnText: "Cotar item", detail: "R$ 18.400,00 (orçamento base de referência) · 1 fornecedor consultado." },
-        { id: 4, nome: "Segurança & Brigada", desc: "Contingente 65 vigilantes patrimoniais + 12 bombeiros civis", unit: "Turno 12h", badge: "Pendente de cotação", badgeClass: "badge-red", btnText: "Cotar item", detail: "" }
-      ]
-    },
-    {
-      id: "techbeats",
-      titulo: "Conferência Tech & Beats SP",
-      mes: "Nov",
-      dia: "12",
-      status: "Lote 2 Aberto",
-      statusClass: "status-yellow",
-      tipo: "Conferência",
-      hora: "12 a 13 de nov",
-      local: "Centro Frei Caneca · SP",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCYfXKOgRinYdLz8vOdPrCaG_9nrD75C0O8eNwDOov7n0djhlJGMOm3pwqSmh81h0ofmRYW1Z0Dxz49V65LszME46_7YhnDRt58ixM5sk9d6ZfRuDD8lFOm17cUMG8lmjSf6naOSLNQP-JcrLmp_XaYuS_BXPIN39Ya8Dwj73jyhbnONtQrhLSRSicrjZh7J22S8381-bC0XpuCrr6v5xt3B-M_0p4bVTtFJkLbikGYcPATLchq94lBsg",
-      metricaLabel: "Inscritos 85%",
-      metricaValor: "R$ 380.000",
-      metricaProgresso: 85,
-      metricaCor: "#8C6B34",
-      metricaSub: "2.7k participantes",
-      meta: "2.740 credenciamentos · 12 de novembro · Centro de Convenções Frei Caneca, SP",
-      organizador: "Aurora Sound Produções",
-      itens: [
-        { id: 5, nome: "Painéis de LED P2.5 e Broadcast", desc: "Painel central 10x4m e 2 laterais 4x3m para transmissão simultânea", unit: "3 painéis", badge: "Aprovada", badgeClass: "badge-green", btnText: "Ver Propostas (4)", detail: "R$ 48.000,00 · Fornecedor homologado: LED Pro Brasil." },
-        { id: 6, nome: "Sistema de Credenciamento & Catracas", desc: "8 totens de autoatendimento e controle de acessos sem fio", unit: "8 totens", badge: "Em análise", badgeClass: "badge-yellow", btnText: "Ver Propostas (2)", detail: "R$ 19.800,00 · Proposta recebida de TechAccess." },
-        { id: 7, nome: "Buffet Executivo e Coffee Breaks", desc: "Manhã e tarde para 2.700 congressistas em 2 dias", unit: "2 dias", badge: "Pendente de cotação", badgeClass: "badge-red", btnText: "Cotar item", detail: "" }
-      ]
-    },
-    {
-      id: "sunset",
-      titulo: "Sunset Acústico Rooftop",
-      mes: "Dez",
-      dia: "05",
-      status: "Planejamento",
-      statusClass: "status-red",
-      tipo: "Música & Rooftop",
-      hora: "16h00",
-      local: "Villa Lobos Open Air · SP",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBK4dC4m7-gC6MS5wCrD_yyjb6GahN7kGhR01thmOcPa3fZovMrNJIp-IpJtbFJECdj3jTGni4qqbWc3ORRvgr2crlxRI37OJE_OAhFerLZQ3D-MLqH1t73Ax89cxcRdS1LNvfFYAsd64O0P8rVgSw3hEGlkuR3L8yq7RDvKl6QmlOimU0vLjv7apt7sxJ6y6E902cKyFxXSKsE1SIkdLB2atqzV7xk-jNB587g97lGY4xcMaZxczI11A",
-      metricaLabel: "Capacidade",
-      metricaValor: "600 vagas",
-      metricaProgresso: 15,
-      metricaCor: "#8D9BA4",
-      metricaSub: "2 itens em cotação",
-      meta: "Capacidade: 600 · 05 de dezembro · Villa Lobos Open Air, São Paulo - SP",
-      organizador: "Aurora Sound Produções",
-      itens: [
-        { id: 8, nome: "Sonorização Acústica e P.A. Compacto", desc: "Sistema estéreo para pocket show e voz/violão", unit: "1 kit", badge: "Pendente de cotação", badgeClass: "badge-red", btnText: "Cotar item", detail: "" },
-        { id: 9, nome: "Bar de Coquetelaria & Chopp Artesanal", desc: "Estrutura de bar em ilha com 4 bartenders e insumos", unit: "1 estrutura", badge: "Pendente de cotação", badgeClass: "badge-red", btnText: "Cotar item", detail: "" }
-      ]
-    }
-  ];
+  function iniciarCadastro() {
+    navigate("/organizador/eventos/novo");
+  }
 
-  const [eventoAtivo, setEventoAtivo] = useState(eventosMock[0]);
-  const [modalCotacaoAberto, setModalCotacaoAberto] = useState(false);
-  const [itemParaCotar, setItemParaCotar] = useState(null);
-
-  const abrirModalCotacao = (item) => {
-    setItemParaCotar(item);
-    setModalCotacaoAberto(true);
-  };
-
-  const handleNovaCotacao = (e) => {
-    e.preventDefault();
-    alert("Demanda de cotação transmitida para a rede de fornecedores homologados TrocaTicket.");
-    setModalCotacaoAberto(false);
-  };
+  function dispensarOnboarding() {
+    localStorage.setItem("trocaticket:onboarding-dispensado", "true");
+    setOnboardingDispensado(true);
+  }
 
   return (
-    <div className="po-page">
-      {/* HEADER ORGANIZADOR */}
-      <header className="po-header">
-        <div className="po-header-content">
-          <div className="po-brand">
-            <span className="po-brand-text">TrocaTicket</span>
-          </div>
-          
-          <nav className="po-nav">
-            <Link to="/organizador" className={`po-nav-item${rotaAtual === "/organizador" ? " active" : ""}`}>Meus Eventos</Link>
-            <Link to="/organizador/eventos/novo/proposta" className={`po-nav-item${rotaAtual.endsWith("/proposta") ? " active" : ""}`}>Propostas Recebidas</Link>
-            <Link to="/organizador/mensagens" className={`po-nav-item${rotaAtual.endsWith("/mensagens") ? " active" : ""}`}>Mensagens <span className="po-dot"></span></Link>
+    <div className="tt-page">
+      <header className="tt-header">
+        <div className="tt-header__inner">
+          <Link className="tt-brand" to="/organizador" aria-label="TrocaTicket, início">
+            <span className="tt-brand__icon"><Ticket size={14} aria-hidden="true" /></span>
+            <span>Troca<strong>Ticket</strong></span>
+          </Link>
+
+          <nav className="tt-nav" aria-label="Navegação do organizador">
+            <Link
+              className={`tt-nav__link${paginaInicial || location.pathname.startsWith("/organizador/eventos/novo") ? " is-active" : ""}`}
+              to="/organizador"
+            >
+              Meus Eventos
+            </Link>
+            <Link
+              className="tt-nav__link"
+              to="/organizador/eventos/novo/proposta"
+            >
+              Fornecedores
+              {notificacoes.fornecedores > 0 && (
+                <span className="tt-nav__badge is-orange">{notificacoes.fornecedores}</span>
+              )}
+            </Link>
+            <Link className="tt-nav__link" to="/organizador/mensagens">
+              Mensagens
+              {notificacoes.mensagens > 0 && (
+                <span className="tt-nav__badge is-blue">{notificacoes.mensagens}</span>
+              )}
+            </Link>
           </nav>
-          
-          <div className="po-profile">
-            <div className="po-profile-info">
-              <span className="po-profile-name">Aurora Sound Produções</span>
-              <span className="po-profile-role">Organizador de Eventos</span>
-            </div>
-            <div className="po-profile-avatar">AS</div>
+
+          <div className="tt-user">
+            <button type="button" className="tt-notifications" aria-label="Notificações">
+              <Bell size={14} aria-hidden="true" />
+              <span />
+            </button>
+            <span className="tt-user__divider" />
+            <button
+              type="button"
+              className="tt-user__menu-trigger"
+              aria-expanded={menuUsuarioAberto}
+              aria-haspopup="menu"
+              onClick={() => setMenuUsuarioAberto((aberto) => !aberto)}
+            >
+              <span className="tt-user__avatar">{iniciaisUsuario}</span>
+              <span className="tt-user__details">
+                <strong>{nomeUsuario}</strong>
+                <small>{planoUsuario}</small>
+              </span>
+              <ChevronDown size={12} aria-hidden="true" />
+            </button>
+            {menuUsuarioAberto && (
+              <div className="tt-user__menu" role="menu">
+                <Link role="menuitem" to="/organizador/perfil" onClick={() => setMenuUsuarioAberto(false)}>
+                  Perfil
+                </Link>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    sair();
+                    navigate("/login");
+                  }}
+                >
+                  <LogOut size={13} aria-hidden="true" /> Sair
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="po-main">
-        {rotaAtual === "/organizador" ? (
-          <>
-        {/* ONBOARDING STEPS */}
-        <section className="po-onboarding">
-          <div className="po-section-header">
-            <h2>Do planejamento ao evento em 3 passos</h2>
-            <span>3 eventos ativos · próximo 24 out</span>
+      <main className="tt-main">
+        {paginaInicial ? (
+          <div className="tt-dashboard">
+            <section className="tt-page-heading">
+              <div>
+                <h1>Meus eventos</h1>
+                <p>Estruture custos e descubra o valor ideal do ingresso antes do evento.</p>
+              </div>
+              <button className="tt-primary-button" type="button" onClick={iniciarCadastro}>
+                <Plus size={13} aria-hidden="true" />
+                Criar evento
+              </button>
+            </section>
+
+            <section className="tt-kpis" aria-label="Indicadores dos eventos">
+              <KpiCard
+                label="Eventos Ativos"
+                value={inteiro.format(ativos.length)}
+                icon={CalendarDays}
+              />
+              <KpiCard
+                label="Orçamento Consolidado"
+                value={moedaSemCentavos.format(orcamentoConsolidado(ativos))}
+                icon={CreditCard}
+              />
+              <KpiCard
+                label="Propostas em Análise"
+                value={`${inteiro.format(totalPropostasEmAnalise(eventos))} fornecedores`}
+                icon={FileText}
+                color="orange"
+              />
+              <KpiCard
+                label="Margem Média Projetada"
+                value={`${percentual.format(margemMediaProjetada(ativos) * 100)}%`}
+                icon={TrendingUp}
+                color="blue"
+              />
+            </section>
+
+            {!onboardingDispensado && (
+              <section className="tt-onboarding">
+                <div className="tt-section-heading">
+                  <h2>Do planejamento ao evento em {passos.length} passos</h2>
+                  <button type="button" onClick={dispensarOnboarding}>
+                    Dispensar <X size={11} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="tt-steps">
+                  {passos.map(({ numero, icone: Icon, classe, titulo, descricao }) => (
+                    <article className="tt-step" key={titulo}>
+                      <span className="tt-step__number">{numero}</span>
+                      <span className={`tt-icon-box is-${classe}`}>
+                        <Icon size={13} aria-hidden="true" />
+                      </span>
+                      <h3>{titulo}</h3>
+                      <p>{descricao}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="tt-projects">
+              <div className="tt-section-heading">
+                <h2>Projetos em andamento</h2>
+                <span className="tt-count-pill">{inteiro.format(eventos.length)} eventos</span>
+              </div>
+              {eventos.length === 0 ? (
+                <p className="tt-empty">Nenhum evento cadastrado. Crie seu primeiro planejamento.</p>
+              ) : (
+                <div className="tt-event-grid">
+                  {eventos.map((evento) => (
+                    <EventCard
+                      evento={evento}
+                      key={evento.id}
+                      onOpen={() => setEventoAtivo(evento.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="tt-new-edition">
+              <span className="tt-icon-box is-blue">
+                <Calculator size={16} aria-hidden="true" />
+              </span>
+              <div>
+                <h2>Precisa planejar uma nova edição?</h2>
+                <p>Adicione custos fixos e variáveis para calibrar a taxa de break-even e lucro desejado.</p>
+              </div>
+              <button className="tt-secondary-button" type="button" onClick={iniciarCadastro}>
+                <Plus size={12} aria-hidden="true" />
+                Novo planejamento
+              </button>
+            </section>
           </div>
-          
-          <div className="po-steps-grid">
-            <div className="po-step-card">
-              <div className="po-step-top">
-                <div className="po-icon-box bg-gray">📋</div>
-                <span className="po-step-num">1</span>
-              </div>
-              <div className="po-step-text">
-                <h3>Cadastre</h3>
-                <p>Configure os parâmetros do evento, locais e volumetria de público.</p>
-              </div>
-            </div>
-
-            <div className="po-step-card">
-              <div className="po-step-top">
-                <div className="po-icon-box bg-light">💬</div>
-                <span className="po-step-num">2</span>
-              </div>
-              <div className="po-step-text">
-                <h3>Cotar & Compor</h3>
-                <p>Solicite e receba propostas de fornecedores homologados para cada item.</p>
-              </div>
-            </div>
-
-            <div className="po-step-card">
-              <div className="po-step-top">
-                <div className="po-icon-box bg-gray">🚀</div>
-                <span className="po-step-num">3</span>
-              </div>
-              <div className="po-step-text">
-                <h3>Precifique & Lance</h3>
-                <p>Simule o ticket ideal, consolide o orçamento e lance as vendas.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* WORKSPACE - GRID 2 COLUNAS */}
-        <div className="po-workspace">
-          
-          {/* LADO ESQUERDO: LISTA DE EVENTOS */}
-          <section className="po-events-section" id="eventos">
-            <div className="po-events-header">
-              <div className="po-events-title">
-                <h2>Meus Eventos</h2>
-                <span className="po-badge-outline">3 eventos ativos</span>
-              </div>
-              <Link className="po-btn-new" to="/organizador/eventos/novo">+ Novo Evento</Link>
-            </div>
-
-            <div className="po-events-list">
-              {eventosMock.map((evento) => (
-                <article 
-                  key={evento.id} 
-                  className={`po-event-card ${eventoAtivo.id === evento.id ? 'active' : ''}`}
-                  onClick={() => setEventoAtivo(evento)}
-                >
-                  <div className="po-card-content">
-                    <div className="po-card-image-box">
-                      <img src={evento.img} alt={evento.titulo} />
-                      <div className="po-date-badge">
-                        <span className="po-month">{evento.mes}</span>
-                        <span className="po-day">{evento.dia}</span>
-                      </div>
-                    </div>
-
-                    <div className="po-card-info">
-                      <div className="po-tags">
-                        <span className={`po-status-tag ${evento.statusClass}`}>
-                          <span className="po-tag-dot"></span> {evento.status}
-                        </span>
-                        <span className="po-type-tag">{evento.tipo}</span>
-                      </div>
-                      <h3>{evento.titulo}</h3>
-                      <div className="po-meta">
-                        <span>🕒 {evento.hora}</span>
-                        <span>📍 {evento.local}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="po-card-footer">
-                    <div className="po-metric-box">
-                      <div className="po-metric-labels">
-                        <span className="po-metric-title">{evento.metricaLabel}</span>
-                        <span className="po-metric-value">{evento.metricaValor}</span>
-                      </div>
-                      <div className="po-progress-bar">
-                        <div className="po-progress-fill" style={{ width: `${evento.metricaProgresso}%`, backgroundColor: evento.metricaCor }}></div>
-                      </div>
-                      <span className="po-metric-sub">{evento.metricaSub}</span>
-                    </div>
-
-                    <div className="po-card-actions">
-                      {/* O botão "Gerenciar" redireciona para a tela Resumo e Publicar que criamos */}
-                      <button className="po-btn-manage" onClick={(e) => { e.stopPropagation(); navigate('/organizador/resumo'); }}>
-                        Gerenciar ➔
-                      </button>
-                      <button className="po-btn-edit" onClick={(e) => { e.stopPropagation(); navigate('/organizador/eventos/novo'); }} aria-label={`Editar ${evento.titulo}`}>✎</button>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          {/* LADO DIREITO: DETALHES E CUSTOS DO EVENTO (Recriado do JS) */}
-          <section className="po-details-section">
-            <div className="po-details-header">
-              <h2>{eventoAtivo.titulo}</h2>
-              <p>{eventoAtivo.meta}</p>
-              <div className="po-details-actions">
-                <button className="po-btn-outline" onClick={() => navigate('/organizador/mensagens')}>💬 Chat com Fornecedores</button>
-                <button className="po-btn-primary" onClick={() => navigate('/organizador/resumo')}>📊 Resumo Financeiro</button>
-              </div>
-            </div>
-
-            <div className="po-cost-items">
-              <h3>Composição de Custos ({eventoAtivo.itens.length} itens)</h3>
-              
-              <div className="po-items-list">
-                {eventoAtivo.itens.map(item => (
-                  <div key={item.id} className="po-item-card">
-                    <div className="po-item-top">
-                      <div className="po-item-info">
-                        <h4>{item.nome}</h4>
-                        <p>{item.desc}</p>
-                        <span className="po-item-unit">{item.unit}</span>
-                      </div>
-                      <div className="po-item-actions">
-                        <span className={`po-item-badge ${item.badgeClass}`}>{item.badge}</span>
-                        <button 
-                          className="po-btn-action"
-                          onClick={() => {
-                            if(item.btnText === "Cotar item") abrirModalCotacao(item);
-                            else navigate("/organizador/eventos/novo/proposta");
-                          }}
-                        >
-                          {item.btnText}
-                        </button>
-                      </div>
-                    </div>
-                    {item.detail && (
-                      <div className="po-item-detail">
-                        {item.detail}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-        </div>
-          </>
         ) : (
           <Outlet />
         )}
       </main>
 
-      {/* MODAL DE COTAÇÃO */}
-      {modalCotacaoAberto && (
-        <div className="po-modal-overlay">
-          <div className="po-modal-content">
-            <div className="po-modal-header">
-              <div>
-                <span>SOLICITAÇÃO DE COTAÇÃO</span>
-                <h3>{itemParaCotar?.nome} ({itemParaCotar?.unit})</h3>
-              </div>
-              <button className="po-btn-close" onClick={() => setModalCotacaoAberto(false)}>✕</button>
-            </div>
-            
-            <form className="po-modal-form" onSubmit={handleNovaCotacao}>
-              <div className="po-form-grid">
-                <div className="po-form-group">
-                  <label>Teto Orçamentário (R$)</label>
-                  <input type="text" placeholder="R$ 35.000,00" required />
-                  <small>Limite previsto na composição de custos.</small>
-                </div>
-                <div className="po-form-group">
-                  <label>Prazo para Respostas</label>
-                  <input type="date" required />
-                  <small>Data limite para os fornecedores.</small>
-                </div>
-              </div>
-              
-              <div className="po-form-group">
-                <label>Especificações Técnicas e Requisitos</label>
-                <textarea rows="3" placeholder="Ex: Detalhes de montagem, horário de passagem de som..."></textarea>
-              </div>
-
-              <div className="po-modal-footer">
-                <button type="button" className="po-btn-cancel" onClick={() => setModalCotacaoAberto(false)}>Cancelar</button>
-                <button type="submit" className="po-btn-submit">Abrir Cotação na Rede</button>
-              </div>
-            </form>
+      {location.pathname !== "/organizador/eventos/novo" && (
+        <footer className="tt-footer">
+          <div className="tt-footer__inner">
+            <Link to="/ajuda">Central de Ajuda</Link>
+            <Link to="/termos">Termos para Organizadores</Link>
+            <Link to="/privacidade">Privacidade</Link>
           </div>
-        </div>
+        </footer>
       )}
     </div>
+  );
+}
+
+function KpiCard({ label, value, icon: Icon, color = "default" }) {
+  return (
+    <article className={`tt-kpi is-${color}`}>
+      <span className="tt-kpi__label">{label}</span>
+      <span className="tt-icon-box">
+        <Icon size={14} aria-hidden="true" />
+      </span>
+      <strong>{value}</strong>
+    </article>
+  );
+}
+
+function EventCard({ evento, onOpen }) {
+  const propostas = propostasEmAnalise(evento);
+  const alocado = percentualOrcamentoAlocado(evento);
+  const local = [evento.local.nome, `${evento.local.cidade}, ${evento.local.uf}`]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <Link
+      className="tt-event-card"
+      to={`/organizador/eventos/${evento.id}`}
+      onClick={onOpen}
+    >
+      <div className="tt-event-card__cover">
+        {evento.capa && <img src={evento.capa} alt="" />}
+        <div className="tt-event-card__cover-shade" />
+        <span className="tt-category-pill">{evento.categoria}</span>
+        {propostas > 0 ? (
+          <span className="tt-proposals-pill">
+            <Bell size={10} aria-hidden="true" />
+            {inteiro.format(propostas)} propostas
+          </span>
+        ) : (
+          <span className="tt-on-track-pill"><i /> Em dia</span>
+        )}
+        <h3>{evento.nome}</h3>
+      </div>
+      <div className="tt-event-card__body">
+        <div className="tt-event-meta">
+          <span><CalendarDays size={11} aria-hidden="true" />{dataPorExtenso(evento.dataInicio)}</span>
+          <span><MapPin size={11} aria-hidden="true" />{local}</span>
+        </div>
+        <div className="tt-budget">
+          <div><span>Orçamento alocado</span><strong>{inteiro.format(alocado)}%</strong></div>
+          <span className="tt-budget__track">
+            <span style={{ width: `${alocado}%` }} />
+          </span>
+        </div>
+        <div className="tt-event-card__footer">
+          <div>
+            <span className="tt-overline">Custo total</span>
+            <strong>{moeda.format(custoTotal(evento))}</strong>
+          </div>
+          <div className="is-ticket">
+            <span className="tt-overline">Ingresso sugerido</span>
+            <strong>{moeda.format(ingressoSugerido(evento))}</strong>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }

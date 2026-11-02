@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -10,13 +10,17 @@ import {
   UsersRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  getStoreSnapshot,
+  setEvento,
+  subscribe,
+} from "../services/eventoStore.js";
+import { custoTotal as calcularCustoTotal, publicoEsperado } from "../services/calculos.js";
 
-const custoTotal = 210000;
-const capacidadeTotal = 5000;
 const cenariosPublico = [
-  { id: "minimo", nome: "Conservador", detalhe: "Mínimo · 50%", publico: 2500, classe: "conservador" },
-  { id: "esperado", nome: "Esperado", detalhe: "Esperado · 70%", publico: 3500, classe: "esperado" },
-  { id: "maximo", nome: "Otimista", detalhe: "Máximo · 90%", publico: 4500, classe: "otimista" },
+  { id: "minimo", nome: "Conservador", detalhe: "Mínimo", classe: "conservador" },
+  { id: "esperado", nome: "Esperado", detalhe: "Esperado", classe: "esperado" },
+  { id: "maximo", nome: "Otimista", detalhe: "Máximo", classe: "otimista" },
 ];
 const margens = [
   { valor: 10, titulo: "Baixo Risco / Preço Agressivo", rotulo: "Margem Enxuta", detalhe: "Rápida adesão e alta rotatividade, porém com margem de segurança reduzida." },
@@ -27,28 +31,59 @@ const margens = [
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const numero = new Intl.NumberFormat("pt-BR");
+const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
-function calcularTicket(publico, margem) {
-  return custoTotal / (publico * (1 - margem / 100));
+function calcularTicket(custo, publico, margem) {
+  if (publico <= 0) return 0;
+  return custo / (publico * (1 - margem / 100));
 }
 
 export default function Calculo() {
-  const [margem, setMargem] = useState(20);
-  const [publicos, setPublicos] = useState({ minimo: 2500, esperado: 3500, maximo: 4500 });
+  const store = useSyncExternalStore(subscribe, getStoreSnapshot, getStoreSnapshot);
+  const evento = store.eventos.find((item) => item.id === store.eventoAtivoId);
+  useEffect(() => {
+    if (evento && evento.etapaAtual !== "calculo") {
+      setEvento(evento.id, { etapaAtual: "calculo" });
+    }
+  }, [evento]);
+  const custoTotal = evento ? calcularCustoTotal(evento) : 0;
+  const capacidadeTotal = evento?.capacidadeAlvara ?? 0;
+  const margem = evento ? evento.precificacao.margem * 100 : 0;
+  const taxaPlataforma = evento?.precificacao.taxaPlataforma ?? 0.08;
+  const impostos = evento?.precificacao.impostos ?? 0.05;
+  const publicos = evento
+    ? {
+        minimo: evento.publico.minimo,
+        esperado: publicoEsperado(evento),
+        maximo: evento.publico.maximo,
+      }
+    : { minimo: 0, esperado: 0, maximo: 0 };
 
-  const cenarios = useMemo(() => cenariosPublico.map((cenario) => {
+  const cenarios = cenariosPublico.map((cenario) => {
     const publico = publicos[cenario.id];
-    const ticket = calcularTicket(publico, margem);
+    const ticket = calcularTicket(custoTotal, publico, margem);
     const receita = ticket * publico;
     return { ...cenario, publico, ticket, receita, lucro: receita - custoTotal };
-  }), [margem, publicos]);
+  });
 
-  const precoMinimo = calcularTicket(publicos.minimo, margem);
-  const precoMaximo = calcularTicket(publicos.maximo, margem);
+  const precoMinimo = calcularTicket(custoTotal, publicos.maximo, margem);
+  const precoMaximo = calcularTicket(custoTotal, publicos.minimo, margem);
 
   function atualizarPublico(id, value) {
-    setPublicos((atuais) => ({ ...atuais, [id]: Math.max(1, Number(value) || 1) }));
+    if (!evento) return;
+    const publico = Math.max(1, Number(value) || 1);
+    const audiencia = { ...evento.publico };
+    if (id === "minimo") audiencia.minimo = publico;
+    if (id === "maximo") audiencia.maximo = publico;
+    if (id === "esperado") {
+      const amplitude = (audiencia.maximo - audiencia.minimo) / 2;
+      audiencia.minimo = Math.max(1, publico - amplitude);
+      audiencia.maximo = publico + amplitude;
+    }
+    setEvento(evento.id, { publico: audiencia });
   }
+
+  if (!evento) return <p className="event-empty">Selecione ou cadastre um evento para calcular o ingresso.</p>;
 
   return (
     <div className="ticket-calculation">
@@ -62,8 +97,8 @@ export default function Calculo() {
             <SectionTitle icon={SlidersHorizontal} title="Parâmetros Operacionais do Evento" />
 
             <div className="event-facts">
-              <div><span>Nome do Evento</span><strong>Festival Aurora Sound 2026</strong></div>
-              <div><span>Local</span><strong><MapPin size={12} aria-hidden="true" /> Arena Aurora · Curitiba, PR</strong></div>
+              <div><span>Nome do Evento</span><strong>{evento.nome || "Novo evento"}</strong></div>
+              <div><span>Local</span><strong><MapPin size={12} aria-hidden="true" /> {evento.local.nome} · {evento.local.cidade}, {evento.local.uf}</strong></div>
               <div><span>Custo Consolidado (Orçamento + Fornecedores)</span><strong>{moeda.format(custoTotal)} <em>Fechado</em></strong></div>
               <div><span>Capacidade Total do Local</span><strong>{numero.format(capacidadeTotal)} <small>pessoas</small></strong></div>
             </div>
@@ -73,8 +108,8 @@ export default function Calculo() {
               <div className="audience-fields">
                 {cenariosPublico.map((cenario) => (
                   <label className="audience-field" key={cenario.id}>
-                    <span>{cenario.detalhe} <small>{Math.round((publicos[cenario.id] / capacidadeTotal) * 100)}%</small></span>
-                    <div><input type="number" min="1" max={capacidadeTotal} value={publicos[cenario.id]} onChange={(event) => atualizarPublico(cenario.id, event.target.value)} /><small>pax</small></div>
+                    <span>{cenario.detalhe} <small>{capacidadeTotal > 0 ? Math.round((publicos[cenario.id] / capacidadeTotal) * 100) : 0}%</small></span>
+                    <div><input type="number" min="1" max={capacidadeTotal} step="any" value={publicos[cenario.id]} onChange={(event) => atualizarPublico(cenario.id, event.target.value)} /><small>pax</small></div>
                   </label>
                 ))}
               </div>
@@ -102,19 +137,19 @@ export default function Calculo() {
             <SectionTitle icon={ChartNoAxesColumnIncreasing} title="Timeline de Margens" />
             <div className="margin-control">
               <label htmlFor="margin-range">Margem Operacional Desejada <strong>{margem}<small>%</small></strong></label>
-              <input id="margin-range" type="range" min="0" max="50" step="1" value={margem} onChange={(event) => setMargem(Number(event.target.value))} />
+              <input id="margin-range" type="range" min="0" max="50" step="1" value={margem} onChange={(event) => setEvento(evento.id, { precificacao: { margem: Number(event.target.value) / 100 } })} />
               <div className="margin-markers"><span>0% (Custo Puro)</span><span>20% (Padrão)</span><span>50%</span><span>99% (Teto)</span></div>
             </div>
 
             <div className="margin-presets">
-              {margens.map((opcao) => <MarginOption key={opcao.valor} opcao={opcao} ativa={margem === opcao.valor} minimo={calcularTicket(publicos.minimo, opcao.valor)} maximo={calcularTicket(publicos.maximo, opcao.valor)} onClick={() => setMargem(opcao.valor)} />)}
+              {margens.map((opcao) => <MarginOption key={opcao.valor} opcao={opcao} ativa={margem === opcao.valor} minimo={calcularTicket(custoTotal, publicos.maximo, opcao.valor)} maximo={calcularTicket(custoTotal, publicos.minimo, opcao.valor)} onClick={() => setEvento(evento.id, { precificacao: { margem: opcao.valor / 100 } })} />)}
             </div>
 
             <section className="taxes-card">
               <h3><ReceiptText size={13} aria-hidden="true" /> Encargos Fiscais & Taxa Plataforma</h3>
-              <div><span>Taxa TrocaTicket (Gestão/Checkout):</span><strong>8% <small>(+{moeda.format(precoMinimo * 0.08)})</small></strong></div>
-              <div><span>Alíquota estimada de impostos (ISS/Simples):</span><strong>5% <small>(+{moeda.format(precoMinimo * 0.05)})</small></strong></div>
-              <div className="consumer-price"><span>Ticket Final Consumidor (Min. – Máx.):</span><strong>{moeda.format(precoMinimo * 1.13)} <i>–</i> {moeda.format(precoMaximo * 1.13)}</strong></div>
+              <div><span>Taxa TrocaTicket (Gestão/Checkout):</span><strong>{percentual.format(taxaPlataforma * 100)}% <small>(+{moeda.format(precoMinimo * taxaPlataforma)})</small></strong></div>
+              <div><span>Alíquota estimada de impostos (ISS/Simples):</span><strong>{percentual.format(impostos * 100)}% <small>(+{moeda.format(precoMinimo * impostos)})</small></strong></div>
+              <div className="consumer-price"><span>Ticket Final Consumidor (Min. – Máx.):</span><strong>{moeda.format(precoMinimo * (1 + taxaPlataforma + impostos))} <i>–</i> {moeda.format(precoMaximo * (1 + taxaPlataforma + impostos))}</strong></div>
             </section>
           </section>
 
