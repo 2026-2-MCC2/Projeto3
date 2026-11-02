@@ -102,6 +102,23 @@
   font-size: 12px;
 }
 
+.orcamento-page__event-name {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: .8rem;
+  font-weight: 500;
+}
+
+.cost-list-empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #dbe3ee;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+
 @media (max-width: 560px) {
   .budget-modal {
     padding: 18px;

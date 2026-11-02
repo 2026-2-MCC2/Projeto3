@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeftRight,
@@ -15,13 +15,19 @@ import {
   Speaker,
   Star,
 } from "lucide-react";
+import {
+  getStoreSnapshot,
+  setEvento,
+  subscribe,
+} from "../services/eventoStore.js";
+import { custoTotal } from "../services/calculos.js";
 
 const categorias = [
-  { nome: "Todos os Itens", total: 8 },
-  { nome: "Som & PA", total: 3 },
-  { nome: "Iluminação Cênica", total: 2 },
-  { nome: "Estruturas & Palco", total: 2 },
-  { nome: "Segurança Privada", total: 1 },
+  { nome: "Todos os Itens" },
+  { nome: "Som & PA" },
+  { nome: "Iluminação Cênica" },
+  { nome: "Estruturas & Palco" },
+  { nome: "Segurança Privada" },
 ];
 
 const propostas = [
@@ -92,11 +98,11 @@ const propostas = [
   },
 ];
 
-const distribuicao = [
-  { nome: "Som & PA", total: 3, cor: "som" },
-  { nome: "Iluminação", total: 2, cor: "luz" },
-  { nome: "Estruturas", total: 2, cor: "estrutura" },
-  { nome: "Segurança", total: 1, cor: "seguranca" },
+const categoriasDistribuicao = [
+  { nome: "Som & PA", categoria: "Som & PA", cor: "som" },
+  { nome: "Iluminação", categoria: "Iluminação Cênica", cor: "luz" },
+  { nome: "Estruturas", categoria: "Estruturas & Palco", cor: "estrutura" },
+  { nome: "Segurança", categoria: "Segurança Privada", cor: "seguranca" },
 ];
 
 const formatoMoeda = new Intl.NumberFormat("pt-BR", {
@@ -105,23 +111,64 @@ const formatoMoeda = new Intl.NumberFormat("pt-BR", {
 });
 
 export default function Proposta() {
+  const store = useSyncExternalStore(subscribe, getStoreSnapshot, getStoreSnapshot);
+  const evento = store.eventos.find((item) => item.id === store.eventoAtivoId);
+  useEffect(() => {
+    if (evento && evento.etapaAtual !== "proposta") {
+      setEvento(evento.id, { etapaAtual: "proposta" });
+    }
+  }, [evento]);
   const [categoriaAtiva, setCategoriaAtiva] = useState("Todos os Itens");
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState("menor-valor");
-  const [selecionada, setSelecionada] = useState("Acústica Prime Engenharia de Som");
+  const propostasDoEvento = evento
+    ? evento.propostas.map((proposta, indice) => ({
+        ...propostas[indice % propostas.length],
+        ...proposta,
+      }))
+    : [];
+  const selecionada = propostasDoEvento.find((proposta) => proposta.selecionada)?.fornecedorId
+    ?? propostasDoEvento[0]?.fornecedorId;
 
-  const propostasVisiveis = useMemo(() => {
-    const termo = busca.trim().toLocaleLowerCase("pt-BR");
-    return propostas
-      .filter((proposta) => categoriaAtiva === "Todos os Itens" || proposta.categoria === categoriaAtiva)
-      .filter((proposta) => !termo || `${proposta.nome} ${proposta.servico}`.toLocaleLowerCase("pt-BR").includes(termo))
-      .sort((a, b) => ordem === "menor-valor" ? a.valor - b.valor : b.valor - a.valor);
-  }, [busca, categoriaAtiva, ordem]);
+  const termo = busca.trim().toLocaleLowerCase("pt-BR");
+  const propostasVisiveis = propostasDoEvento
+    .filter((proposta) => categoriaAtiva === "Todos os Itens" || proposta.categoria === categoriaAtiva)
+    .filter((proposta) => !termo || `${proposta.nome} ${proposta.servico}`.toLocaleLowerCase("pt-BR").includes(termo))
+    .sort((a, b) => ordem === "menor-valor" ? a.valor - b.valor : b.valor - a.valor);
+
+  const propostasPorCategoria = categorias.map(({ nome }) => ({
+    nome,
+    total: nome === "Todos os Itens"
+      ? propostasDoEvento.length
+      : propostasDoEvento.filter((proposta) => proposta.categoria === nome).length,
+  }));
+  const propostasAnalise = propostasDoEvento.filter((proposta) => proposta.status === "em_analise").length;
+  const totalEvento = evento ? custoTotal(evento) : 0;
+  const totalAceito = evento?.custos.propostasAceitas.reduce((total, proposta) => total + proposta.valor, 0) ?? 0;
+  const menorProposta = propostasDoEvento.length
+    ? Math.min(...propostasDoEvento.map((proposta) => proposta.valor))
+    : 0;
+  const mediaPropostas = propostasDoEvento.length
+    ? propostasDoEvento.reduce((total, proposta) => total + proposta.valor, 0) / propostasDoEvento.length
+    : 0;
+
+  function selecionarProposta(fornecedorId) {
+    if (!evento) return;
+    setEvento(evento.id, {
+      propostas: evento.propostas.map((proposta) => ({
+        ...proposta,
+        selecionada: proposta.fornecedorId === fornecedorId,
+      })),
+    });
+  }
+
+  if (!evento) return <p className="event-empty">Selecione ou cadastre um evento para ver as propostas.</p>;
 
   return (
     <div className="propostas-page">
       <header className="propostas-page__heading">
         <h1>Propostas Recebidas</h1>
+        <p>{evento.nome || "Novo evento"}</p>
         <div className="proposal-explainer">
           <Info size={17} aria-hidden="true" />
           <p>
@@ -132,7 +179,7 @@ export default function Proposta() {
 
       <div className="propostas-toolbar">
         <div className="proposal-filters" aria-label="Filtrar propostas por categoria">
-          {categorias.map(({ nome, total }) => (
+          {propostasPorCategoria.map(({ nome, total }) => (
             <button
               className={categoriaAtiva === nome ? "proposal-filter is-active" : "proposal-filter"}
               key={nome}
@@ -170,16 +217,24 @@ export default function Proposta() {
           <div className="supplier-list">
             {propostasVisiveis.length ? propostasVisiveis.map((proposta) => (
               <SupplierRow
-                key={proposta.nome}
+                key={proposta.fornecedorId}
                 proposta={proposta}
-                selecionada={selecionada === proposta.nome}
-                onSelect={() => setSelecionada(proposta.nome)}
+                selecionada={selecionada === proposta.fornecedorId}
+                onSelect={() => selecionarProposta(proposta.fornecedorId)}
               />
-            )) : <p className="proposal-empty">Nenhuma proposta corresponde aos filtros selecionados.</p>}
+            )) : <p className="proposal-empty">{propostasDoEvento.length ? "Nenhuma proposta corresponde aos filtros selecionados." : "Este evento ainda não recebeu propostas."}</p>}
           </div>
         </section>
 
-        <ProposalSidebar />
+        <ProposalSidebar
+          evento={evento}
+          propostas={propostasDoEvento}
+          propostasAnalise={propostasAnalise}
+          totalEvento={totalEvento}
+          totalAceito={totalAceito}
+          menorProposta={menorProposta}
+          mediaPropostas={mediaPropostas}
+        />
       </div>
 
       <footer className="proposal-step-actions">
@@ -215,15 +270,33 @@ function SupplierRow({ proposta, selecionada, onSelect }) {
   );
 }
 
-function ProposalSidebar() {
+function ProposalSidebar({
+  evento,
+  propostas,
+  propostasAnalise,
+  totalEvento,
+  totalAceito,
+  menorProposta,
+  mediaPropostas,
+}) {
+  const distribuicao = categoriasDistribuicao.map((item) => ({
+    ...item,
+    total: propostas.filter((proposta) => proposta.categoria === item.categoria).length,
+  })).filter((item) => item.total > 0);
+
   return (
     <aside className="proposals-sidebar">
       <p className="proposals-sidebar__eyebrow">Faixa de Estado</p>
       <section className="proposal-summary-card">
-        <div className="proposal-total"><strong>8 Propostas</strong><span>4 itens de custo aguardando fechamento definitivo</span></div>
+        <div className="proposal-total"><strong>{propostasAnalise} Propostas em análise</strong><span>{propostas.length} propostas vinculadas a {evento.nome || "este evento"}</span></div>
         <div className="category-distribution">
-          <div className="sidebar-section-heading"><strong>Distribuição por Categoria</strong><span>8 totais</span></div>
-          <div className="distribution-bar" aria-label="Distribuição: 3 propostas de Som e PA, 2 de Iluminação, 2 de Estruturas e 1 de Segurança">
+          <div className="sidebar-section-heading"><strong>Distribuição por Categoria</strong><span>{propostas.length} totais</span></div>
+          <div
+            className="distribution-bar"
+            aria-label={distribuicao.length
+              ? `Distribuição: ${distribuicao.map((item) => `${item.total} de ${item.nome}`).join(", ")}`
+              : "Nenhuma proposta recebida"}
+          >
             {distribuicao.map((item) => <span key={item.cor} className={`distribution-segment ${item.cor}`} style={{ flexGrow: item.total }} />)}
           </div>
           <div className="distribution-legend">
@@ -232,16 +305,16 @@ function ProposalSidebar() {
         </div>
         <div className="projected-budget">
           <h3>Resumo Orçamentário Projetado</h3>
-          <BudgetRow label="Economia Total Projetada:" value="R$ 17.200,00" highlight />
-          <BudgetRow label="Menor Proposta Ativa:" value="R$ 31.000,00" />
-          <BudgetRow label="Média das Propostas:" value="R$ 47.060,00" />
-          <BudgetRow label="Teto Orçado do Evento:" value="R$ 210.000,00" />
+          <BudgetRow label="Propostas Aceitas:" value={formatoMoeda.format(totalAceito)} highlight />
+          <BudgetRow label="Menor Proposta Ativa:" value={menorProposta ? formatoMoeda.format(menorProposta) : "—"} />
+          <BudgetRow label="Média das Propostas:" value={propostas.length ? formatoMoeda.format(mediaPropostas) : "—"} />
+          <BudgetRow label="Orçamento Total do Evento:" value={formatoMoeda.format(totalEvento)} />
         </div>
       </section>
 
       <div className="proposal-event-image">
-        <img src="https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=700&q=85" alt="Palco de show ao entardecer com público" />
-        <span>Palco Principal <i>•</i> Arena Aurora</span>
+        {evento.capa && <img src={evento.capa} alt="" />}
+        <span>{evento.nome || "Novo evento"} <i>•</i> {evento.local.nome || "Local não definido"}</span>
       </div>
       <div className="proposal-help"><CircleHelp size={15} aria-hidden="true" /> Compare valores, avaliações e validade antes de escolher.</div>
     </aside>

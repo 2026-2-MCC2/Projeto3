@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   Calculator,
   Download,
@@ -10,69 +10,42 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import {
+  getStoreSnapshot,
+  setEvento,
+  setEventoAtivo,
+  subscribe,
+} from "../services/eventoStore.js";
 import "./CustoOrcamento.css";
-
-const itensIniciais = [
-  {
-    id: "producao-som",
-    category: "Som & Iluminação",
-    quantity: "Qtd: 1 sistema completo",
-    title: "Sistema Line Array K2 + Rider Técnico de Palco",
-    specification: "PA: L-Acoustics K2 com subs KS28, consoles digitais Avid S6L, monitores de palco e microfonação técnica.",
-    value: 80000,
-  },
-  {
-    id: "producao-palco",
-    category: "Palco & Estrutura",
-    quantity: "Qtd: 1 estrutura modular",
-    title: "Palco Geodésico 24x18m com Cobertura Cristal & House Mix",
-    specification: "Estrutura: Cobertura em alumínio Q30/Q50, piso naval com acabamento antiderrapante, torres de delay e laudo ART de montagem.",
-    value: 62500,
-  },
-  {
-    id: "producao-seguranca",
-    category: "Segurança & Operação",
-    quantity: "Qtd: 77 profissionais (turno 12h)",
-    title: "Contingente de 65 Vigilantes Patrimoniais + 12 Bombeiros Civis",
-    specification: "Escala de segurança interna/perimetral homologada pela Polícia Federal e brigada com plano de evacuação médica.",
-    value: 25500,
-  },
-  {
-    id: "producao-limpeza",
-    category: "Limpeza & Sanitários",
-    quantity: "Qtd: 44 cabines + equipe pós-evento",
-    title: "40 Cabines Químicas Standard + 4 Cabines PCD + Coleta Seletiva",
-    specification: "Manutenção contínua e higienização durante o evento, caminhão limpa-fossa e descarte certificado de resíduos.",
-    value: 20000,
-  },
-];
-
-const custosFiscaisIniciais = [
-  {
-    id: "fiscal-operacional",
-    category: "Custos Fiscais & ECAD",
-    quantity: "Pacote operacional",
-    title: "Taxas, ECAD, UTI e impostos",
-    specification: "Custos fiscais e operacionais previstos para o evento.",
-    value: 96500,
-  },
-];
-
-const CHAVE_PRODUCAO = "trocaticket:orcamento:producao";
-const CHAVE_FISCAL = "trocaticket:orcamento:fiscal";
-
-function lerCustos(chave, padrao) {
-  try {
-    const salvos = JSON.parse(localStorage.getItem(chave) ?? "null");
-    return Array.isArray(salvos) ? salvos : padrao;
-  } catch {
-    return padrao;
-  }
-}
 
 const formatarMoeda = (valor) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(valor);
+
+function itensFornecedor(evento) {
+  return evento.custos.fornecedores.map((fornecedor, indice) => ({
+    id: fornecedor.itemId ?? fornecedor.fornecedorId ?? `fornecedor-${indice}`,
+    category: fornecedor.category ?? "Fornecedor",
+    quantity: fornecedor.quantity ?? "Item de fornecedor",
+    title: fornecedor.title ?? "Custo de fornecedor cadastrado",
+    specification: fornecedor.specification ?? "",
+    value: fornecedor.valor,
+  }));
+}
+
+function itensFiscais(evento) {
+  if (Array.isArray(evento.custos.detalhesFiscais)) return evento.custos.detalhesFiscais;
+  return evento.custos.fiscais > 0
+    ? [{
+        id: "fiscal-operacional",
+        category: "Custos Fiscais & Operacionais",
+        quantity: "Pacote operacional",
+        title: "Taxas, ECAD, UTI e impostos",
+        specification: "Custos fiscais e operacionais previstos para o evento.",
+        value: evento.custos.fiscais,
+      }]
+    : [];
+}
 
 const novoFormulario = (tipo) => ({
   tipo,
@@ -85,26 +58,19 @@ const novoFormulario = (tipo) => ({
 });
 
 export default function CustoOrcamento() {
-  const [itens, setItens] = useState(() => lerCustos(CHAVE_PRODUCAO, itensIniciais));
-  const [custosFiscais, setCustosFiscais] = useState(() => lerCustos(CHAVE_FISCAL, custosFiscaisIniciais));
+  const store = useSyncExternalStore(subscribe, getStoreSnapshot, getStoreSnapshot);
+  const { id } = useParams();
+  const evento = store.eventos.find((item) => item.id === (id ?? store.eventoAtivoId));
+  const itens = evento ? itensFornecedor(evento) : [];
+  const custosFiscais = evento ? itensFiscais(evento) : [];
   const [formulario, setFormulario] = useState(null);
   const [statusExportacao, setStatusExportacao] = useState("");
 
   useEffect(() => {
-    try {
-      localStorage.setItem(CHAVE_PRODUCAO, JSON.stringify(itens));
-    } catch {
-      console.error("Não foi possível persistir os itens de produção.");
-    }
-  }, [itens]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CHAVE_FISCAL, JSON.stringify(custosFiscais));
-    } catch {
-      console.error("Não foi possível persistir os custos fiscais.");
-    }
-  }, [custosFiscais]);
+    if (!evento) return;
+    if (evento.id !== store.eventoAtivoId) setEventoAtivo(evento.id);
+    if (evento.etapaAtual !== "custo") setEvento(evento.id, { etapaAtual: "custo" });
+  }, [evento, store.eventoAtivoId]);
 
   const totalProducao = itens.reduce((total, item) => total + item.value, 0);
   const totalFiscal = custosFiscais.reduce((total, item) => total + item.value, 0);
@@ -119,22 +85,38 @@ export default function CustoOrcamento() {
     setFormulario({ ...item, tipo, value: String(item.value) });
   }
 
+  function salvarCustos(proximosItens, proximosCustosFiscais) {
+    if (!evento) return;
+    setEvento(evento.id, {
+      custos: {
+        fornecedores: proximosItens.map(({ id: itemId, ...item }) => ({
+          ...item,
+          fornecedorId: itemId,
+          valor: item.value,
+        })),
+        fiscais: proximosCustosFiscais.reduce((total, item) => total + item.value, 0),
+        detalhesFiscais: proximosCustosFiscais,
+      },
+    });
+  }
+
   function salvarItem(event) {
     event.preventDefault();
     const valor = Number(formulario.value);
     if (!Number.isFinite(valor) || valor < 0) return;
 
     const listaAtual = formulario.tipo === "fiscal" ? custosFiscais : itens;
-    const setLista = formulario.tipo === "fiscal" ? setCustosFiscais : setItens;
     const registro = {
       ...formulario,
-      id: formulario.id || globalThis.crypto?.randomUUID?.() || String(Date.now()),
+      id: formulario.id || globalThis.crypto.randomUUID(),
       value: valor,
     };
-    setLista(
-      formulario.id
-        ? listaAtual.map((item) => (item.id === formulario.id ? registro : item))
-        : [...listaAtual, registro]
+    const listaAtualizada = formulario.id
+      ? listaAtual.map((item) => (item.id === formulario.id ? registro : item))
+      : [...listaAtual, registro];
+    salvarCustos(
+      formulario.tipo === "fiscal" ? itens : listaAtualizada,
+      formulario.tipo === "fiscal" ? listaAtualizada : custosFiscais,
     );
     setFormulario(null);
   }
@@ -142,9 +124,9 @@ export default function CustoOrcamento() {
   function excluirItem(tipo, id) {
     if (!window.confirm("Deseja excluir este custo do orçamento?")) return;
     if (tipo === "fiscal") {
-      setCustosFiscais((atuais) => atuais.filter((item) => item.id !== id));
+      salvarCustos(itens, custosFiscais.filter((item) => item.id !== id));
     } else {
-      setItens((atuais) => atuais.filter((item) => item.id !== id));
+      salvarCustos(itens.filter((item) => item.id !== id), custosFiscais);
     }
   }
 
@@ -170,7 +152,10 @@ export default function CustoOrcamento() {
   return (
     <div className="orcamento-page">
       <header className="orcamento-page__header">
-        <h1>Composição de Custos e Orçamento</h1>
+        <div>
+          <h1>Composição de Custos e Orçamento</h1>
+          {evento && <p className="orcamento-page__event-name">{evento.nome || "Novo evento"}</p>}
+        </div>
         <div className="orcamento-page__actions">
           <button className="button button--primary" type="button" onClick={() => abrirNovo("producao")}><Plus size={15} aria-hidden="true" /> Item de Produção</button>
           <button className="button button--secondary" type="button" onClick={() => abrirNovo("fiscal")}><Calculator size={15} aria-hidden="true" /> Custo Fiscal/Op.</button>
@@ -184,6 +169,7 @@ export default function CustoOrcamento() {
             <div><small>SUBTOTAL PRODUÇÃO</small><strong>{formatarMoeda(totalProducao)}</strong></div>
           </div>
           <div className="cost-items-list">
+            {itens.length === 0 && <p className="cost-list-empty">Nenhum item de produção cadastrado.</p>}
             {itens.map((item) => <CostItem key={item.id} item={item} tipo="producao" onEdit={editarItem} onDelete={excluirItem} />)}
           </div>
           <div className="cost-items-card__heading cost-items-card__heading--fiscal">
@@ -191,15 +177,23 @@ export default function CustoOrcamento() {
             <div><small>SUBTOTAL FISCAL/OPERACIONAL</small><strong>{formatarMoeda(totalFiscal)}</strong></div>
           </div>
           <div className="cost-items-list">
+            {custosFiscais.length === 0 && <p className="cost-list-empty">Nenhum custo fiscal ou operacional cadastrado.</p>}
             {custosFiscais.map((item) => <CostItem key={item.id} item={item} tipo="fiscal" onEdit={editarItem} onDelete={excluirItem} />)}
           </div>
         </section>
 
-        <CostSummary items={todosOsCustos} totalGeral={totalGeral} onDownload={baixarPlanilha} statusExportacao={statusExportacao} />
+        <CostSummary
+          items={todosOsCustos}
+          totalGeral={totalGeral}
+          capacidade={evento?.capacidadeAlvara ?? 0}
+          publicoMinimo={evento?.publico.minimo ?? 0}
+          onDownload={baixarPlanilha}
+          statusExportacao={statusExportacao}
+        />
       </div>
 
       <footer className="orcamento-page__footer">
-        <Link to="/organizador/eventos/novo" className="button button--secondary">Voltar</Link>
+        <Link to={evento ? `/organizador/eventos/novo?id=${encodeURIComponent(evento.id)}` : "/organizador"} className="button button--secondary">Voltar</Link>
         <Link to="/organizador/eventos/novo/proposta" className="button button--primary">Salvar e continuar</Link>
       </footer>
 
@@ -245,7 +239,7 @@ function CostItem({ item, tipo, onEdit, onDelete }) {
   );
 }
 
-function CostSummary({ items, totalGeral, onDownload, statusExportacao }) {
+function CostSummary({ items, totalGeral, capacidade, publicoMinimo, onDownload, statusExportacao }) {
   const categorias = items.reduce((grupos, item) => {
     grupos[item.category] = (grupos[item.category] ?? 0) + item.value;
     return grupos;
@@ -256,8 +250,8 @@ function CostSummary({ items, totalGeral, onDownload, statusExportacao }) {
     <aside className="cost-summary">
       <h2><Scale size={16} aria-hidden="true" /> Resumo Consolidado</h2>
       <div className="cost-summary__total"><small>CUSTO TOTAL PLANEJADO</small><strong>{formatarMoeda(totalGeral)}</strong></div>
-      <div className="cost-summary__metrics"><div><small>Capacidade Alvará</small><strong>{formatarMoeda(totalGeral / 8500)} <em>/ pax</em></strong><span>8.500 pessoas máx.</span></div><div><small>Ponto de Equilíbrio</small><strong>{formatarMoeda(totalGeral / 3000)} <em>/ pax</em></strong><span>3.000 pagantes mín.</span></div></div>
-      <div className="allocation-chart"><div><strong>100%</strong><span>ALOCADO</span></div></div>
+      <div className="cost-summary__metrics"><div><small>Capacidade Alvará</small><strong>{formatarMoeda(capacidade > 0 ? totalGeral / capacidade : 0)} <em>/ pax</em></strong><span>{new Intl.NumberFormat("pt-BR").format(capacidade)} pessoas máx.</span></div><div><small>Ponto de Equilíbrio</small><strong>{formatarMoeda(publicoMinimo > 0 ? totalGeral / publicoMinimo : 0)} <em>/ pax</em></strong><span>{new Intl.NumberFormat("pt-BR").format(publicoMinimo)} pagantes mín.</span></div></div>
+      <div className="allocation-chart"><div><strong>{totalGeral > 0 ? "100%" : "0%"}</strong><span>ALOCADO</span></div></div>
       <ul className="allocation-legend">
         {Object.entries(categorias).map(([categoria, valor], index) => (
           <li key={categoria}><span className="legend-dot" style={{ backgroundColor: cores[index % cores.length] }} /> <strong>{categoria}</strong><em>{totalGeral ? `${Math.round((valor / totalGeral) * 100)}%` : "0%"}</em><b>{formatarMoeda(valor)}</b></li>
