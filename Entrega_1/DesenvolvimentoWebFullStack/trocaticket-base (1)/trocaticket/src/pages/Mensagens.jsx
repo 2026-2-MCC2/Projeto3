@@ -7,9 +7,7 @@ export default function Mensagens({ perfil = "fornecedor" }) {
   const mensagensFimRef = useRef(null);
   const arquivoInputRef = useRef(null);
   const ehOrganizador = perfil === "organizador";
-  const rotaPainel = ehOrganizador ? "/organizador" : "/fornecedor/painel";
   const rotaPropostas = ehOrganizador ? "/organizador/eventos/novo/proposta" : "/fornecedor/minhas-propostas";
-  const rotaMensagens = ehOrganizador ? "/organizador/mensagens" : "/fornecedor/mensagens";
   
   // Dados simulados baseados no design do Stitch
   const [conversas, setConversas] = useState(() => ehOrganizador ? [
@@ -158,31 +156,6 @@ export default function Mensagens({ perfil = "fornecedor" }) {
 
   return (
     <div className="msg-page">
-      {/* HEADER DE NAVEGAÇÃO DO FORNECEDOR */}
-      <header className="msg-header">
-        <div className="msg-header-content">
-          <div className="msg-header-spacer"></div>
-          <nav className="msg-header-nav">
-            <button onClick={() => navigate(rotaPainel)} className="msg-nav-item">
-              {ehOrganizador ? "Meus eventos" : "Oportunidades"}
-            </button>
-            <button onClick={() => navigate(rotaPropostas)} className="msg-nav-item">
-              {ehOrganizador ? "Propostas recebidas" : "Minhas propostas"}
-            </button>
-            <button onClick={() => navigate(rotaMensagens)} className="msg-nav-item active">
-              Mensagens <span className="msg-nav-dot"></span>
-            </button>
-          </nav>
-          <div className="msg-header-profile">
-            <div className="msg-profile-info">
-              <span className="msg-profile-name">{ehOrganizador ? "Aurora Sound Produções" : "Casa Aurora"}</span>
-              <span className="msg-profile-role">{ehOrganizador ? "Organizador de Eventos" : "Buffet & mobiliário"}</span>
-            </div>
-            <div className="msg-profile-avatar">{ehOrganizador ? "AS" : "CA"}</div>
-          </div>
-        </div>
-      </header>
-
       <main className="msg-main">
         {/* Título da Página */}
         <div className="msg-page-header">
