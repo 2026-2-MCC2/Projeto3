@@ -1,341 +1,372 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./PainelFornecedor.css";
+import React, { useState } from 'react';
+import './PainelFornecedor.css';
 
 export default function PainelFornecedor() {
-  const navigate = useNavigate();
-  const [eventos, setEventos] = useState([]);
-  const [eventoSelecionado, setEventoSelecionado] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Estados para o Modal de Proposta
-  const [modalAberto, setModalAberto] = useState(false);
-  const [itemParaCotar, setItemParaCotar] = useState(null);
-  const [valorProposta, setValorProposta] = useState("");
-  const [validadeProposta, setValidadeProposta] = useState("");
-  const [obsProposta, setObsProposta] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [modalState, setModalState] = useState({ isOpen: false, title: '', tag: '', value: '' });
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        setLoading(true);
-        throw new Error("Usando mock para espelhar o design");
-      } catch {
-        const dadosMock = [
-          {
-            id: 1,
-            titulo: "Casamento Helena & Tomás",
-            tipo: "CASAMENTO",
-            dataCurta: "28 OUT",
-            dataCompleta: "28 de outubro",
-            local: "Fazenda Boa Vista",
-            publico: 120,
-            organizador: "Marina Braga",
-            itens: [
-              { id: 101, nome: "Buffet jantar servido", desc: "Entrada, prato principal, sobremesa · serviço à francesa", qtd: "120 pax", status: "cotar" },
-              { id: 102, nome: "Mobiliário e louças", desc: "Mesas redondas, cadeiras Tiffany, louça premium", qtd: "12 conj.", status: "enviada", valor: "6.200,00", dataEnvio: "12/10/2025", validade: "12/11/2025", obs: "Inclui montagem e desmontagem." },
-              { id: 103, nome: "Decoração floral", desc: "Centro de mesa, arco de flores, arranjos de altar", qtd: "1 projeto", status: "em_analise", valor: "9.850,00", dataEnvio: "10/10/2025", validade: "10/11/2025", obs: "Flores da estação." },
-              { id: 104, nome: "Som e iluminação", desc: "Palco, pista, DJ e iluminação cênica", qtd: "1 kit", status: "aprovada", valor: "7.400,00", obs: "Contrato emitido." }
-            ]
-          },
-          {
-            id: 2,
-            titulo: "Convenção Nimbus Tech",
-            tipo: "CORPORATIVO",
-            dataCurta: "04 NOV",
-            dataCompleta: "04 de novembro",
-            local: "Centro de Convenções",
-            publico: 400,
-            organizador: "Carlos Albuquerque",
-            itens: [
-              { id: 201, nome: "Coffee break duplo", desc: "Manhã e Tarde para todos os participantes", qtd: "400 pax", status: "cotar" }
-            ]
-          },
-          {
-            id: 3,
-            titulo: "Aniversário 50 anos Dona Rita",
-            tipo: "SOCIAL",
-            dataCurta: "15 NOV",
-            dataCompleta: "15 de novembro",
-            local: "Espaço Vila Verde",
-            publico: 80,
-            organizador: "Rita Valadares",
-            itens: []
-          }
-        ];
-        setEventos(dadosMock);
-        setEventoSelecionado(dadosMock[0]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const timer = setTimeout(fetchEventos, 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const abrirModal = (item) => {
-    setItemParaCotar(item);
-    setValorProposta(item.valor ? item.valor.replace(".", "") : "");
-    setValidadeProposta(item.validade ? item.validade.split('/').reverse().join('-') : "");
-    setObsProposta(item.obs || "");
-    setModalAberto(true);
+  const openQuoteModal = (title, tag, value = '') => {
+    setModalState({ isOpen: true, title, tag, value });
   };
 
-  const fecharModal = () => {
-    setModalAberto(false);
-    setItemParaCotar(null);
+  const closeQuoteModal = () => {
+    setModalState({ isOpen: false, title: '', tag: '', value: '' });
   };
 
-  const enviarProposta = (e) => {
+  const handleQuoteSubmit = (e) => {
     e.preventDefault();
-    alert(`Proposta de R$ ${valorProposta} para "${itemParaCotar.nome}" enviada com sucesso!`);
-    fecharModal();
+    alert('Proposta salva e encaminhada com sucesso para o organizador!');
+    closeQuoteModal();
   };
-
-  if (loading) {
-    return <div className="pf-loading">Carregando painel do fornecedor...</div>;
-  }
 
   return (
-    <div className="pf-page">
-      
-      {/* MENU SUPERIOR (HEADER FORNECEDOR) */}
-      <header className="pf-header">
-        <div className="pf-header-content">
-          <div className="pf-header-spacer"></div>
-          
-          <nav className="pf-header-nav">
-            <button onClick={() => navigate('/fornecedor/painel')} className="pf-nav-item active">
-              Oportunidades
-            </button>
-            <button onClick={() => navigate('/fornecedor/minhas-propostas')} className="pf-nav-item">
-              Minhas propostas
-            </button>
-            <button onClick={() => navigate('/fornecedor/mensagens')} className="pf-nav-item">
-              Mensagens <span className="pf-nav-dot"></span>
-            </button>
-          </nav>
-          
-          <div className="pf-header-profile">
-            <div className="pf-profile-info">
-              <span className="pf-profile-name">Casa Aurora</span>
-              <span className="pf-profile-role">Buffet & mobiliário</span>
-            </div>
-            <div className="pf-profile-avatar">CA</div>
+    <div className="opp-layout">
+      {/* Aqui entraria o Header Global (TopNavigationBar) */}
+
+      <main className="opp-main">
+        {/* Page Header */}
+        <div className="opp-page-header">
+          <div>
+            <p className="opp-greeting">Bom dia, Casa Aurora</p>
+            <h1 className="opp-page-title">Oportunidades abertas</h1>
+          </div>
+          <div>
+            <span className="opp-summary-text"><strong>5 eventos</strong> aguardando sua proposta</span>
           </div>
         </div>
-      </header>
 
-      <main className="pf-main">
-        {/* Onboarding Steps */}
-        <section className="pf-onboarding">
-          <div className="pf-onboarding-header">
-            <h2>Do convite à proposta em 3 passos</h2>
-            <span>{eventos.length} oportunidades abertas · prazo 28 out</span>
-          </div>
-          
-          <div className="pf-steps-grid">
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">🎯</div>
-                <span className="pf-step-number">1</span>
+        {/* Onboarding Banner */}
+        {showOnboarding && (
+          <section className="opp-onboarding">
+            <div className="opp-onboarding-header">
+              <div>
+                <h2 className="opp-onboarding-title"><span className="dot"></span>Como funciona</h2>
+                <p className="opp-onboarding-desc">Do evento à proposta aprovada em 4 passos simples.</p>
               </div>
-              <div className="pf-step-text">
-                <h3>Descubra</h3>
-                <p>Veja oportunidades abertas e filtre por tipo de evento.</p>
-              </div>
+              <button className="opp-btn-dismiss" onClick={() => setShowOnboarding(false)}>
+                ✕ Entendi
+              </button>
             </div>
-            
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">✏️</div>
-                <span className="pf-step-number">2</span>
-              </div>
-              <div className="pf-step-text">
-                <h3>Componha</h3>
-                <p>Monte a proposta por item com valor, validade e observações.</p>
-              </div>
-            </div>
-            
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">📤</div>
-                <span className="pf-step-number">3</span>
-              </div>
-              <div className="pf-step-text">
-                <h3>Envie</h3>
-                <p>Acompanhe status e converse com o organizador.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Workspace: Sidebar & Detail Panel */}
-        <div className="pf-workspace">
-          
-          {/* Left Column: Lista de Oportunidades */}
-          <section className="pf-sidebar">
-            <div className="pf-sidebar-header">
-              <h2>Oportunidades</h2>
-              <span>{eventos.length} abertas</span>
-            </div>
-            
-            <div className="pf-event-list">
-              {eventos.map((evento) => (
-                <article 
-                  key={evento.id} 
-                  className={`pf-event-card ${eventoSelecionado?.id === evento.id ? 'active' : ''}`}
-                  onClick={() => setEventoSelecionado(evento)}
-                >
-                  <div className="pf-card-meta">
-                    <span>{evento.tipo}</span>
-                    <span>{evento.dataCurta}</span>
+            <div className="opp-steps-grid">
+              <div className="opp-step-card">
+                <div className="opp-step-top">
+                  <div className="opp-step-icon" style={{ backgroundColor: '#eff6ff', color: '#00629e' }}>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   </div>
-                  <h3>{evento.titulo}</h3>
-                  <p>{evento.local} · {evento.publico} pessoas</p>
-                </article>
-              ))}
+                  <span className="opp-step-num" style={{ color: '#bfdbfe' }}>1</span>
+                </div>
+                <h3 className="opp-step-title">Encontre um evento</h3>
+                <p className="opp-step-text">Na lista à esquerda estão os eventos abertos para cotação. Use a busca ou filtre por tipo.</p>
+              </div>
+              <div className="opp-step-card">
+                <div className="opp-step-top">
+                  <div className="opp-step-icon" style={{ backgroundColor: '#eef2ff', color: '#5F5EF0' }}>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                  </div>
+                  <span className="opp-step-num" style={{ color: '#c7d2fe' }}>2</span>
+                </div>
+                <h3 className="opp-step-title">Veja os itens</h3>
+                <p className="opp-step-text">Clique no evento para ver os itens que o organizador precisa (buffet, mobiliário...).</p>
+              </div>
+              <div className="opp-step-card">
+                <div className="opp-step-top">
+                  <div className="opp-step-icon" style={{ backgroundColor: '#f0f9ff', color: '#3BA7FC' }}>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  </div>
+                  <span className="opp-step-num" style={{ color: '#bae6fd' }}>3</span>
+                </div>
+                <h3 className="opp-step-title">Envie sua proposta</h3>
+                <p className="opp-step-text">Em cada item, clique em "Cotar item" e informe valor, descrição, validade e observações.</p>
+              </div>
+              <div className="opp-step-card">
+                <div className="opp-step-top">
+                  <div className="opp-step-icon" style={{ backgroundColor: '#ecfdf5', color: '#10B981' }}>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  </div>
+                  <span className="opp-step-num" style={{ color: '#a7f3d0' }}>4</span>
+                </div>
+                <h3 className="opp-step-title">Acompanhe</h3>
+                <p className="opp-step-text">Em "Minhas propostas" você vê o status. Dá para editar ou cancelar enquanto estiver Enviada ou Em análise.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Master Detail Grid */}
+        <div className="opp-content-grid">
+          
+          {/* Coluna Esquerda: Lista */}
+          <section className="opp-col-left">
+            <div className="opp-search-box">
+              <svg className="opp-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input type="text" className="opp-search-input" placeholder="Buscar evento ou local" />
+            </div>
+            
+            <div className="opp-filter-chips">
+              <button className="opp-chip active">Todos</button>
+              <button className="opp-chip">Casamento</button>
+              <button className="opp-chip">Corporativo</button>
+              <button className="opp-chip">Social</button>
+              <button className="opp-chip">Festival</button>
+            </div>
+
+            <div className="opp-list">
+              {/* Card Ativo */}
+              <div className="opp-card active">
+                <div className="opp-card-header">
+                  <span className="opp-card-tag">Casamento</span>
+                  <span className="opp-card-urgency red">fecha em -4d</span>
+                </div>
+                <h3 className="opp-card-title">Casamento Helena & Tomás</h3>
+                <p className="opp-card-meta">Fazenda Boa Vista · 120 convidados</p>
+                <div className="opp-progress-row">
+                  <div className="opp-progress-bar"><div className="opp-progress-fill gradient" style={{width: '75%'}}></div></div>
+                  <span className="opp-progress-text opp-tnum">3/4 cotados</span>
+                </div>
+              </div>
+
+              {/* Cards Inativos */}
+              <div className="opp-card">
+                <div className="opp-card-header">
+                  <span className="opp-card-tag">Corporativo</span>
+                  <span className="opp-card-urgency orange">fecha em 0d</span>
+                </div>
+                <h3 className="opp-card-title">Convenção Nimbus Tech</h3>
+                <p className="opp-card-meta">Centro de Convenções · 400 convidados</p>
+                <div className="opp-progress-row">
+                  <div className="opp-progress-bar"><div className="opp-progress-fill gradient" style={{width: '50%'}}></div></div>
+                  <span className="opp-progress-text opp-tnum">1/2 cotados</span>
+                </div>
+              </div>
+
+              <div className="opp-card">
+                <div className="opp-card-header">
+                  <span className="opp-card-tag">Social</span>
+                  <span className="opp-card-urgency orange">fecha em 5d</span>
+                </div>
+                <h3 className="opp-card-title">Aniversário 50 anos Dona Rita</h3>
+                <p className="opp-card-meta">Espaço Vila Verde · 80 convidados</p>
+                <div className="opp-progress-row">
+                  <div className="opp-progress-bar"><div className="opp-progress-fill gradient" style={{width: '50%'}}></div></div>
+                  <span className="opp-progress-text opp-tnum">1/2 cotados</span>
+                </div>
+              </div>
+
+              <div className="opp-card">
+                <div className="opp-card-header">
+                  <span className="opp-card-tag">Festival</span>
+                  <span className="opp-card-urgency normal">22 de nov</span>
+                </div>
+                <h3 className="opp-card-title">Festival da Primavera & Gastronomia</h3>
+                <p className="opp-card-meta">Parque Ibirapuera · 800 convidados</p>
+                <div className="opp-progress-row">
+                  <div className="opp-progress-bar"><div className="opp-progress-fill empty" style={{width: '100%'}}></div></div>
+                  <span className="opp-progress-text opp-tnum">0/2 cotados</span>
+                </div>
+              </div>
+
             </div>
           </section>
 
-          {/* Right Column: Detalhe do Evento */}
-          <section className="pf-detail-panel">
-            {eventoSelecionado ? (
-              <>
-                <div className="pf-detail-header">
-                  <span className="pf-detail-label">Detalhe do evento</span>
-                  <h2>{eventoSelecionado.titulo}</h2>
-                  <p>{eventoSelecionado.publico} convidados · {eventoSelecionado.dataCompleta} · {eventoSelecionado.local}</p>
-                  <div className="pf-organizador-info">
-                    Organizador: <strong>{eventoSelecionado.organizador}</strong>
-                    <span className="pf-dot-divider">·</span>
-                    <button onClick={() => navigate('/fornecedor/mensagens')} className="pf-link-btn">enviar mensagem</button>
+          {/* Coluna Direita: Detalhes */}
+          <section className="opp-col-right">
+            <div className="opp-detail-wrapper">
+              
+              {/* Banner Detalhe Evento */}
+              <div className="opp-detail-banner">
+                <span className="opp-banner-tag">Casamento</span>
+                <h2 className="opp-banner-title">Casamento Helena & Tomás</h2>
+                <div className="opp-banner-meta">
+                  <span className="opp-banner-meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> 28/10/2026
+                  </span>
+                  <span className="opp-banner-meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Fazenda Boa Vista
+                  </span>
+                  <span className="opp-banner-meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg> 120 convidados
+                  </span>
+                </div>
+                
+                <div className="opp-banner-stats">
+                  <div className="opp-stat-box">
+                    <div className="opp-stat-label">Prazo para cotar</div>
+                    <div className="opp-stat-val opp-tnum">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> 23/10/2026 · -4d
+                    </div>
                   </div>
+                  <div className="opp-stat-box">
+                    <div className="opp-stat-label">Itens cotados</div>
+                    <div className="opp-stat-val opp-tnum"><span style={{color: 'var(--opp-primary)'}}>3</span> de 4</div>
+                  </div>
+                  <div className="opp-stat-box flex-between">
+                    <div>
+                      <div className="opp-stat-label">Organizador</div>
+                      <div className="opp-stat-val">Marina Braga</div>
+                    </div>
+                    <button className="opp-btn-chat" title="Conversar">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Composição de Custo (Itens) */}
+              <div className="opp-cost-section">
+                <div className="opp-cost-header">
+                  <h3 className="opp-cost-title">Composição de custo</h3>
+                  <span className="opp-cost-subtitle">Cote cada item separadamente</span>
                 </div>
 
-                <div className="pf-custos-section">
-                  <div className="pf-custos-header">
-                    <h3>Composição de custo</h3>
-                    <span>proposta por item</span>
-                  </div>
+                <div className="opp-items-list">
                   
-                  <div className="pf-itens-list">
-                    {eventoSelecionado.itens.length === 0 && (
-                      <p className="pf-empty-items">Nenhum item cadastrado para este evento.</p>
-                    )}
-                    
-                    {eventoSelecionado.itens.map(item => (
-                      <div key={item.id} className="pf-item-card">
-                        <div className="pf-item-main">
-                          <div className="pf-item-info">
-                            <h4>{item.nome}</h4>
-                            <p>{item.desc}</p>
-                            <span className="pf-item-qtd">{item.qtd}</span>
-                          </div>
-                          
-                          <div className="pf-item-actions">
-                            {item.status === 'cotar' && (
-                              <button className="pf-btn-cotar" onClick={() => abrirModal(item)}>Cotar item</button>
-                            )}
-                            {item.status === 'enviada' && (
-                              <>
-                                <span className="pf-badge pf-badge-gray">Enviada</span>
-                                <button className="pf-btn-edit" onClick={() => abrirModal(item)}>Editar</button>
-                              </>
-                            )}
-                            {item.status === 'em_analise' && (
-                              <>
-                                <span className="pf-badge pf-badge-yellow">Em análise</span>
-                                <button className="pf-btn-edit" onClick={() => abrirModal(item)}>Editar</button>
-                              </>
-                            )}
-                            {item.status === 'aprovada' && (
-                              <span className="pf-badge pf-badge-green">Aprovada</span>
-                            )}
-                          </div>
+                  {/* Item 1: Não Cotado */}
+                  <div className="opp-item-card action-required">
+                    <div className="opp-item-top">
+                      <div className="opp-item-info">
+                        <div className="opp-item-title-row">
+                          <h4 className="opp-item-name">Buffet jantar servido</h4>
+                          <span className="opp-item-qty">120 pax</span>
                         </div>
-                        
-                        {/* Rodapé do item se já tiver proposta */}
-                        {item.valor && (
-                          <div className="pf-item-footer">
-                            <strong className={item.status === 'aprovada' ? 'text-green' : 'text-dark'}>
-                              R$ {item.valor}
-                            </strong> 
-                            {item.dataEnvio && ` · enviada ${item.dataEnvio}`}
-                            {item.validade && ` · válida até ${item.validade}`}
-                            {item.obs && ` · ${item.obs}`}
-                          </div>
-                        )}
+                        <p className="opp-item-desc">Entrada, prato principal, sobremesa · serviço à francesa</p>
                       </div>
-                    ))}
+                      <div className="opp-item-actions">
+                        <button className="opp-btn-quote" onClick={() => openQuoteModal('Buffet jantar servido', '120 pax')}>
+                          <span>+</span> Cotar item
+                        </button>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Item 2: Enviada */}
+                  <div className="opp-item-card">
+                    <div className="opp-item-top with-margin">
+                      <div className="opp-item-info">
+                        <div className="opp-item-title-row">
+                          <h4 className="opp-item-name">Mobiliário e louças</h4>
+                          <span className="opp-item-qty">12 conj.</span>
+                        </div>
+                        <p className="opp-item-desc">Mesas redondas, cadeiras Tiffany, louça premium</p>
+                      </div>
+                      <div className="opp-item-actions">
+                        <span className="opp-badge enviada"><span className="dot"></span>Enviada</span>
+                        <button className="opp-btn-edit" onClick={() => openQuoteModal('Mobiliário e louças', '12 conj.', '6.200,00')}>
+                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> Editar
+                        </button>
+                      </div>
+                    </div>
+                    <div className="opp-item-footer">
+                      <span className="opp-footer-val opp-tnum">R$ 6.200,00</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Enviada 12/10/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Válida até 12/11/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-obs">"Inclui montagem e desmontagem."</span>
+                    </div>
+                  </div>
+
+                  {/* Item 3: Em análise */}
+                  <div className="opp-item-card">
+                    <div className="opp-item-top with-margin">
+                      <div className="opp-item-info">
+                        <div className="opp-item-title-row">
+                          <h4 className="opp-item-name">Decoração floral</h4>
+                          <span className="opp-item-qty">1 projeto</span>
+                        </div>
+                        <p className="opp-item-desc">Centro de mesa, arco de flores, arranjos de altar</p>
+                      </div>
+                      <div className="opp-item-actions">
+                        <span className="opp-badge analise"><span className="dot"></span>Em análise</span>
+                        <button className="opp-btn-edit" onClick={() => openQuoteModal('Decoração floral', '1 projeto', '9.850,00')}>
+                          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg> Editar
+                        </button>
+                      </div>
+                    </div>
+                    <div className="opp-item-footer">
+                      <span className="opp-footer-val opp-tnum">R$ 9.850,00</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Enviada 10/10/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Válida até 10/11/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-obs">"Flores da estação."</span>
+                    </div>
+                  </div>
+
+                  {/* Item 4: Aprovada */}
+                  <div className="opp-item-card">
+                    <div className="opp-item-top with-margin">
+                      <div className="opp-item-info">
+                        <div className="opp-item-title-row">
+                          <h4 className="opp-item-name">Som e iluminação</h4>
+                          <span className="opp-item-qty">1 kit</span>
+                        </div>
+                        <p className="opp-item-desc">Palco, pista, DJ e iluminação cênica</p>
+                      </div>
+                      <div className="opp-item-actions">
+                        <span className="opp-badge aprovada"><span className="dot"></span>Aprovada</span>
+                      </div>
+                    </div>
+                    <div className="opp-item-footer">
+                      <span className="opp-footer-val opp-tnum">R$ 7.400,00</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Enviada 08/10/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-text">Válida até 14/11/2026</span>
+                      <span className="opp-footer-sep">·</span>
+                      <span className="opp-footer-obs">"Contrato emitido."</span>
+                    </div>
+                  </div>
+
                 </div>
-              </>
-            ) : (
-              <div className="pf-empty-state">Selecione um evento para ver os detalhes</div>
-            )}
+              </div>
+            </div>
           </section>
 
         </div>
       </main>
 
-      {/* Modal de Proposta */}
-      {modalAberto && (
-        <div className="pf-modal-overlay">
-          <div className="pf-modal-content">
-            <div className="pf-modal-header">
+      {/* Modal Cotação */}
+      {modalState.isOpen && (
+        <div className="opp-modal-overlay">
+          <div className="opp-modal-content">
+            <div className="opp-modal-header">
               <div>
-                <span>Proposta de Fornecimento</span>
-                <h3>{itemParaCotar?.nome} ({itemParaCotar?.qtd})</h3>
+                <h3 className="opp-modal-title">Cotar item</h3>
+                <p className="opp-modal-subtitle">{modalState.title} · {modalState.tag}</p>
               </div>
-              <button className="pf-modal-close" onClick={fecharModal}>✕</button>
+              <button className="opp-btn-close" onClick={closeQuoteModal}>✕</button>
             </div>
             
-            <form className="pf-modal-form" onSubmit={enviarProposta}>
-              <div className="pf-form-row">
-                <div className="pf-form-group">
-                  <label>Valor Total (R$) *</label>
+            <form onSubmit={handleQuoteSubmit}>
+              <div className="opp-form-group">
+                <label className="opp-label">Valor da proposta (R$)</label>
+                <div className="opp-input-wrapper">
+                  <span className="opp-input-prefix">R$</span>
                   <input 
-                    type="number" 
-                    step="0.01" 
+                    type="text" 
+                    className="opp-input with-prefix opp-tnum" 
+                    placeholder="0,00" 
                     required 
-                    placeholder="0,00"
-                    value={valorProposta}
-                    onChange={(e) => setValorProposta(e.target.value)}
+                    defaultValue={modalState.value} 
                   />
-                  <small>Valor fechado para a demanda.</small>
-                </div>
-                <div className="pf-form-group">
-                  <label>Validade da Proposta *</label>
-                  <input 
-                    type="date" 
-                    required 
-                    value={validadeProposta}
-                    onChange={(e) => setValidadeProposta(e.target.value)}
-                  />
-                  <small>Prazo limite para confirmação.</small>
                 </div>
               </div>
-
-              <div className="pf-form-group">
-                <label>Observações e Logística</label>
-                <textarea 
-                  rows="2" 
-                  placeholder="Ex: Necessário ponto de água e tomada trifásica."
-                  value={obsProposta}
-                  onChange={(e) => setObsProposta(e.target.value)}
-                ></textarea>
+              
+              <div className="opp-form-group">
+                <label className="opp-label">Validade da proposta</label>
+                <input type="date" className="opp-input" required defaultValue="2026-11-20" />
               </div>
-
-              <div className="pf-checkbox-group">
-                <input type="checkbox" id="termos" required />
-                <label htmlFor="termos">Declaro ter capacidade operacional para atender nas datas estipuladas.</label>
+              
+              <div className="opp-form-group">
+                <label className="opp-label">Observações e inclusões</label>
+                <textarea className="opp-input" placeholder="Ex: Incluso frete, montagem, desmontagem..." rows="3"></textarea>
               </div>
-
-              <div className="pf-modal-footer">
-                <button type="button" className="pf-btn-cancel" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="pf-btn-submit">Enviar Proposta</button>
+              
+              <div className="opp-modal-actions">
+                <button type="button" className="opp-btn-cancel" onClick={closeQuoteModal}>Cancelar</button>
+                <button type="submit" className="opp-btn-submit">Enviar Proposta</button>
               </div>
             </form>
           </div>
