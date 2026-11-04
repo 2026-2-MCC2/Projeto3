@@ -1,7 +1,7 @@
 import React from 'react';
 import './PerfilFornecedor.css'; // Importa o CSS normal
 
-export default function MeuPerfilFornecedor() {
+export default function PerfilFornecedor() {
   return (
     <div className="mpf-layout">
       {/* Conteúdo Principal */}
