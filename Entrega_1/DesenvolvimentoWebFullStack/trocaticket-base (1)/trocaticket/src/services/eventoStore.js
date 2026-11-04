@@ -28,11 +28,97 @@ const eventosIniciais = [
     dataInicio: "2026-11-21",
     dataFim: "",
     local: { nome: "Espaço Liberdade", cidade: "São Paulo", uf: "SP" },
-    capacidadeAlvara: 700,
-    publico: { minimo: 487, maximo: 687 },
+    capacidadeAlvara: 8500,
+    publico: { minimo: 3000, maximo: 8500 },
     custos: {
-      fornecedores: [{ fornecedorId: "fornecedor-calourada", valor: 72860 }],
-      fiscais: 0,
+      fornecedores: [
+        {
+          id: "custo-som-001",
+          categoriaId: "som",
+          grupoGrafico: "som",
+          titulo: "Sistema Line Array K2 + Rider Técnico de Palco",
+          qtd: "1 sistema completo",
+          especificacao: "PA L-Acoustics K2 com subs KS28, consoles digitais Avid S6L, monitores de palco e microfonação técnica.",
+          valor: 80000,
+          tags: ["RF06"],
+          alocacao: "direta",
+        },
+        {
+          id: "custo-palco-001",
+          categoriaId: "palco",
+          grupoGrafico: "palco",
+          titulo: "Palco Geodésico 24×18m com Cobertura Cristal & House Mix",
+          qtd: "1 estrutura modular",
+          especificacao: "Estrutura em alumínio Q30/Q50, piso naval com acabamento antiderrapante, torres de delay e laudo ART de montagem.",
+          valor: 62500,
+          tags: ["RF12"],
+          alocacao: "direta",
+        },
+        {
+          id: "custo-seguranca-001",
+          categoriaId: "seguranca",
+          grupoGrafico: "seguranca",
+          titulo: "Contingente de 65 Vigilantes Patrimoniais + 12 Bombeiros Civis",
+          qtd: "77 profissionais (turno 12h)",
+          especificacao: "Escala de segurança interna/perimetral homologada pela Polícia Federal e brigada com plano de evacuação médica.",
+          valor: 25500,
+          tags: [],
+          alocacao: "direta",
+        },
+        {
+          id: "custo-limpeza-001",
+          categoriaId: "limpeza",
+          grupoGrafico: "seguranca",
+          titulo: "40 Cabines Químicas Standard + 4 Cabines PCD + Coleta Seletiva",
+          qtd: "44 cabines + equipe pós-evento",
+          especificacao: "Manutenção contínua e higienização durante o evento, caminhão limpa-fossa e descarte certificado de resíduos.",
+          valor: 20000,
+          tags: ["Sustentável"],
+          alocacao: "direta",
+        },
+      ],
+      fiscais: [
+        {
+          id: "fiscal-ecad-001",
+          categoriaId: "ecad",
+          grupoGrafico: "fiscais",
+          origem: "Alíquota padrão sobre bilheteria bruta",
+          titulo: "ECAD Show Musical ao Vivo (Provisão 10%)",
+          observacao: "Calculado dinamicamente com base no teto de arrecadação",
+          calculo: { tipo: "percentual", taxa: 0.1, base: 380000 },
+          valor: 38000,
+        },
+        {
+          id: "fiscal-iss-001",
+          categoriaId: "municipal",
+          grupoGrafico: "fiscais",
+          origem: "Prefeitura Municipal de São Paulo",
+          titulo: "ISSQN sobre Ingressos e Serviços Culturais (5%)",
+          observacao: "Guia de recolhimento emitida pós-evento com retenção",
+          calculo: { tipo: "percentual", taxa: 0.05, base: 264000 },
+          valor: 13200,
+        },
+        {
+          id: "fiscal-gateway-001",
+          categoriaId: "gateway",
+          grupoGrafico: "variaveis",
+          origem: "Tarifa negociada",
+          titulo: "Taxa de Meios de Pagamento (PIX & Cartão Parcelado)",
+          observacao: "Estimativa de mix 60% PIX (0,99%) e 40% Crédito (3,4%)",
+          calculo: { tipo: "taxa_media", taxa: 0.024 },
+          valor: 18500,
+        },
+        {
+          id: "fiscal-operacao-001",
+          categoriaId: "operacao",
+          grupoGrafico: "variaveis",
+          origem: "Fundo de segurança",
+          titulo: "UTI Móvel + Grupo Gerador Reserva + Reserva Técnica",
+          observacao: "Exigência do Corpo de Bombeiros Militar para lotação máxima",
+          calculo: { tipo: "fixo" },
+          valor: 26800,
+        },
+      ],
       propostasAceitas: [{ fornecedorId: "fornecedor-calourada", valor: 32787 }],
     },
     precificacao: { margem: 0.10088621817515, taxaPlataforma: 0.08, impostos: 0.05 },
@@ -90,11 +176,78 @@ const eventosIniciais = [
   },
 ];
 
+const gruposPorCategoria = {
+  som: "som",
+  palco: "palco",
+  seguranca: "seguranca",
+  limpeza: "seguranca",
+  alimentacao: "variaveis",
+  transporte: "variaveis",
+  outro: "variaveis",
+  ecad: "fiscais",
+  municipal: "fiscais",
+  gateway: "variaveis",
+  operacao: "variaveis",
+};
+
+function normalizarEvento(evento) {
+  const custos = evento.custos ?? {};
+  const fornecedores = Array.isArray(custos.fornecedores) ? custos.fornecedores : [];
+  const fiscais = Array.isArray(custos.fiscais)
+    ? custos.fiscais
+    : Number(custos.fiscais) > 0
+      ? [{
+          id: "fiscal-legado",
+          categoriaId: "outro",
+          grupoGrafico: "fiscais",
+          origem: "Custo fiscal legado",
+          titulo: "Custos fiscais e operacionais",
+          observacao: "Migrado do orçamento anterior",
+          calculo: { tipo: "fixo" },
+          valor: Number(custos.fiscais),
+        }]
+      : [];
+
+  return {
+    ...evento,
+    custos: {
+      ...custos,
+      fornecedores: fornecedores.map((item, indice) => {
+        const categoriaId = item.categoriaId ?? item.categoryId ?? "outro";
+        return {
+          ...item,
+          id: item.id ?? item.itemId ?? item.fornecedorId ?? `producao-${indice}`,
+          categoriaId,
+          grupoGrafico: item.grupoGrafico ?? gruposPorCategoria[categoriaId] ?? "",
+          titulo: item.titulo ?? item.title ?? "Custo de fornecedor cadastrado",
+          qtd: item.qtd ?? item.quantity ?? "Item de fornecedor",
+          especificacao: item.especificacao ?? item.specification ?? "",
+          valor: Number(item.valor) || 0,
+          tags: Array.isArray(item.tags) ? item.tags : [],
+          alocacao: item.alocacao ?? "direta",
+        };
+      }),
+      fiscais: fiscais.map((item, indice) => ({
+        ...item,
+        id: item.id ?? `fiscal-${indice}`,
+        categoriaId: item.categoriaId ?? "outro",
+        grupoGrafico: item.grupoGrafico ?? "",
+        origem: item.origem ?? "Custo fiscal",
+        titulo: item.titulo ?? item.title ?? "Custo fiscal e operacional",
+        observacao: item.observacao ?? item.specification ?? "",
+        calculo: item.calculo ?? { tipo: "fixo" },
+        valor: Number(item.valor) || 0,
+      })),
+      propostasAceitas: Array.isArray(custos.propostasAceitas) ? custos.propostasAceitas : [],
+    },
+  };
+}
+
 function criarStoreInicial() {
   return {
     usuario: usuarioPadrao,
     usuarios: [],
-    eventos: eventosIniciais,
+    eventos: eventosIniciais.map(normalizarEvento),
     eventoAtivoId: eventosIniciais[0].id,
     notificacoes: { fornecedores: 1, mensagens: 2 },
   };
@@ -116,6 +269,7 @@ function lerStore() {
     return {
       ...criarStoreInicial(),
       ...storeSalvo,
+      eventos: storeSalvo.eventos.map(normalizarEvento),
       usuario: { ...usuarioPadrao, ...storeSalvo.usuario },
       usuarios: Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : [],
     };
@@ -239,7 +393,7 @@ export function criarEvento(dados = {}) {
     publico: { minimo: 0, maximo: 0, ...publico },
     custos: {
       fornecedores: [],
-      fiscais: 0,
+      fiscais: [],
       propostasAceitas: [],
       ...custos,
     },
@@ -279,6 +433,7 @@ if (typeof window !== "undefined") {
       store = {
         ...criarStoreInicial(),
         ...storeExterno,
+        eventos: storeExterno.eventos.map(normalizarEvento),
         usuario: { ...usuarioPadrao, ...storeExterno.usuario },
         usuarios: Array.isArray(storeExterno.usuarios) ? storeExterno.usuarios : [],
       };

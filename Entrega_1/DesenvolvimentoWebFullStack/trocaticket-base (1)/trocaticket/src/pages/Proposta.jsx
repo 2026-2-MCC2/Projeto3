@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeftRight,
   AudioLines,
@@ -18,6 +18,7 @@ import {
 import {
   getStoreSnapshot,
   setEvento,
+  setEventoAtivo,
   subscribe,
 } from "../services/eventoStore.js";
 import { custoTotal } from "../services/calculos.js";
@@ -112,12 +113,13 @@ const formatoMoeda = new Intl.NumberFormat("pt-BR", {
 
 export default function Proposta() {
   const store = useSyncExternalStore(subscribe, getStoreSnapshot, getStoreSnapshot);
-  const evento = store.eventos.find((item) => item.id === store.eventoAtivoId);
+  const { id } = useParams();
+  const evento = store.eventos.find((item) => item.id === (id ?? store.eventoAtivoId));
   useEffect(() => {
-    if (evento && evento.etapaAtual !== "proposta") {
-      setEvento(evento.id, { etapaAtual: "proposta" });
-    }
-  }, [evento]);
+    if (!evento) return;
+    if (evento.id !== store.eventoAtivoId) setEventoAtivo(evento.id);
+    if (evento.etapaAtual !== "proposta") setEvento(evento.id, { etapaAtual: "proposta" });
+  }, [evento, store.eventoAtivoId]);
   const [categoriaAtiva, setCategoriaAtiva] = useState("Todos os Itens");
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState("menor-valor");

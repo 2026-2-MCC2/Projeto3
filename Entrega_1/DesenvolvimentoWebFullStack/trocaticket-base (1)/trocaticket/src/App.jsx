@@ -20,7 +20,7 @@ import RelatoriosAuditoria from "./pages/admin/RelatoriosAuditoria.jsx";
 import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
 import EventoRedirect from "./pages/EventoRedirect.jsx";
 import CriarEvento from "./pages/CriarEvento.jsx";
-import CustoOrcamento from "./pages/CustoOrcamento.jsx";
+import CustosOrcamento from "./pages/CustosOrcamento.jsx";
 import Proposta from "./pages/Proposta.jsx";
 import Calculo from "./pages/Calculo.jsx";
 import Resumo from "./pages/Resumo.jsx";
@@ -92,11 +92,12 @@ export default function App() {
       </Route>
       <Route element={<ProtectedRoute perfil="organizador" />}>
         <Route path="/organizador" element={<OrganizadorLayout />}>
-          <Route path="eventos/:id/custos" element={<CustoOrcamento />} />
+          <Route path="eventos/:id/custos" element={<CustosOrcamento />} />
           <Route path="eventos/:id" element={<EventoRedirect />} />
           <Route path="eventos/novo" element={<CriarEvento />} />
-          <Route path="eventos/novo/custo" element={<CustoOrcamento />} />
+          <Route path="eventos/novo/custo" element={<CustosOrcamento />} />
           <Route path="eventos/novo/proposta" element={<Proposta />} />
+          <Route path="eventos/:id/propostas" element={<Proposta />} />
           <Route path="eventos/novo/calculo" element={<Calculo />} />
           <Route path="eventos/novo/resumo" element={<Resumo />} />
           <Route path="eventos/novo/publicar" element={<Publicar />} />
@@ -104,6 +105,9 @@ export default function App() {
           <Route path="mensagens" element={<Mensagens perfil="organizador" />} />
           <Route path="perfil" element={<EmConstrucao titulo="Meu Perfil" />} />
           <Route path="resumo" element={<ResumoePublicar />} />
+        </Route>
+        <Route path="/eventos/:id/custos" element={<OrganizadorLayout />}>
+          <Route index element={<CustosOrcamento />} />
         </Route>
       </Route>
       <Route element={<AdminLayout />}>

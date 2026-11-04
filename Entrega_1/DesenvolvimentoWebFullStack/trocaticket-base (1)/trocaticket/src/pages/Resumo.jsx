@@ -9,6 +9,7 @@ import {
   Pencil,
   ReceiptText,
   Ticket,
+  UsersRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -17,10 +18,14 @@ import {
   subscribe,
 } from "../services/eventoStore.js";
 import {
+  custoPorPaxLotacao,
   custoTotal,
   duracaoEmDias,
   ingressoSugerido,
+  pontoEquilibrio,
   publicoEsperado,
+  subtotalFiscal,
+  subtotalProducao,
 } from "../services/calculos.js";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -39,8 +44,8 @@ export default function Resumo() {
   if (!evento) return <p className="event-empty">Selecione ou cadastre um evento para ver o resumo.</p>;
 
   const total = custoTotal(evento);
-  const fornecedores = evento.custos.fornecedores.reduce((soma, item) => soma + item.valor, 0);
-  const fiscal = evento.custos.fiscais;
+  const fornecedores = subtotalProducao(evento);
+  const fiscal = subtotalFiscal(evento);
   const aceito = evento.custos.propostasAceitas.reduce((soma, item) => soma + item.valor, 0);
   const percentualAceito = total > 0 ? Math.round((aceito / total) * 100) : 0;
   const margem = evento.precificacao.margem;
@@ -70,6 +75,8 @@ export default function Resumo() {
     { rotulo: "Orçamento", valor: fornecedores, detalhe: "Custos de fornecedores", icone: Archive },
     { rotulo: "Custos Fiscais & Operacionais", valor: fiscal, detalhe: "Taxas e impostos previstos", icone: Landmark },
     { rotulo: "Custo Total Projetado", valor: total, detalhe: "Total consolidado", icone: ReceiptText },
+    { rotulo: "Custo por pessoa (lotação)", valor: custoPorPaxLotacao(evento), detalhe: "Custo total / capacidade do alvará", icone: UsersRound },
+    { rotulo: "Ponto de Equilíbrio", valor: pontoEquilibrio(evento), detalhe: "Custo total / público mínimo", icone: CircleDollarSign },
     {
       rotulo: "Ingresso Sugerido",
       valor: ingressoSugerido(evento),

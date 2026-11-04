@@ -1,8 +1,70 @@
-export function custoTotal(evento) {
+export const gruposCusto = [
+  { id: "som", nome: "Som & Iluminação", cor: "#3B9EF5" },
+  { id: "palco", nome: "Palco & Estrutura", cor: "#F0524F" },
+  { id: "fiscais", nome: "Custos Fiscais & ECAD", cor: "#F58A2E" },
+  { id: "seguranca", nome: "Segurança & Operação", cor: "#5B5BE0" },
+  { id: "variaveis", nome: "Variáveis & Contingência", cor: "#4F7CF2" },
+];
+
+export function subtotalProducao(evento) {
   return evento.custos.fornecedores.reduce(
-    (total, fornecedor) => total + fornecedor.valor,
-    evento.custos.fiscais,
+    (total, item) => total + (Number(item.valor) || 0),
+    0,
   );
+}
+
+export function subtotalFiscal(evento) {
+  const fiscais = evento.custos.fiscais;
+  if (Array.isArray(fiscais)) {
+    return fiscais.reduce((total, item) => total + (Number(item.valor) || 0), 0);
+  }
+  return Number(fiscais) || 0;
+}
+
+export function custoTotal(evento) {
+  return subtotalProducao(evento) + subtotalFiscal(evento);
+}
+
+export function custoPorPaxLotacao(evento) {
+  return evento.capacidadeAlvara > 0 ? custoTotal(evento) / evento.capacidadeAlvara : 0;
+}
+
+export function pontoEquilibrio(evento) {
+  return evento.publico.minimo > 0 ? custoTotal(evento) / evento.publico.minimo : 0;
+}
+
+export function valorGrupo(evento, grupoId) {
+  const producao = evento.custos.fornecedores
+    .filter((item) => item.grupoGrafico === grupoId)
+    .reduce((total, item) => total + (Number(item.valor) || 0), 0);
+  const fiscais = Array.isArray(evento.custos.fiscais)
+    ? evento.custos.fiscais
+        .filter((item) => item.grupoGrafico === grupoId)
+        .reduce((total, item) => total + (Number(item.valor) || 0), 0)
+    : 0;
+  return producao + fiscais;
+}
+
+export function percentuaisGrupo(evento) {
+  const total = custoTotal(evento);
+  const valores = gruposCusto.map((grupo) => valorGrupo(evento, grupo.id));
+  const naoAlocado = Math.max(0, total - valores.reduce((soma, valor) => soma + valor, 0));
+  const valoresComNaoAlocado = [...valores, naoAlocado];
+  if (total <= 0) return { grupos: Object.fromEntries(gruposCusto.map(({ id }) => [id, 0])), naoAlocado: 0 };
+
+  const percentuaisExatos = valoresComNaoAlocado.map((valor) => (valor / total) * 100);
+  const percentuais = percentuaisExatos.map(Math.floor);
+  const pontosRestantes = 100 - percentuais.reduce((soma, valor) => soma + valor, 0);
+  const ordem = percentuaisExatos
+    .map((valor, indice) => ({ indice, resto: valor - Math.floor(valor) }))
+    .sort((a, b) => b.resto - a.resto);
+  for (let indice = 0; indice < pontosRestantes; indice += 1) {
+    percentuais[ordem[indice].indice] += 1;
+  }
+  return {
+    grupos: Object.fromEntries(gruposCusto.map(({ id }, indice) => [id, percentuais[indice]])),
+    naoAlocado: percentuais.at(-1),
+  };
 }
 
 export function eventosAtivos(eventos) {
