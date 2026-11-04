@@ -1,5 +1,5 @@
 import React from 'react';
-import './MeuPerfilFornecedor.css'; // Importa o CSS normal
+import './PerfilFornecedor.css'; // Importa o CSS normal
 
 export default function MeuPerfilFornecedor() {
   return (
