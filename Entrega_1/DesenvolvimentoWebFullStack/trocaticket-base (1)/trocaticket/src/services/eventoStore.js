@@ -1,9 +1,21 @@
 const STORAGE_KEY = "trocaticket:eventos";
 
 const usuarioPadrao = {
+  id: "usuario-demo",
+  perfil: "organizador",
   nome: "Orlando Ramos",
   iniciais: "OR",
   plano: "Produtor Pro",
+  email: "",
+  telefone: "",
+  documento: "",
+  tipoDocumento: "cpf",
+  areaAtuacao: "",
+  tipoOrganizacao: "",
+  anexo: null,
+  status: "aprovado",
+  aceiteTermosEm: "",
+  criadoEm: "",
 };
 
 const eventosIniciais = [
@@ -81,6 +93,7 @@ const eventosIniciais = [
 function criarStoreInicial() {
   return {
     usuario: usuarioPadrao,
+    usuarios: [],
     eventos: eventosIniciais,
     eventoAtivoId: eventosIniciais[0].id,
     notificacoes: { fornecedores: 1, mensagens: 2 },
@@ -104,6 +117,7 @@ function lerStore() {
       ...criarStoreInicial(),
       ...storeSalvo,
       usuario: { ...usuarioPadrao, ...storeSalvo.usuario },
+      usuarios: Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : [],
     };
   } catch (erro) {
     console.error("Não foi possível carregar os eventos salvos do TrocaTicket.", erro);
@@ -157,6 +171,46 @@ export function setEvento(id, parcial) {
 export function setEventoAtivo(id) {
   if (!getEvento(id)) throw new Error(`Evento "${id}" não encontrado.`);
   persistir({ ...store, eventoAtivoId: id });
+}
+
+export function cadastrarUsuario(dados) {
+  const email = dados.email.trim().toLowerCase();
+  const documento = dados.documento.replace(/\D/g, "");
+  const duplicado = store.usuarios.some(
+    (usuario) => (usuario.email ?? "").toLowerCase() === email || usuario.documento === documento,
+  );
+  if (duplicado) {
+    throw new Error(
+      store.usuarios.some((usuario) => (usuario.email ?? "").toLowerCase() === email)
+        ? "Este e-mail já está cadastrado."
+        : "Este CPF ou CNPJ já está cadastrado.",
+    );
+  }
+
+  const palavrasNome = dados.nome.trim().split(/\s+/);
+  const iniciais = palavrasNome.slice(0, 2).map((palavra) => palavra[0]).join("").toUpperCase();
+  const agora = new Date().toISOString();
+  const usuario = {
+    id: globalThis.crypto?.randomUUID?.() ?? `usuario-${Date.now()}`,
+    perfil: dados.perfil,
+    nome: dados.nome.trim(),
+    iniciais,
+    plano: dados.perfil === "organizador" ? "Produtor Pro" : "Fornecedor",
+    email,
+    telefone: dados.telefone.replace(/\D/g, ""),
+    documento,
+    tipoDocumento: documento.length === 11 ? "cpf" : "cnpj",
+    areaAtuacao: dados.perfil === "fornecedor" ? dados.area : "",
+    tipoOrganizacao: dados.perfil === "organizador" ? dados.area : "",
+    anexo: dados.arquivo
+      ? { nome: dados.arquivo.name, tipo: dados.arquivo.type, tamanho: dados.arquivo.size }
+      : null,
+    status: "em_analise",
+    aceiteTermosEm: agora,
+    criadoEm: agora,
+  };
+  persistir({ ...store, usuario, usuarios: [...store.usuarios, usuario] });
+  return usuario;
 }
 
 export function criarEvento(dados = {}) {
@@ -222,7 +276,12 @@ if (typeof window !== "undefined") {
       if (!Array.isArray(storeExterno.eventos)) {
         throw new TypeError("O formato sincronizado de eventos é inválido.");
       }
-      store = { ...criarStoreInicial(), ...storeExterno };
+      store = {
+        ...criarStoreInicial(),
+        ...storeExterno,
+        usuario: { ...usuarioPadrao, ...storeExterno.usuario },
+        usuarios: Array.isArray(storeExterno.usuarios) ? storeExterno.usuarios : [],
+      };
       notificar();
     } catch (erro) {
       console.error("Não foi possível sincronizar os eventos do TrocaTicket.", erro);

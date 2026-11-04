@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./AnaliseCadastral.css"; // Importando o CSS puro
 
 export default function AnaliseCadastral() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleReenviarEmail = () => {
     alert("E-mail de confirmação reenviado para o seu endereço cadastrado!");
@@ -12,7 +13,9 @@ export default function AnaliseCadastral() {
     <div className="analise-page">
       <main className="analise-main">
         <div className="analise-content-wrapper">
-          
+          {location.state?.mensagem && (
+            <p className="analise-toast" role="status">{location.state.mensagem}</p>
+          )}
           <section className="status-card">
             <div className="card-top-bar"></div>
             

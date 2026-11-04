@@ -1,6 +1,7 @@
 .header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  z-index: 1;
+  background: #fff;
+  border-bottom: 1px solid #e5e9f0;
 }
 
 .header__inner {
@@ -8,6 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  max-width: 1120px;
 }
 
 .header__brand {
@@ -23,53 +25,85 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-radius: 8px;
+  background: #0b4a7a;
+  color: #fff;
 }
 
 .header__name {
-  font-size: var(--fs-brand);
-  font-weight: 600;
+  display: flex;
+  font-size: 20px;
+  font-weight: 800;
   letter-spacing: -0.5px;
-  color: var(--color-primary);
+  color: #0b4a7a;
+}
+
+.header__name strong {
+  color: #3b9ef5;
 }
 
 .header__link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
   text-decoration: none;
 }
 
 .header__link:hover {
-  color: var(--color-primary);
+  color: #0b4a7a;
 }
 
 .header__nav {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 24px;
 }
 
 .header__user {
-  font-size: var(--fs-body);
-  color: var(--color-text);
+  font-size: 13px;
+  color: #0f172a;
 }
 
 .header__logout {
-  padding: 0;
+  padding: 6px;
   border: 0;
   background: none;
   font: inherit;
-  font-weight: 600;
   cursor: pointer;
 }
 
+.header__account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header__avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e3f1fd;
+  color: #0b4a7a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.header__account-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.header__account-details small {
+  color: #64748b;
+  font-size: 11px;
+}
+
 @media (max-width: 480px) {
-  .header__user {
-    display: none;
-  }
+  .header__account-details { display: none; }
 }

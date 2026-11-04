@@ -21,13 +21,14 @@ export function validarMfa(valor) {
 export function validarNome(valor) {
   if (!valor.trim()) return "Informe a razão social ou o nome comercial.";
   if (valor.trim().length < 3) return "Informe um nome com pelo menos 3 caracteres.";
+  if (valor.trim().length > 120) return "O nome deve ter no máximo 120 caracteres.";
   return "";
 }
 
 export function validarTelefone(valor) {
   const digitos = valor.replace(/\D/g, "");
   if (!digitos) return "Informe um telefone com DDD.";
-  if (digitos.length < 10) return "Informe um telefone válido com DDD.";
+  if (digitos.length !== 10 && digitos.length !== 11) return "Informe um telefone válido com DDD.";
   return "";
 }
 
@@ -80,8 +81,8 @@ const TAMANHO_MAX_ARQUIVO = 10 * 1024 * 1024;
 
 export function validarArquivo(arquivo) {
   if (!arquivo) return "Envie um documento (contrato social ou identificação).";
-  if (!TIPOS_ARQUIVO_ACEITOS.includes(arquivo.type)) return "Envie um arquivo em PDF, JPG ou PNG.";
-  if (arquivo.size > TAMANHO_MAX_ARQUIVO) return "O arquivo deve ter até 10MB.";
+  if (!TIPOS_ARQUIVO_ACEITOS.includes(arquivo.type)) return "Formato não suportado.";
+  if (arquivo.size > TAMANHO_MAX_ARQUIVO) return "Arquivo acima de 10MB.";
   return "";
 }
 
