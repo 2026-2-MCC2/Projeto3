@@ -25,13 +25,12 @@ import Proposta from "./pages/Proposta.jsx";
 import Calculo from "./pages/Calculo.jsx";
 import Resumo from "./pages/Resumo.jsx";
 import Publicar from "./pages/Publicar.jsx";
-
-// PÁGINAS
 import AnaliseCadastral from './pages/AnaliseCadastral.jsx';
 import PainelFornecedor from './pages/PainelFornecedor.jsx';
 import MinhasPropostas from './pages/MinhasPropostas.jsx';
 import MensagensFornecedor from './pages/MensagensFornecedor.jsx';
 import PerfilFornecedor from './pages/PerfilFornecedor.jsx';
+import Mensagens from './pages/Mensagens.jsx';
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
@@ -71,7 +70,7 @@ export default function App() {
           <Route path="/fornecedor/painel" element={<PainelFornecedor />} />
           <Route path="/fornecedor" element={<PainelFornecedor />} />
           <Route path="/fornecedor/minhas-propostas" element={<MinhasPropostas />} />
-          <Route path="/fornecedor/mensagens" element={<Mensagens />} />
+          <Route path="/fornecedor/mensagens-fornecedor" element={<MensagensFornecedor />} />
         </Route>
 
         {/* Outras rotas protegidas que já existem */}
@@ -104,7 +103,7 @@ export default function App() {
           <Route path="eventos" element={<EmConstrucao titulo="Histórico de Eventos" />} />
           <Route path="mensagens" element={<Mensagens perfil="organizador" />} />
           <Route path="perfil" element={<EmConstrucao titulo="Meu Perfil" />} />
-          <Route path="resumo" element={<ResumoePublicar />} />
+          <Route path="resumo" element={<Resumo />} />
         </Route>
         <Route path="/eventos/:id/custos" element={<OrganizadorLayout />}>
           <Route index element={<CustosOrcamento />} />
