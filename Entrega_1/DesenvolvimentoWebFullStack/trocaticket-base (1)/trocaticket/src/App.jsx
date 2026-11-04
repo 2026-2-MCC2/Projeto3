@@ -26,12 +26,12 @@ import Calculo from "./pages/Calculo.jsx";
 import Resumo from "./pages/Resumo.jsx";
 import Publicar from "./pages/Publicar.jsx";
 
-// PÁGINAS CINTYA
+// PÁGINAS
 import AnaliseCadastral from './pages/AnaliseCadastral.jsx';
 import PainelFornecedor from './pages/PainelFornecedor.jsx';
 import MinhasPropostas from './pages/MinhasPropostas.jsx';
-import Mensagens from './pages/Mensagens.jsx';
-import ResumoePublicar from './pages/ResumoePublicar.jsx';
+import MensagensFornecedor from './pages/MensagensFornecedor.jsx';
+import PerfilFornecedor from './pages/PerfilFornecedor.jsx';
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
