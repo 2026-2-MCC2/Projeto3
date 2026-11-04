@@ -341,55 +341,6 @@ export default function PainelFornecedor() {
 
   return (
     <div className="opp-page">
-      {/* ===== Header ===== */}
-      <header className="opp-header">
-        <div className="opp-header-inner">
-          <div className="opp-header-left">
-            <a className="opp-logo" href="#">
-              TrocaTicket
-            </a>
-          </div>
-
-          <nav className="opp-nav" aria-label="Navegação Principal">
-            <a className="opp-nav-link opp-nav-link--ativo" href="#">
-              <Icone nome="oportunidades" />
-              <span>Oportunidades</span>
-              <span className="opp-contador opp-contador--azul">5</span>
-            </a>
-            <a className="opp-nav-link" href="#">
-              <Icone nome="propostas" />
-              <span>Minhas propostas</span>
-            </a>
-            <a className="opp-nav-link" href="#">
-              <Icone nome="mensagens" />
-              <span>Mensagens</span>
-              <span className="opp-contador opp-contador--laranja">2</span>
-            </a>
-          </nav>
-
-          <div className="opp-header-right">
-            <button
-              type="button"
-              className="opp-btn-icone"
-              aria-label="Central de Ajuda"
-            >
-              <Icone nome="ajuda" className="opp-icone opp-icone--lg" />
-            </button>
-            <div className="opp-divisor" />
-            <div className="opp-usuario">
-              <div className="opp-usuario-texto">
-                <p className="opp-usuario-nome">Casa Aurora</p>
-                <p className="opp-usuario-tipo">Buffet &amp; mobiliário</p>
-              </div>
-              <div className="opp-avatar-wrap">
-                <div className="opp-avatar">CA</div>
-                <span className="opp-avatar-status" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* ===== Conteúdo ===== */}
       <main className="opp-main">
         <div className="opp-titulo-bloco">
@@ -661,22 +612,6 @@ export default function PainelFornecedor() {
           </section>
         </div>
       </main>
-
-      {/* ===== Footer ===== */}
-      <footer className="opp-footer">
-        <div className="opp-footer-inner">
-          <div>
-            <span className="opp-footer-marca">TrocaTicket © 2026</span>
-            <span> · Plataforma de Gestão e Cotações</span>
-          </div>
-          <div className="opp-footer-links">
-            <a href="#">Termos de Uso</a>
-            <a href="#">Privacidade</a>
-            <a href="#">Segurança</a>
-            <a href="#">Suporte ao Fornecedor</a>
-          </div>
-        </div>
-      </footer>
 
       {/* ===== Modal de cotação ===== */}
       {modal && (

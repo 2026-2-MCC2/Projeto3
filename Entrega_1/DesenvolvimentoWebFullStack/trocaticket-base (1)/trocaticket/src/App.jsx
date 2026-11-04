@@ -3,8 +3,6 @@ import Layout from "./components/Layout.jsx";
 import AdminLayout from "./components/AdminLayout.jsx";
 import AdminPanelLayout from "./components/admin/AdminPanelLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-
-// Páginas públicas
 import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
@@ -25,12 +23,13 @@ import Proposta from "./pages/Proposta.jsx";
 import Calculo from "./pages/Calculo.jsx";
 import Resumo from "./pages/Resumo.jsx";
 import Publicar from "./pages/Publicar.jsx";
-import AnaliseCadastral from './pages/AnaliseCadastral.jsx';
-import PainelFornecedor from './pages/PainelFornecedor.jsx';
-import MinhasPropostas from './pages/MinhasPropostas.jsx';
-import MensagensFornecedor from './pages/MensagensFornecedor.jsx';
-import PerfilFornecedor from './pages/PerfilFornecedor.jsx';
-import Mensagens from './pages/Mensagens.jsx';
+import AnaliseCadastral from "./pages/AnaliseCadastral.jsx";
+import FornecedorLayout from "./pages/FornecedorLayout.jsx";
+import PainelFornecedor from "./pages/PainelFornecedor.jsx";
+import MinhasPropostas from "./pages/MinhasPropostas.jsx";
+import MensagensFornecedor from "./pages/MensagensFornecedor.jsx";
+import Mensagens from "./pages/Mensagens.jsx";
+import PerfilFornecedor from "./pages/PerfilFornecedor.jsx";
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
@@ -50,13 +49,14 @@ const protegidas = {
 export default function App() {
   return (
     <Routes>
+      {/* ===== Telas públicas (com Header/Footer do Layout) ===== */}
       <Route element={<Layout />}>
         <Route path="/" element={<EscolhaPerfil />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
         <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
 
-        {/* ✅ ROTA NOVA: Análise Cadastral (pública, após cadastro) */}
+        {/* Análise Cadastral (pública, após cadastro) */}
         <Route path="/cadastro/status" element={<AnaliseCadastral />} />
 
         {publicas
@@ -64,14 +64,6 @@ export default function App() {
           .map(([path, titulo]) => (
             <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
           ))}
-
-        {/* ✅ ROTAS NOVO: Fornecedor */}
-        <Route element={<ProtectedRoute perfil="fornecedor" />}>
-          <Route path="/fornecedor/painel" element={<PainelFornecedor />} />
-          <Route path="/fornecedor" element={<PainelFornecedor />} />
-          <Route path="/fornecedor/minhas-propostas" element={<MinhasPropostas />} />
-          <Route path="/fornecedor/mensagens-fornecedor" element={<MensagensFornecedor />} />
-        </Route>
 
         {/* Outras rotas protegidas que já existem */}
         {Object.entries(protegidas).map(([perfil, telas]) => {
@@ -89,6 +81,19 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Route>
+
+      {/* ===== Fornecedor: layout próprio (header + footer) ===== */}
+      <Route element={<ProtectedRoute perfil="fornecedor" />}>
+        <Route element={<FornecedorLayout />}>
+          <Route path="/fornecedor" element={<PainelFornecedor />} />
+          <Route path="/fornecedor/painel" element={<PainelFornecedor />} />
+          <Route path="/fornecedor/minhas-propostas" element={<MinhasPropostas />} />
+          <Route path="/fornecedor/mensagens-fornecedor" element={<MensagensFornecedor />} />
+          <Route path="/fornecedor/perfil" element={<PerfilFornecedor />} />
+        </Route>
+      </Route>
+
+      {/* ===== Organizador ===== */}
       <Route element={<ProtectedRoute perfil="organizador" />}>
         <Route path="/organizador" element={<OrganizadorLayout />}>
           <Route path="eventos/:id/custos" element={<CustosOrcamento />} />
@@ -109,6 +114,8 @@ export default function App() {
           <Route index element={<CustosOrcamento />} />
         </Route>
       </Route>
+
+      {/* ===== Admin ===== */}
       <Route element={<AdminLayout />}>
         <Route path="/login-admin" element={<LoginAdmin />} />
       </Route>
@@ -127,5 +134,5 @@ export default function App() {
         </Route>
       </Route>
     </Routes>
-  )
+  );
 }
