@@ -24,6 +24,7 @@ import {
   ingressoSugerido,
   pontoEquilibrio,
   publicoEsperado,
+  propostasAceitas,
   subtotalFiscal,
   subtotalProducao,
 } from "../services/calculos.js";
@@ -46,7 +47,7 @@ export default function Resumo() {
   const total = custoTotal(evento);
   const fornecedores = subtotalProducao(evento);
   const fiscal = subtotalFiscal(evento);
-  const aceito = evento.custos.propostasAceitas.reduce((soma, item) => soma + item.valor, 0);
+  const aceito = propostasAceitas(evento).reduce((soma, item) => soma + item.valor, 0);
   const percentualAceito = total > 0 ? Math.round((aceito / total) * 100) : 0;
   const margem = evento.precificacao.margem;
   const publicoMedio = publicoEsperado(evento);

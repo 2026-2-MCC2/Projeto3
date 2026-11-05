@@ -1,0 +1,45 @@
+.tt-steps-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.tt-steps-breadcrumb__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tt-steps-breadcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tt-steps-breadcrumb a:hover {
+  color: #334155;
+  text-decoration: underline;
+}
+
+.tt-steps-breadcrumb [aria-current="step"] {
+  color: #3b9ef5;
+  font-weight: 600;
+}
+
+.tt-steps-breadcrumb__separator,
+.tt-steps-breadcrumb .is-future {
+  color: #b7c0ce;
+}
+
+@media (max-width: 700px) {
+  .tt-steps-breadcrumb {
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .tt-steps-breadcrumb__step {
+    gap: 5px;
+  }
+}

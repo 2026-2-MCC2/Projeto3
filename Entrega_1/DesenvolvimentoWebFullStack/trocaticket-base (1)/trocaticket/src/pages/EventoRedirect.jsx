@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { getEvento, setEventoAtivo } from "../services/eventoStore.js";
 
-const rotasPorEtapa = {
-  cadastro: "novo",
-  custo: "novo/custo",
-  proposta: "novo/proposta",
-  calculo: "novo/calculo",
-  resumo: "novo/resumo",
-  publicar: "novo/publicar",
+const etapasComAlias = {
+  cadastro: "cadastro",
+  custos: "custos",
+  custo: "custos",
+  proposta: "propostas",
+  propostas: "propostas",
+  resumo: "resumo",
+  precificacao: "precificacao",
+  calculo: "precificacao",
 };
 
 export default function EventoRedirect() {
@@ -19,10 +21,11 @@ export default function EventoRedirect() {
   useEffect(() => {
     if (!evento) return;
     setEventoAtivo(id);
-    const etapa = rotasPorEtapa[evento.etapaAtual] ?? rotasPorEtapa.calculo;
-    const rota = etapa === "novo"
-      ? `/organizador/eventos/novo?id=${encodeURIComponent(id)}`
-      : `/organizador/eventos/${etapa}`;
+    const eventoId = encodeURIComponent(id);
+    const etapa = etapasComAlias[evento.etapaAtual] ?? "precificacao";
+    const rota = etapa === "cadastro"
+      ? `/organizador/eventos/novo?id=${eventoId}`
+      : `/eventos/${eventoId}/${etapa}`;
     navigate(rota, { replace: true });
   }, [evento, id, navigate]);
 

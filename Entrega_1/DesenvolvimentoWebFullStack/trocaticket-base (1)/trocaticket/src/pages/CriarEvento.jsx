@@ -16,7 +16,7 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   criarEvento,
   getEvento,
@@ -162,7 +162,8 @@ function dataNoPassado(data) {
 
 export default function CriarEvento() {
   const [searchParams] = useSearchParams();
-  const eventoId = searchParams.get("id");
+  const { id } = useParams();
+  const eventoId = searchParams.get("id") ?? id;
   return <FormularioEvento key={eventoId ?? "novo"} eventoId={eventoId} />;
 }
 

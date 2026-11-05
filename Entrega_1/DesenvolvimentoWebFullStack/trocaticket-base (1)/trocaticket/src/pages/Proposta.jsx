@@ -21,7 +21,7 @@ import {
   setEventoAtivo,
   subscribe,
 } from "../services/eventoStore.js";
-import { custoTotal } from "../services/calculos.js";
+import { custoTotal, propostasAceitas } from "../services/calculos.js";
 
 const categorias = [
   { nome: "Todos os Itens" },
@@ -146,7 +146,7 @@ export default function Proposta() {
   }));
   const propostasAnalise = propostasDoEvento.filter((proposta) => proposta.status === "em_analise").length;
   const totalEvento = evento ? custoTotal(evento) : 0;
-  const totalAceito = evento?.custos.propostasAceitas.reduce((total, proposta) => total + proposta.valor, 0) ?? 0;
+  const totalAceito = evento ? propostasAceitas(evento).reduce((total, proposta) => total + proposta.valor, 0) : 0;
   const menorProposta = propostasDoEvento.length
     ? Math.min(...propostasDoEvento.map((proposta) => proposta.valor))
     : 0;

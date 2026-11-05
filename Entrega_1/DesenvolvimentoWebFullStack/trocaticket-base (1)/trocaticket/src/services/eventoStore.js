@@ -25,9 +25,9 @@ const eventosIniciais = [
     categoria: "Festa universitária",
     descricao: "",
     capa: "",
-    dataInicio: "2026-11-21",
-    dataFim: "",
-    local: { nome: "Espaço Liberdade", cidade: "São Paulo", uf: "SP" },
+    dataInicio: "2026-11-14T18:00",
+    dataFim: "2026-11-16T02:00",
+    local: { nome: "Pedreira Paulo Leminski", cidade: "Curitiba", uf: "PR" },
     capacidadeAlvara: 8500,
     publico: { minimo: 3000, maximo: 8500 },
     custos: {
@@ -36,45 +36,45 @@ const eventosIniciais = [
           id: "custo-som-001",
           categoriaId: "som",
           grupoGrafico: "som",
-          titulo: "Sistema Line Array K2 + Rider Técnico de Palco",
+          titulo: "Sistema de Som & PA",
           qtd: "1 sistema completo",
-          especificacao: "PA L-Acoustics K2 com subs KS28, consoles digitais Avid S6L, monitores de palco e microfonação técnica.",
+          especificacao: "Sistema de som e PA do evento.",
           valor: 80000,
           tags: ["RF06"],
-          alocacao: "direta",
+          alocacao: "cotacao",
         },
         {
           id: "custo-palco-001",
           categoriaId: "palco",
           grupoGrafico: "palco",
-          titulo: "Palco Geodésico 24×18m com Cobertura Cristal & House Mix",
+          titulo: "Palco e Cobertura Geodésica",
           qtd: "1 estrutura modular",
           especificacao: "Estrutura em alumínio Q30/Q50, piso naval com acabamento antiderrapante, torres de delay e laudo ART de montagem.",
           valor: 62500,
           tags: ["RF12"],
-          alocacao: "direta",
+          alocacao: "cotacao",
         },
         {
           id: "custo-seguranca-001",
           categoriaId: "seguranca",
           grupoGrafico: "seguranca",
-          titulo: "Contingente de 65 Vigilantes Patrimoniais + 12 Bombeiros Civis",
+          titulo: "Vigilância e Controle de Acesso",
           qtd: "77 profissionais (turno 12h)",
           especificacao: "Escala de segurança interna/perimetral homologada pela Polícia Federal e brigada com plano de evacuação médica.",
           valor: 25500,
           tags: [],
-          alocacao: "direta",
+          alocacao: "cotacao",
         },
         {
           id: "custo-limpeza-001",
           categoriaId: "limpeza",
           grupoGrafico: "seguranca",
-          titulo: "40 Cabines Químicas Standard + 4 Cabines PCD + Coleta Seletiva",
+          titulo: "Limpeza e coleta seletiva",
           qtd: "44 cabines + equipe pós-evento",
-          especificacao: "Manutenção contínua e higienização durante o evento, caminhão limpa-fossa e descarte certificado de resíduos.",
+          especificacao: "Higienização e descarte certificado de resíduos.",
           valor: 20000,
-          tags: ["Sustentável"],
-          alocacao: "direta",
+          tags: [],
+          alocacao: "cotacao",
         },
       ],
       fiscais: [
@@ -90,7 +90,7 @@ const eventosIniciais = [
         },
         {
           id: "fiscal-iss-001",
-          categoriaId: "municipal",
+          categoriaId: "iss",
           grupoGrafico: "fiscais",
           origem: "Prefeitura Municipal de São Paulo",
           titulo: "ISSQN sobre Ingressos e Serviços Culturais (5%)",
@@ -110,7 +110,7 @@ const eventosIniciais = [
         },
         {
           id: "fiscal-operacao-001",
-          categoriaId: "operacao",
+          categoriaId: "uti",
           grupoGrafico: "variaveis",
           origem: "Fundo de segurança",
           titulo: "UTI Móvel + Grupo Gerador Reserva + Reserva Técnica",
@@ -119,15 +119,22 @@ const eventosIniciais = [
           valor: 26800,
         },
       ],
-      propostasAceitas: [{ fornecedorId: "fornecedor-calourada", valor: 32787 }],
+      propostasAceitas: [],
     },
-    precificacao: { margem: 0.10088621817515, taxaPlataforma: 0.08, impostos: 0.05 },
+    precificacao: { margem: 0.2, taxaPlataforma: 0.08, impostos: 0.05, publicoEsperado: null, cenarioEscolhido: "esperado" },
     status: "planejamento",
     etapaAtual: "resumo",
-    propostas: Array.from({ length: 3 }, (_, indice) => ({
-      fornecedorId: `calourada-${indice}`,
-      status: "em_analise",
-    })),
+    tetoOrcamento: 210000,
+    propostas: [
+      { id: "prop-001", fornecedorId: "fornecedor-acustica-prime", itemCustoId: "custo-som-001", valor: 48500, validade: "2026-11-30", destaque: "Melhor Custo-Benefício", recomendada: true, status: "confirmada" },
+      { id: "prop-002", fornecedorId: "fornecedor-soundwave", itemCustoId: "custo-som-001", valor: 52000, validade: "2026-11-28", status: "em_analise" },
+      { id: "prop-003", fornecedorId: "fornecedor-luz-arte", itemCustoId: "custo-som-001", valor: 39800, validade: "2026-12-05", destaque: "Iluminação Eficiente", status: "em_analise" },
+      { id: "prop-004", fornecedorId: "fornecedor-stagepro", itemCustoId: "custo-palco-001", valor: 64000, validade: "2026-12-01", destaque: "Alta Capacidade", status: "confirmada" },
+      { id: "prop-005", fornecedorId: "fornecedor-sentinela", itemCustoId: "custo-seguranca-001", valor: 31000, validade: "2026-12-15", status: "confirmada" },
+      { id: "prop-006", fornecedorId: "fornecedor-audio-sul", itemCustoId: "custo-som-001", valor: 48500, validade: "2026-12-10", status: "em_analise" },
+      { id: "prop-007", fornecedorId: "fornecedor-lumen", itemCustoId: "custo-limpeza-001", valor: 36800, validade: "2026-12-08", status: "em_analise" },
+      { id: "prop-008", fornecedorId: "fornecedor-estrutural", itemCustoId: "custo-palco-001", valor: 55880, validade: "2026-12-12", status: "em_analise" },
+    ],
   },
   {
     id: "sunset-engenharia",
@@ -210,6 +217,14 @@ function normalizarEvento(evento) {
 
   return {
     ...evento,
+    precificacao: {
+      margem: 0.2,
+      taxaPlataforma: 0.08,
+      impostos: 0.05,
+      publicoEsperado: null,
+      cenarioEscolhido: "esperado",
+      ...(evento.precificacao ?? {}),
+    },
     custos: {
       ...custos,
       fornecedores: fornecedores.map((item, indice) => {
@@ -246,7 +261,16 @@ function normalizarEvento(evento) {
 function criarStoreInicial() {
   return {
     usuario: usuarioPadrao,
-    usuarios: [],
+    usuarios: [
+      { id: "fornecedor-acustica-prime", perfil: "fornecedor", nome: "Acústica Prime Engenharia de Som", documento: "14820301000144", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: true, rating: 4.9, eventosRealizados: 42, selos: [] },
+      { id: "fornecedor-soundwave", perfil: "fornecedor", nome: "SoundWave Produções & Áudio", documento: "09341220000190", status: "aprovado", cidade: "São Paulo", uf: "SP", auditada: false, rating: 4.7, eventosRealizados: 28, selos: [] },
+      { id: "fornecedor-luz-arte", perfil: "fornecedor", nome: "Luz & Arte Cenografia Iluminação", documento: "22189540000112", status: "aprovado", cidade: "São Paulo", uf: "SP", auditada: true, rating: 4.8, eventosRealizados: 34, selos: [] },
+      { id: "fornecedor-stagepro", perfil: "fornecedor", nome: "StagePro Estruturas Metálicas", documento: "18239001000281", status: "aprovado", cidade: "Campinas", uf: "SP", auditada: true, rating: 4.9, eventosRealizados: 61, selos: ["Engenharia Certificada"] },
+      { id: "fornecedor-sentinela", perfil: "fornecedor", nome: "Sentinela Segurança Especializada", documento: "33190722000108", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: false, rating: 4.9, eventosRealizados: 53, selos: [] },
+      { id: "fornecedor-audio-sul", perfil: "fornecedor", nome: "Audio Sul Produções", documento: "41111111000120", status: "aprovado", cidade: "Porto Alegre", uf: "RS", auditada: false, rating: 4.6, eventosRealizados: 19, selos: [] },
+      { id: "fornecedor-lumen", perfil: "fornecedor", nome: "Lumen Eventos", documento: "42222222000130", status: "aprovado", cidade: "Florianópolis", uf: "SC", auditada: true, rating: 4.7, eventosRealizados: 22, selos: [] },
+      { id: "fornecedor-estrutural", perfil: "fornecedor", nome: "Estrutural Brasil", documento: "43333333000140", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: false, rating: 4.5, eventosRealizados: 15, selos: [] },
+    ],
     eventos: eventosIniciais.map(normalizarEvento),
     eventoAtivoId: eventosIniciais[0].id,
     notificacoes: { fornecedores: 1, mensagens: 2 },
@@ -266,13 +290,40 @@ function lerStore() {
     if (!storeSalvo || !Array.isArray(storeSalvo.eventos)) {
       throw new TypeError("O formato armazenado de eventos é inválido.");
     }
-    return {
-      ...criarStoreInicial(),
+    const inicial = criarStoreInicial();
+    const eventos = storeSalvo.eventos.map((eventoSalvo) => {
+      const evento = normalizarEvento(eventoSalvo);
+      const seed = inicial.eventos.find((item) => item.id === evento.id);
+      if (!seed || evento.propostas?.some((proposta) => proposta.itemCustoId)) return evento;
+      const idsCotacao = new Set(seed.custos.fornecedores
+        .filter((item) => item.alocacao === "cotacao")
+        .map((item) => item.id));
+      const custosExtras = evento.custos.fornecedores.filter((item) => !idsCotacao.has(item.id));
+      return {
+        ...evento,
+        tetoOrcamento: evento.tetoOrcamento ?? seed.tetoOrcamento,
+        custos: {
+          ...evento.custos,
+          fornecedores: [
+            ...seed.custos.fornecedores.filter((item) => item.alocacao === "cotacao"),
+            ...custosExtras,
+          ],
+        },
+        propostas: seed.propostas,
+      };
+    });
+    const usuarios = new Map([
+      ...inicial.usuarios.map((usuario) => [usuario.id, usuario]),
+      ...(Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : []).map((usuario) => [usuario.id, usuario]),
+    ]);
+    const carregado = {
+      ...inicial,
       ...storeSalvo,
-      eventos: storeSalvo.eventos.map(normalizarEvento),
+      eventos,
       usuario: { ...usuarioPadrao, ...storeSalvo.usuario },
-      usuarios: Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : [],
+      usuarios: [...usuarios.values()],
     };
+    return carregado;
   } catch (erro) {
     console.error("Não foi possível carregar os eventos salvos do TrocaTicket.", erro);
     const inicial = criarStoreInicial();
@@ -401,6 +452,8 @@ export function criarEvento(dados = {}) {
       margem: 0.2,
       taxaPlataforma: 0.08,
       impostos: 0.05,
+      publicoEsperado: null,
+      cenarioEscolhido: "esperado",
       ...precificacao,
     },
   };

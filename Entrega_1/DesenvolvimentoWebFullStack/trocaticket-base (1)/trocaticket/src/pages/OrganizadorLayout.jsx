@@ -31,6 +31,7 @@ import {
   propostasEmAnalise,
   totalPropostasEmAnalise,
 } from "../services/calculos.js";
+import "./OrganizadorLayout.css";
 import "./OrganizadorDashboard.css";
 
 const moeda = new Intl.NumberFormat("pt-BR", {
@@ -87,13 +88,14 @@ export default function OrganizadorLayout() {
   const { user, sair } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const toast = location.state?.toast ?? "";
   const eventos = store.eventos;
   const ativos = eventosAtivos(eventos);
   const notificacoes = store.notificacoes;
   const [onboardingDispensado, setOnboardingDispensado] = useState(
     () => localStorage.getItem("trocaticket:onboarding-dispensado") === "true",
   );
-  const paginaInicial = location.pathname.replace(/\/+$/, "") === "/organizador";
+  const paginaInicial = ["/organizador", "/eventos"].includes(location.pathname.replace(/\/+$/, ""));
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
   const nomeUsuario = user?.nome ?? store.usuario.nome;
   const iniciaisUsuario = user?.iniciais
@@ -126,10 +128,10 @@ export default function OrganizadorLayout() {
               Meus Eventos
             </Link>
             <Link
-              className="tt-nav__link"
+              className={`tt-nav__link${location.pathname.includes("/proposta") || location.pathname.includes("/propostas") ? " is-active" : ""}`}
               to="/organizador/eventos/novo/proposta"
             >
-              Fornecedores
+              Propostas Recebidas
               {notificacoes.fornecedores > 0 && (
                 <span className="tt-nav__badge is-orange">{notificacoes.fornecedores}</span>
               )}
@@ -184,6 +186,7 @@ export default function OrganizadorLayout() {
       </header>
 
       <main className="tt-main">
+        {toast && <button type="button" className="tt-organizer-toast" role="status" onClick={() => navigate(location.pathname, { replace: true, state: null })}>{toast} <X size={14} aria-hidden="true" /></button>}
         {paginaInicial ? (
           <div className="tt-dashboard">
             <section className="tt-page-heading">

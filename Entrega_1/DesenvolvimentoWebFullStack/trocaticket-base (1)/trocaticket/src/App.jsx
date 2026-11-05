@@ -21,9 +21,9 @@ import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
 import EventoRedirect from "./pages/EventoRedirect.jsx";
 import CriarEvento from "./pages/CriarEvento.jsx";
 import CustosOrcamento from "./pages/CustosOrcamento.jsx";
-import Proposta from "./pages/Proposta.jsx";
-import Calculo from "./pages/Calculo.jsx";
-import Resumo from "./pages/Resumo.jsx";
+import PropostasRecebidas from "./pages/PropostasRecebidas.jsx";
+import ResumoConsolidacao from "./pages/ResumoConsolidacao.jsx";
+import PrecificacaoTicket from "./pages/PrecificacaoTicket.jsx";
 import Publicar from "./pages/Publicar.jsx";
 
 // PÁGINAS CINTYA
@@ -96,10 +96,9 @@ export default function App() {
           <Route path="eventos/:id" element={<EventoRedirect />} />
           <Route path="eventos/novo" element={<CriarEvento />} />
           <Route path="eventos/novo/custo" element={<CustosOrcamento />} />
-          <Route path="eventos/novo/proposta" element={<Proposta />} />
-          <Route path="eventos/:id/propostas" element={<Proposta />} />
-          <Route path="eventos/novo/calculo" element={<Calculo />} />
-          <Route path="eventos/novo/resumo" element={<Resumo />} />
+          <Route path="eventos/novo/proposta" element={<PropostasRecebidas />} />
+          <Route path="eventos/:id/propostas" element={<PropostasRecebidas />} />
+          <Route path="eventos/novo/resumo" element={<ResumoConsolidacao />} />
           <Route path="eventos/novo/publicar" element={<Publicar />} />
           <Route path="eventos" element={<EmConstrucao titulo="Histórico de Eventos" />} />
           <Route path="mensagens" element={<Mensagens perfil="organizador" />} />
@@ -109,6 +108,19 @@ export default function App() {
         <Route path="/eventos/:id/custos" element={<OrganizadorLayout />}>
           <Route index element={<CustosOrcamento />} />
         </Route>
+        <Route path="/eventos/:id/propostas" element={<OrganizadorLayout />}>
+          <Route index element={<PropostasRecebidas />} />
+        </Route>
+        <Route path="/eventos/:id/resumo" element={<OrganizadorLayout />}>
+          <Route index element={<ResumoConsolidacao />} />
+        </Route>
+        <Route path="/eventos/:id/editar" element={<OrganizadorLayout />}>
+          <Route index element={<CriarEvento />} />
+        </Route>
+        <Route path="/eventos/:id/precificacao" element={<OrganizadorLayout />}>
+          <Route index element={<PrecificacaoTicket />} />
+        </Route>
+        <Route path="/eventos" element={<OrganizadorLayout />} />
       </Route>
       <Route element={<AdminLayout />}>
         <Route path="/login-admin" element={<LoginAdmin />} />

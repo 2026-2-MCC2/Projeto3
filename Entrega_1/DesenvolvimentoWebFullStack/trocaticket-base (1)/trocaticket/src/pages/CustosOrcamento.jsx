@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CustosOrcamentoModal from "../components/CustosOrcamentoModal.jsx";
+import Breadcrumb from "../components/Breadcrumb.jsx";
+import { obterCategoria } from "../services/categorias.js";
 import {
   custoPorPaxLotacao,
   custoTotal,
@@ -47,24 +49,28 @@ const moedaSemCentavos = new Intl.NumberFormat("pt-BR", {
 const numero = new Intl.NumberFormat("pt-BR");
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
+const itemCategoria = (id) => {
+  const categoria = obterCategoria(id);
+  return { nome: categoria.nome, classe: id, grupo: categoria.grupoGrafico };
+};
 const categoriasProducao = {
-  som: { nome: "Som & Iluminação", classe: "som", grupo: "som" },
-  palco: { nome: "Palco & Estrutura", classe: "palco", grupo: "palco" },
-  seguranca: { nome: "Segurança & Operação", classe: "seguranca", grupo: "seguranca" },
-  limpeza: { nome: "Limpeza & Sanitários", classe: "limpeza", grupo: "seguranca" },
-  alimentacao: { nome: "Alimentação & Bebidas", classe: "alimentacao", grupo: "variaveis" },
-  transporte: { nome: "Transporte & Logística", classe: "transporte", grupo: "variaveis" },
-  outro: { nome: "Outro", classe: "outro", grupo: "variaveis" },
+  som: itemCategoria("som"),
+  palco: itemCategoria("palco"),
+  seguranca: itemCategoria("seguranca"),
+  limpeza: itemCategoria("limpeza"),
+  alimentacao: itemCategoria("alimentacao"),
+  transporte: itemCategoria("transporte"),
+  outro: itemCategoria("outro"),
 };
 
 const categoriasFiscais = {
-  ecad: { nome: "Direitos Autorais (ECAD)", classe: "ecad", grupo: "fiscais" },
-  municipal: { nome: "Tributário Municipal", classe: "municipal", grupo: "fiscais" },
-  tributario: { nome: "Tributário Estadual/Federal", classe: "tributario", grupo: "fiscais" },
-  gateway: { nome: "Processamento & Gateway", classe: "gateway", grupo: "variaveis" },
-  operacao: { nome: "Operação Crítica", classe: "operacao", grupo: "variaveis" },
-  seguros: { nome: "Seguros", classe: "seguros", grupo: "variaveis" },
-  outro: { nome: "Outro", classe: "outro", grupo: "variaveis" },
+  ecad: itemCategoria("ecad"),
+  municipal: { ...itemCategoria("iss"), classe: "municipal" },
+  tributario: itemCategoria("tributario"),
+  gateway: itemCategoria("gateway"),
+  operacao: { ...itemCategoria("uti"), classe: "operacao" },
+  seguros: itemCategoria("seguros"),
+  outro: itemCategoria("outro"),
 };
 
 function nomeFiscal(item, evento) {
@@ -328,7 +334,7 @@ export default function CustosOrcamento() {
     }
     setEvento(evento.id, { status: "planejamento" });
     setAlteracoesNaoSalvas(false);
-    navigate(`/organizador/eventos/${encodeURIComponent(evento.id)}/propostas`);
+    navigate(`/eventos/${encodeURIComponent(evento.id)}/propostas`);
   }
 
   function navegarEtapaUm(event) {
@@ -394,14 +400,7 @@ export default function CustosOrcamento() {
 
   return (
     <div className="costs-page">
-      <nav className="costs-breadcrumb" aria-label="Etapas do evento">
-        <Link to="/organizador/eventos">Meus Eventos</Link><span aria-hidden="true">›</span>
-        <Link to={`/organizador/eventos/novo?id=${encodeURIComponent(evento.id)}`} onClick={navegarEtapaUm}>Criar Evento</Link><span aria-hidden="true">›</span>
-        <span className="is-current" aria-current="step">Custos &amp; Orçamento</span><span aria-hidden="true">›</span>
-        <span>Propostas</span><span aria-hidden="true">›</span>
-        <span>Precificação</span><span aria-hidden="true">›</span>
-        <span>Resumo &amp; Publicação</span>
-      </nav>
+      <Breadcrumb etapaAtual={2} eventoId={evento.id} onEtapaUmClick={navegarEtapaUm} />
 
       <header className="costs-heading">
         <h1>Composição de Custos e Orçamento</h1>
