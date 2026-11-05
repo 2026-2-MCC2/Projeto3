@@ -1,260 +1,211 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "./MinhasPropostas.css";
+import React, { useState } from 'react';
+import './MinhasPropostas.css'; // Importa o CSS
 
-export default function MinhasPropostas() {
-  const navigate = useNavigate();
-  
-  // Dados simulados baseados no design do Stitch
-  const [propostas, setPropostas] = useState([
-    { id: 1, evento: "Casamento Helena & Tomás", dataEnvio: "12/10/2025", item: "Mobiliário e louças", valor: 6200.00, validade: "12/11/2025", status: "ENVIADA" },
-    { id: 2, evento: "Casamento Helena & Tomás", dataEnvio: "10/10/2025", item: "Decoração floral", valor: 9850.00, validade: "10/11/2025", status: "EM ANÁLISE" },
-    { id: 3, evento: "Casamento Helena & Tomás", dataEnvio: "08/10/2025", item: "Som e iluminação", valor: 11000.00, validade: "14/11/2025", status: "APROVADA" },
-    { id: 4, evento: "Convenção Nimbus Tech", dataEnvio: "14/10/2025", item: "Coffee break duplo", valor: 18400.00, validade: "20/11/2025", status: "EM ANÁLISE" },
-    { id: 5, evento: "Aniversário 50 anos Dona Rita", dataEnvio: "05/10/2025", item: "Buffet coquetel", valor: 7600.00, validade: "01/12/2025", status: "RECUSADA" },
-  ]);
+export default function MinhasPropostasFornecedor() {
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Estados de Filtro e Busca
-  const [filtroAtivo, setFiltroAtivo] = useState("Todas");
-  const [termoBusca, setTermoBusca] = useState("");
+  // Dados mockados baseados no HTML original
+  const allProposals = [
+    { id: '#2081', date: '12/10/2026', event: 'Casamento Helena & Tomás', item: 'Mobiliário e louças', value: 'R$ 6.200,00', valid: '12/11/2026', status: 'Enviada' },
+    { id: '#2084', date: '10/10/2026', event: 'Casamento Helena & Tomás', item: 'Decoração floral', value: 'R$ 9.850,00', valid: '10/11/2026', status: 'Em análise' },
+    { id: '#2076', date: '08/10/2026', event: 'Casamento Helena & Tomás', item: 'Som e iluminação', value: 'R$ 7.400,00', valid: '14/11/2026', status: 'Aprovada' },
+    { id: '#2090', date: '14/10/2026', event: 'Convenção Nimbus Tech', item: 'Coffee break duplo', value: 'R$ 18.400,00', valid: '20/11/2026', status: 'Em análise' },
+    { id: '#2069', date: '05/10/2026', event: 'Aniversário 50 anos Dona Rita', item: 'Buffet coquetel', value: 'R$ 7.600,00', valid: '01/12/2026', status: 'Recusada' },
+  ];
 
-  // Estados do Modal e Toast (Notificação)
-  const [modalAberto, setModalAberto] = useState(false);
-  const [propostaEmEdicao, setPropostaEmEdicao] = useState(null);
-  const [toastMsg, setToastMsg] = useState("");
-
-  // Lógica de Filtro e Busca combinados
-  const propostasFiltradas = propostas.filter(p => {
-    const matchFiltro = filtroAtivo === "Todas" || p.status === filtroAtivo;
-    const matchBusca = p.evento.toLowerCase().includes(termoBusca.toLowerCase()) || 
-                       p.item.toLowerCase().includes(termoBusca.toLowerCase());
-    return matchFiltro && matchBusca;
+  // Lógica de Filtro e Busca
+  const filteredProposals = allProposals.filter(prop => {
+    const matchesFilter = activeFilter === 'all' || prop.status === activeFilter;
+    const matchesSearch = prop.event.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          prop.item.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
 
-  // Funções de Interação
-  const abrirModal = (proposta = null) => {
-    setPropostaEmEdicao(proposta);
-    setModalAberto(true);
+  // Contagem para as abas
+  const counts = {
+    all: allProposals.length,
+    Enviada: allProposals.filter(p => p.status === 'Enviada').length,
+    'Em análise': allProposals.filter(p => p.status === 'Em análise').length,
+    Aprovada: allProposals.filter(p => p.status === 'Aprovada').length,
+    Recusada: allProposals.filter(p => p.status === 'Recusada').length,
+    Cancelada: allProposals.filter(p => p.status === 'Cancelada').length,
   };
 
-  const fecharModal = () => {
-    setModalAberto(false);
-    setPropostaEmEdicao(null);
-  };
-
-  const mostrarToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 3000);
-  };
-
-  const salvarProposta = (e) => {
-    e.preventDefault();
-    mostrarToast("Proposta salva e enviada ao organizador com sucesso!");
-    fecharModal();
-  };
-
-  const cancelarProposta = (id) => {
-    if(window.confirm("Deseja realmente cancelar esta proposta?")) {
-      setPropostas(propostas.filter(p => p.id !== id));
-      mostrarToast("Proposta cancelada.");
+  const getStatusBadge = (status) => {
+    switch(status) {
+      case 'Enviada': return <span className="mprop-badge enviada"><span className="dot"></span>Enviada</span>;
+      case 'Em análise': return <span className="mprop-badge analise"><span className="dot"></span>Em análise</span>;
+      case 'Aprovada': return <span className="mprop-badge aprovada"><span className="dot"></span>Aprovada</span>;
+      case 'Recusada': return <span className="mprop-badge recusada"><span className="dot"></span>Recusada</span>;
+      default: return null;
     }
   };
 
-  const verMotivoRecusa = () => {
-    alert('Motivo registrado pelo organizador: "Optamos por fechar um pacote integrado com outro fornecedor."');
+  const renderActions = (status) => {
+    if (status === 'Enviada' || status === 'Em análise') {
+      return (
+        <div className="mprop-actions">
+          <button className="mprop-btn-edit">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg> Editar
+          </button>
+          <button className="mprop-btn-delete" title="Cancelar Proposta">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+      );
+    }
+    if (status === 'Aprovada') {
+      return (
+        <span className="mprop-btn-blocked">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg> Bloqueada
+        </span>
+      );
+    }
+    if (status === 'Recusada') {
+      return <button className="mprop-btn-link">Ver motivo</button>;
+    }
   };
 
-  const contagemPorStatus = (status) => propostas.filter(p => p.status === status).length;
-
   return (
-    <div className="mp-page">
-      {/* HEADER DE NAVEGAÇÃO DO FORNECEDOR */}
-      <header className="mp-header">
-        <div className="mp-header-content">
-          <div className="mp-header-spacer"></div>
-          <nav className="mp-header-nav">
-            <button onClick={() => navigate('/fornecedor/painel')} className="mp-nav-item">
-              Oportunidades
-            </button>
-            <button onClick={() => navigate('/fornecedor/minhas-propostas')} className="mp-nav-item active">
-              Minhas propostas
-            </button>
-            <button onClick={() => navigate('/fornecedor/mensagens')} className="mp-nav-item">
-              Mensagens <span className="mp-nav-dot"></span>
-            </button>
-          </nav>
-          <div className="mp-header-profile">
-            <div className="mp-profile-info">
-              <span className="mp-profile-name">Casa Aurora</span>
-              <span className="mp-profile-role">Buffet & mobiliário</span>
+    <div className="mprop-layout">
+      {/* Componente Global de Header Entraria Aqui */}
+
+      <main className="mprop-main">
+        {/* Título e Botão de Ação */}
+        <div className="mprop-header-bar">
+          <div>
+            <p className="mprop-subtitle">Histórico e status</p>
+            <h1 className="mprop-title">Minhas propostas</h1>
+          </div>
+          <button className="mprop-btn-new">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" /></svg>
+            Nova proposta
+          </button>
+        </div>
+
+        {/* Cartões de KPI */}
+        <section className="mprop-kpi-grid">
+          <div className="mprop-kpi-card">
+            <div className="mprop-kpi-border blue"></div>
+            <div className="mprop-kpi-top">
+              <span className="mprop-kpi-label">Em aberto</span>
+              <div className="mprop-kpi-icon blue">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
             </div>
-            <div className="mp-profile-avatar">CA</div>
+            <div className="mprop-kpi-value">R$ 34.450,00</div>
+            <div className="mprop-kpi-desc">3 propostas aguardando</div>
           </div>
-        </div>
-      </header>
 
-      <main className="mp-main">
-        {/* Título e Botão Nova Proposta */}
-        <div className="mp-page-header">
-          <h1>Minhas propostas</h1>
-          <div className="mp-header-actions">
-            <span className="mp-records-count">{propostasFiltradas.length} registros</span>
-            <button className="mp-btn-primary" onClick={() => abrirModal()}>
-              + Nova Proposta
-            </button>
+          <div className="mprop-kpi-card">
+            <div className="mprop-kpi-border green"></div>
+            <div className="mprop-kpi-top">
+              <span className="mprop-kpi-label">Aprovado</span>
+              <div className="mprop-kpi-icon green">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+            </div>
+            <div className="mprop-kpi-value">R$ 7.400,00</div>
+            <div className="mprop-kpi-desc">1 contrato</div>
           </div>
-        </div>
 
-        {/* Filtros e Barra de Busca */}
-        <div className="mp-filters-bar">
-          <div className="mp-pills">
-            <button className={`mp-pill ${filtroAtivo === "Todas" ? "active" : ""}`} onClick={() => setFiltroAtivo("Todas")}>
-              Todas ({propostas.length})
+          <div className="mprop-kpi-card">
+            <div className="mprop-kpi-border orange"></div>
+            <div className="mprop-kpi-top">
+              <span className="mprop-kpi-label">Taxa de aprovação</span>
+              <div className="mprop-kpi-icon orange">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+              </div>
+            </div>
+            <div className="mprop-kpi-value">50%</div>
+            <div className="mprop-kpi-desc">2 decididas</div>
+          </div>
+        </section>
+
+        {/* Filtros e Busca */}
+        <div className="mprop-toolbar">
+          <div className="mprop-filters">
+            <button className={`mprop-pill ${activeFilter === 'all' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('all')}>
+              Todas <span style={{ opacity: activeFilter === 'all' ? 0.8 : 0.6 }}>{counts.all}</span>
             </button>
-            <button className={`mp-pill ${filtroAtivo === "ENVIADA" ? "active" : ""}`} onClick={() => setFiltroAtivo("ENVIADA")}>
-              Enviadas ({contagemPorStatus("ENVIADA")})
+            <button className={`mprop-pill ${activeFilter === 'Enviada' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('Enviada')}>
+              Enviada <span style={{ opacity: activeFilter === 'Enviada' ? 0.8 : 0.6 }}>{counts.Enviada}</span>
             </button>
-            <button className={`mp-pill ${filtroAtivo === "EM ANÁLISE" ? "active" : ""}`} onClick={() => setFiltroAtivo("EM ANÁLISE")}>
-              Em análise ({contagemPorStatus("EM ANÁLISE")})
+            <button className={`mprop-pill ${activeFilter === 'Em análise' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('Em análise')}>
+              Em análise <span style={{ opacity: activeFilter === 'Em análise' ? 0.8 : 0.6 }}>{counts['Em análise']}</span>
             </button>
-            <button className={`mp-pill ${filtroAtivo === "APROVADA" ? "active" : ""}`} onClick={() => setFiltroAtivo("APROVADA")}>
-              Aprovadas ({contagemPorStatus("APROVADA")})
+            <button className={`mprop-pill ${activeFilter === 'Aprovada' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('Aprovada')}>
+              Aprovada <span style={{ opacity: activeFilter === 'Aprovada' ? 0.8 : 0.6 }}>{counts.Aprovada}</span>
             </button>
-            <button className={`mp-pill ${filtroAtivo === "RECUSADA" ? "active" : ""}`} onClick={() => setFiltroAtivo("RECUSADA")}>
-              Recusadas ({contagemPorStatus("RECUSADA")})
+            <button className={`mprop-pill ${activeFilter === 'Recusada' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('Recusada')}>
+              Recusada <span style={{ opacity: activeFilter === 'Recusada' ? 0.8 : 0.6 }}>{counts.Recusada}</span>
+            </button>
+            <button className={`mprop-pill ${activeFilter === 'Cancelada' ? 'active' : 'inactive'}`} onClick={() => setActiveFilter('Cancelada')}>
+              Cancelada <span style={{ opacity: activeFilter === 'Cancelada' ? 0.8 : 0.6 }}>{counts.Cancelada}</span>
             </button>
           </div>
-          
-          <div className="mp-search">
-            <span className="mp-search-icon">🔍</span>
+
+          <div className="mprop-search-box">
+            <svg className="mprop-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input 
               type="text" 
-              placeholder="Buscar por evento ou item..." 
-              value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
+              className="mprop-search-input" 
+              placeholder="Buscar por evento ou item" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
         {/* Tabela de Propostas */}
-        <div className="mp-table-container">
-          <table className="mp-table">
+        <div className="mprop-table-wrapper">
+          <table className="mprop-table">
             <thead>
               <tr>
-                <th>EVENTO</th>
-                <th>ITEM</th>
-                <th>VALOR</th>
-                <th>VALIDADE</th>
-                <th>STATUS</th>
-                <th className="text-right">AÇÕES</th>
+                <th>Evento</th>
+                <th>Item</th>
+                <th>Valor</th>
+                <th>Validade</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {propostasFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="mp-empty-state">Nenhuma proposta encontrada.</td>
+              {filteredProposals.map((prop, index) => (
+                <tr key={index}>
+                  <td>
+                    <div className="mprop-td-event-title">{prop.event}</div>
+                    <div className="mprop-td-event-meta">{prop.id} · enviada {prop.date}</div>
+                  </td>
+                  <td className="mprop-td-item">{prop.item}</td>
+                  <td className="mprop-td-value">{prop.value}</td>
+                  <td className="mprop-td-date">{prop.valid}</td>
+                  <td style={{ textAlign: 'center' }}>{getStatusBadge(prop.status)}</td>
+                  <td style={{ textAlign: 'right' }}>{renderActions(prop.status)}</td>
                 </tr>
-              ) : (
-                propostasFiltradas.map((p) => (
-                  <tr key={p.id}>
-                    <td>
-                      <div className="mp-td-evento">{p.evento}</div>
-                      <div className="mp-td-data">enviada {p.dataEnvio}</div>
-                    </td>
-                    <td className="mp-td-item">{p.item}</td>
-                    <td className="mp-td-valor">
-                      R$ {p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="mp-td-validade">{p.validade}</td>
-                    <td>
-                      <span className={`mp-status-capsule status-${p.status.replace(' ', '').toLowerCase()}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="text-right">
-                      {p.status === "APROVADA" && (
-                        <span className="mp-action-blocked">🔒 bloqueada</span>
-                      )}
-                      
-                      {p.status === "RECUSADA" && (
-                        <div className="mp-action-group">
-                          <button className="mp-btn-link" onClick={verMotivoRecusa}>Ver motivo</button>
-                          <span className="mp-action-blocked">bloqueada</span>
-                        </div>
-                      )}
-                      
-                      {(p.status === "ENVIADA" || p.status === "EM ANÁLISE") && (
-                        <div className="mp-action-group">
-                          <button className="mp-btn-edit" onClick={() => abrirModal(p)}>Editar</button>
-                          <button className="mp-btn-cancel" onClick={() => cancelarProposta(p.id)}>Cancelar</button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))
+              ))}
+              {filteredProposals.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--mprop-slate-500)' }}>
+                    Nenhuma proposta encontrada.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
-      </main>
 
-      {/* Modal de Nova/Editar Proposta */}
-      {modalAberto && (
-        <div className="mp-modal-overlay">
-          <div className="mp-modal-content">
-            <div className="mp-modal-header">
-              <div>
-                <span>{propostaEmEdicao ? "EDITAR PROPOSTA" : "NOVA PROPOSTA"}</span>
-                <h3>{propostaEmEdicao ? propostaEmEdicao.item : "Item do Evento"}</h3>
-                <p>{propostaEmEdicao ? propostaEmEdicao.evento : "Selecione o evento"}</p>
-              </div>
-              <button className="mp-modal-close" onClick={fecharModal}>✕</button>
-            </div>
-            
-            <form className="mp-modal-form" onSubmit={salvarProposta}>
-              <div className="mp-form-row">
-                <div className="mp-form-group">
-                  <label>Valor Proposto (R$)</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    required 
-                    defaultValue={propostaEmEdicao ? propostaEmEdicao.valor : ""}
-                  />
-                </div>
-                <div className="mp-form-group">
-                  <label>Validade da Cotação</label>
-                  <input 
-                    type="text" 
-                    placeholder="DD/MM/AAAA" 
-                    required 
-                    defaultValue={propostaEmEdicao ? propostaEmEdicao.validade : ""}
-                  />
-                </div>
-              </div>
-
-              <div className="mp-form-group">
-                <label>Especificações Técnicas e Itens Inclusos</label>
-                <textarea rows="3" placeholder="Descreva os itens detalhados..."></textarea>
-              </div>
-
-              <div className="mp-alert-box">
-                <strong>Aviso TrocaTicket:</strong> Ao reenviar a cotação com novos valores, o prazo de validade é renovado e o organizador será notificado.
-              </div>
-
-              <div className="mp-modal-footer">
-                <button type="button" className="mp-btn-cancel" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="mp-btn-save">Salvar alterações</button>
-              </div>
-            </form>
-          </div>
+        {/* Disclaimer */}
+        <div className="mprop-disclaimer">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Só é possível editar ou cancelar propostas com status Enviada ou Em análise.
         </div>
-      )}
-
-      {/* Toast Notification */}
-      <div className={`mp-toast ${toastMsg ? "show" : ""}`}>
-        ✅ {toastMsg}
-      </div>
+      </main>
     </div>
   );
 }

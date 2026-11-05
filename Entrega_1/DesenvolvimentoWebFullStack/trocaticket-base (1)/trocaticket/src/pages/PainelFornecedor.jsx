@@ -1,341 +1,686 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
 import "./PainelFornecedor.css";
 
+/* ---------- Ícones (SVG inline, sem biblioteca) ---------- */
+const ICONES = {
+  busca: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+  oportunidades:
+    "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
+  propostas:
+    "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+  mensagens:
+    "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z",
+  ajuda:
+    "M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+  dica: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z",
+  enviar: "M12 19l9 2-9-18-9 18 9-2zm0 0v-8",
+  calendario:
+    "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+  local: [
+    "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z",
+    "M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+  ],
+  pessoas:
+    "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+  relogio: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  chat: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  editar:
+    "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z",
+};
+
+function Icone({ nome, className = "opp-icone" }) {
+  const caminhos = Array.isArray(ICONES[nome]) ? ICONES[nome] : [ICONES[nome]];
+  return (
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      {caminhos.map((d, i) => (
+        <path
+          key={i}
+          d={d}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+        />
+      ))}
+    </svg>
+  );
+}
+
+/* ---------- Dados de exemplo (depois troque por dados da API) ---------- */
+const EVENTOS_INICIAIS = [
+  {
+    id: 1,
+    tipo: "Casamento",
+    nome: "Casamento Helena & Tomás",
+    local: "Fazenda Boa Vista",
+    convidados: 120,
+    data: "28/10/2026",
+    prazo: "23/10/2026 · -4d",
+    fecha: { texto: "fecha em -4d", tom: "perigo" },
+    organizador: "Marina Braga",
+    itens: [
+      {
+        id: 11,
+        nome: "Buffet jantar servido",
+        qtd: "120 pax",
+        desc: "Entrada, prato principal, sobremesa · serviço à francesa",
+        status: null,
+      },
+      {
+        id: 12,
+        nome: "Mobiliário e louças",
+        qtd: "12 conj.",
+        desc: "Mesas redondas, cadeiras Tiffany, louça premium",
+        status: "enviada",
+        valor: "6.200,00",
+        enviada: "12/10/2026",
+        validade: "12/11/2026",
+        obs: "Inclui montagem e desmontagem.",
+      },
+      {
+        id: 13,
+        nome: "Decoração floral",
+        qtd: "1 projeto",
+        desc: "Centro de mesa, arco de flores, arranjos de altar",
+        status: "analise",
+        valor: "9.850,00",
+        enviada: "10/10/2026",
+        validade: "10/11/2026",
+        obs: "Flores da estação.",
+      },
+      {
+        id: 14,
+        nome: "Som e iluminação",
+        qtd: "1 kit",
+        desc: "Palco, pista, DJ e iluminação cênica",
+        status: "aprovada",
+        valor: "7.400,00",
+        enviada: "08/10/2026",
+        validade: "14/11/2026",
+        obs: "Contrato emitido.",
+      },
+    ],
+  },
+  {
+    id: 2,
+    tipo: "Corporativo",
+    nome: "Convenção Nimbus Tech",
+    local: "Centro de Convenções",
+    convidados: 400,
+    data: "15/11/2026",
+    prazo: "03/11/2026 · 0d",
+    fecha: { texto: "fecha em 0d", tom: "alerta" },
+    organizador: "Equipe Nimbus",
+    itens: [
+      {
+        id: 21,
+        nome: "Coffee break",
+        qtd: "400 pax",
+        desc: "Café, salgados e doces para dois intervalos",
+        status: "enviada",
+        valor: "12.000,00",
+        enviada: "01/11/2026",
+        validade: "20/11/2026",
+        obs: "",
+      },
+      {
+        id: 22,
+        nome: "Mobiliário de plenária",
+        qtd: "1 kit",
+        desc: "Cadeiras, mesas de apoio e credenciamento",
+        status: null,
+      },
+    ],
+  },
+  {
+    id: 3,
+    tipo: "Social",
+    nome: "Aniversário 50 anos Dona Rita",
+    local: "Espaço Vila Verde",
+    convidados: 80,
+    data: "08/11/2026",
+    prazo: "08/11/2026 · 5d",
+    fecha: { texto: "fecha em 5d", tom: "alerta" },
+    organizador: "Família Rita",
+    itens: [
+      {
+        id: 31,
+        nome: "Buffet de festa",
+        qtd: "80 pax",
+        desc: "Salgados, prato principal e bolo",
+        status: "analise",
+        valor: "5.400,00",
+        enviada: "02/11/2026",
+        validade: "15/11/2026",
+        obs: "",
+      },
+      {
+        id: 32,
+        nome: "Decoração e mesas",
+        qtd: "1 projeto",
+        desc: "Mesas, toalhas e arranjos simples",
+        status: null,
+      },
+    ],
+  },
+  {
+    id: 4,
+    tipo: "Festival",
+    nome: "Festival da Primavera & Gastronomia",
+    local: "Parque Ibirapuera",
+    convidados: 800,
+    data: "22/11/2026",
+    prazo: "22 de nov",
+    fecha: { texto: "22 de nov", tom: "neutro" },
+    organizador: "Gastro SP",
+    itens: [
+      {
+        id: 41,
+        nome: "Tendas e estruturas",
+        qtd: "20 un.",
+        desc: "Tendas 3x3 com piso e iluminação",
+        status: null,
+      },
+      {
+        id: 42,
+        nome: "Mobiliário de praça de alimentação",
+        qtd: "60 conj.",
+        desc: "Mesas altas, bancos e lixeiras",
+        status: null,
+      },
+    ],
+  },
+  {
+    id: 5,
+    tipo: "Corporativo",
+    nome: "Celebração de Fim de Ano FinTech",
+    local: "Villa Blue Tree",
+    convidados: 350,
+    data: "05/12/2026",
+    prazo: "05 de dez",
+    fecha: { texto: "05 de dez", tom: "neutro" },
+    organizador: "Time FinTech",
+    itens: [
+      {
+        id: 51,
+        nome: "Jantar corporativo",
+        qtd: "350 pax",
+        desc: "Menu de três tempos com bebidas",
+        status: null,
+      },
+      {
+        id: 52,
+        nome: "Som e iluminação",
+        qtd: "1 kit",
+        desc: "DJ, palco e iluminação cênica",
+        status: null,
+      },
+    ],
+  },
+];
+
+const FILTROS = ["Todos", "Casamento", "Corporativo", "Social", "Festival"];
+
+const PASSOS = [
+  {
+    icone: "busca",
+    cor: "azul",
+    titulo: "Encontre um evento",
+    texto:
+      "Na lista à esquerda estão os eventos abertos para cotação. Use a busca ou filtre por tipo.",
+  },
+  {
+    icone: "dica",
+    cor: "indigo",
+    titulo: "Veja os itens",
+    texto:
+      "Clique no evento para ver os itens que o organizador precisa (buffet, mobiliário...).",
+  },
+  {
+    icone: "enviar",
+    cor: "ceu",
+    titulo: "Envie sua proposta",
+    texto:
+      'Em cada item, clique em "Cotar item" e informe valor, descrição, validade e observações.',
+  },
+  {
+    icone: "propostas",
+    cor: "verde",
+    titulo: "Acompanhe",
+    texto:
+      'Em "Minhas propostas" você vê o status. Dá para editar ou cancelar enquanto estiver Enviada ou Em análise.',
+  },
+];
+
+const STATUS = {
+  enviada: { rotulo: "Enviada", classe: "opp-badge--enviada" },
+  analise: { rotulo: "Em análise", classe: "opp-badge--analise" },
+  aprovada: { rotulo: "Aprovada", classe: "opp-badge--aprovada" },
+};
+
+function contarCotados(evento) {
+  return evento.itens.filter((i) => i.status).length;
+}
+
+function formatarData(iso) {
+  if (!iso) return "";
+  const [a, m, d] = iso.split("-");
+  return `${d}/${m}/${a}`;
+}
+
+/* ---------- Componente principal ---------- */
 export default function PainelFornecedor() {
-  const navigate = useNavigate();
-  const [eventos, setEventos] = useState([]);
-  const [eventoSelecionado, setEventoSelecionado] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Estados para o Modal de Proposta
-  const [modalAberto, setModalAberto] = useState(false);
-  const [itemParaCotar, setItemParaCotar] = useState(null);
-  const [valorProposta, setValorProposta] = useState("");
-  const [validadeProposta, setValidadeProposta] = useState("");
-  const [obsProposta, setObsProposta] = useState("");
+  const [eventos, setEventos] = useState(EVENTOS_INICIAIS);
+  const [eventoId, setEventoId] = useState(1);
+  const [filtro, setFiltro] = useState("Todos");
+  const [busca, setBusca] = useState("");
+  const [guiaVisivel, setGuiaVisivel] = useState(true);
 
-  useEffect(() => {
-    const fetchEventos = async () => {
-      try {
-        setLoading(true);
-        throw new Error("Usando mock para espelhar o design");
-      } catch {
-        const dadosMock = [
-          {
-            id: 1,
-            titulo: "Casamento Helena & Tomás",
-            tipo: "CASAMENTO",
-            dataCurta: "28 OUT",
-            dataCompleta: "28 de outubro",
-            local: "Fazenda Boa Vista",
-            publico: 120,
-            organizador: "Marina Braga",
-            itens: [
-              { id: 101, nome: "Buffet jantar servido", desc: "Entrada, prato principal, sobremesa · serviço à francesa", qtd: "120 pax", status: "cotar" },
-              { id: 102, nome: "Mobiliário e louças", desc: "Mesas redondas, cadeiras Tiffany, louça premium", qtd: "12 conj.", status: "enviada", valor: "6.200,00", dataEnvio: "12/10/2025", validade: "12/11/2025", obs: "Inclui montagem e desmontagem." },
-              { id: 103, nome: "Decoração floral", desc: "Centro de mesa, arco de flores, arranjos de altar", qtd: "1 projeto", status: "em_analise", valor: "9.850,00", dataEnvio: "10/10/2025", validade: "10/11/2025", obs: "Flores da estação." },
-              { id: 104, nome: "Som e iluminação", desc: "Palco, pista, DJ e iluminação cênica", qtd: "1 kit", status: "aprovada", valor: "7.400,00", obs: "Contrato emitido." }
-            ]
-          },
-          {
-            id: 2,
-            titulo: "Convenção Nimbus Tech",
-            tipo: "CORPORATIVO",
-            dataCurta: "04 NOV",
-            dataCompleta: "04 de novembro",
-            local: "Centro de Convenções",
-            publico: 400,
-            organizador: "Carlos Albuquerque",
-            itens: [
-              { id: 201, nome: "Coffee break duplo", desc: "Manhã e Tarde para todos os participantes", qtd: "400 pax", status: "cotar" }
-            ]
-          },
-          {
-            id: 3,
-            titulo: "Aniversário 50 anos Dona Rita",
-            tipo: "SOCIAL",
-            dataCurta: "15 NOV",
-            dataCompleta: "15 de novembro",
-            local: "Espaço Vila Verde",
-            publico: 80,
-            organizador: "Rita Valadares",
-            itens: []
-          }
-        ];
-        setEventos(dadosMock);
-        setEventoSelecionado(dadosMock[0]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // modal: null = fechado | { itemId, nome, qtd, valor, validade, obs }
+  const [modal, setModal] = useState(null);
 
-    const timer = setTimeout(fetchEventos, 600);
-    return () => clearTimeout(timer);
-  }, []);
+  const eventosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return eventos.filter((e) => {
+      const okTipo = filtro === "Todos" || e.tipo === filtro;
+      const okBusca =
+        !termo ||
+        e.nome.toLowerCase().includes(termo) ||
+        e.local.toLowerCase().includes(termo);
+      return okTipo && okBusca;
+    });
+  }, [eventos, filtro, busca]);
 
-  const abrirModal = (item) => {
-    setItemParaCotar(item);
-    setValorProposta(item.valor ? item.valor.replace(".", "") : "");
-    setValidadeProposta(item.validade ? item.validade.split('/').reverse().join('-') : "");
-    setObsProposta(item.obs || "");
-    setModalAberto(true);
-  };
+  const eventoAtual = eventos.find((e) => e.id === eventoId) || eventos[0];
 
-  const fecharModal = () => {
-    setModalAberto(false);
-    setItemParaCotar(null);
-  };
-
-  const enviarProposta = (e) => {
-    e.preventDefault();
-    alert(`Proposta de R$ ${valorProposta} para "${itemParaCotar.nome}" enviada com sucesso!`);
-    fecharModal();
-  };
-
-  if (loading) {
-    return <div className="pf-loading">Carregando painel do fornecedor...</div>;
+  function abrirModal(item) {
+    setModal({
+      itemId: item.id,
+      nome: item.nome,
+      qtd: item.qtd,
+      valor: item.valor || "",
+      validade: "2026-11-20",
+      obs: item.obs || "",
+    });
   }
 
+  function enviarProposta(e) {
+    e.preventDefault();
+    const hoje = new Date().toLocaleDateString("pt-BR");
+    setEventos((lista) =>
+      lista.map((ev) =>
+        ev.id !== eventoId
+          ? ev
+          : {
+              ...ev,
+              itens: ev.itens.map((it) =>
+                it.id !== modal.itemId
+                  ? it
+                  : {
+                      ...it,
+                      status: it.status || "enviada",
+                      valor: modal.valor,
+                      enviada: hoje,
+                      validade: formatarData(modal.validade),
+                      obs: modal.obs,
+                    }
+              ),
+            }
+      )
+    );
+    setModal(null);
+  }
+
+  const totalCotados = contarCotados(eventoAtual);
+  const totalItens = eventoAtual.itens.length;
+
   return (
-    <div className="pf-page">
-      
-      {/* MENU SUPERIOR (HEADER FORNECEDOR) */}
-      <header className="pf-header">
-        <div className="pf-header-content">
-          <div className="pf-header-spacer"></div>
-          
-          <nav className="pf-header-nav">
-            <button onClick={() => navigate('/fornecedor/painel')} className="pf-nav-item active">
-              Oportunidades
-            </button>
-            <button onClick={() => navigate('/fornecedor/minhas-propostas')} className="pf-nav-item">
-              Minhas propostas
-            </button>
-            <button onClick={() => navigate('/fornecedor/mensagens')} className="pf-nav-item">
-              Mensagens <span className="pf-nav-dot"></span>
-            </button>
-          </nav>
-          
-          <div className="pf-header-profile">
-            <div className="pf-profile-info">
-              <span className="pf-profile-name">Casa Aurora</span>
-              <span className="pf-profile-role">Buffet & mobiliário</span>
-            </div>
-            <div className="pf-profile-avatar">CA</div>
+    <div className="opp-page">
+      {/* ===== Conteúdo ===== */}
+      <main className="opp-main">
+        <div className="opp-titulo-bloco">
+          <div>
+            <p className="opp-saudacao">Bom dia, Casa Aurora</p>
+            <h1 className="opp-titulo">Oportunidades abertas</h1>
           </div>
+          <span className="opp-resumo">
+            <strong>{eventos.length} eventos</strong> aguardando sua proposta
+          </span>
         </div>
-      </header>
 
-      <main className="pf-main">
-        {/* Onboarding Steps */}
-        <section className="pf-onboarding">
-          <div className="pf-onboarding-header">
-            <h2>Do convite à proposta em 3 passos</h2>
-            <span>{eventos.length} oportunidades abertas · prazo 28 out</span>
-          </div>
-          
-          <div className="pf-steps-grid">
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">🎯</div>
-                <span className="pf-step-number">1</span>
+        {/* Como funciona */}
+        {guiaVisivel && (
+          <section className="opp-guia">
+            <div className="opp-guia-topo">
+              <div>
+                <h2 className="opp-guia-titulo">
+                  <span className="opp-ponto" />
+                  Como funciona
+                </h2>
+                <p className="opp-guia-sub">
+                  Do evento à proposta aprovada em 4 passos simples.
+                </p>
               </div>
-              <div className="pf-step-text">
-                <h3>Descubra</h3>
-                <p>Veja oportunidades abertas e filtre por tipo de evento.</p>
-              </div>
+              <button
+                type="button"
+                className="opp-btn-entendi"
+                onClick={() => setGuiaVisivel(false)}
+              >
+                ✕ Entendi
+              </button>
             </div>
-            
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">✏️</div>
-                <span className="pf-step-number">2</span>
-              </div>
-              <div className="pf-step-text">
-                <h3>Componha</h3>
-                <p>Monte a proposta por item com valor, validade e observações.</p>
-              </div>
-            </div>
-            
-            <div className="pf-step-card">
-              <div className="pf-step-top">
-                <div className="pf-step-icon">📤</div>
-                <span className="pf-step-number">3</span>
-              </div>
-              <div className="pf-step-text">
-                <h3>Envie</h3>
-                <p>Acompanhe status e converse com o organizador.</p>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Workspace: Sidebar & Detail Panel */}
-        <div className="pf-workspace">
-          
-          {/* Left Column: Lista de Oportunidades */}
-          <section className="pf-sidebar">
-            <div className="pf-sidebar-header">
-              <h2>Oportunidades</h2>
-              <span>{eventos.length} abertas</span>
-            </div>
-            
-            <div className="pf-event-list">
-              {eventos.map((evento) => (
-                <article 
-                  key={evento.id} 
-                  className={`pf-event-card ${eventoSelecionado?.id === evento.id ? 'active' : ''}`}
-                  onClick={() => setEventoSelecionado(evento)}
-                >
-                  <div className="pf-card-meta">
-                    <span>{evento.tipo}</span>
-                    <span>{evento.dataCurta}</span>
+            <div className="opp-passos">
+              {PASSOS.map((p, i) => (
+                <div className="opp-passo" key={p.titulo}>
+                  <div className="opp-passo-topo">
+                    <div className={`opp-passo-icone opp-passo-icone--${p.cor}`}>
+                      <Icone nome={p.icone} />
+                    </div>
+                    <span className={`opp-passo-num opp-passo-num--${p.cor}`}>
+                      {i + 1}
+                    </span>
                   </div>
-                  <h3>{evento.titulo}</h3>
-                  <p>{evento.local} · {evento.publico} pessoas</p>
-                </article>
+                  <h3 className="opp-passo-titulo">{p.titulo}</h3>
+                  <p className="opp-passo-texto">{p.texto}</p>
+                </div>
               ))}
             </div>
           </section>
+        )}
 
-          {/* Right Column: Detalhe do Evento */}
-          <section className="pf-detail-panel">
-            {eventoSelecionado ? (
-              <>
-                <div className="pf-detail-header">
-                  <span className="pf-detail-label">Detalhe do evento</span>
-                  <h2>{eventoSelecionado.titulo}</h2>
-                  <p>{eventoSelecionado.publico} convidados · {eventoSelecionado.dataCompleta} · {eventoSelecionado.local}</p>
-                  <div className="pf-organizador-info">
-                    Organizador: <strong>{eventoSelecionado.organizador}</strong>
-                    <span className="pf-dot-divider">·</span>
-                    <button onClick={() => navigate('/fornecedor/mensagens')} className="pf-link-btn">enviar mensagem</button>
-                  </div>
-                </div>
+        {/* Master / Detail */}
+        <div className="opp-layout">
+          {/* ----- Coluna esquerda: lista ----- */}
+          <section className="opp-coluna-lista" aria-label="Lista de Oportunidades">
+            <div className="opp-busca">
+              <span className="opp-busca-icone">
+                <Icone nome="busca" />
+              </span>
+              <input
+                type="text"
+                className="opp-busca-input"
+                placeholder="Buscar evento ou local"
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+              />
+            </div>
 
-                <div className="pf-custos-section">
-                  <div className="pf-custos-header">
-                    <h3>Composição de custo</h3>
-                    <span>proposta por item</span>
-                  </div>
-                  
-                  <div className="pf-itens-list">
-                    {eventoSelecionado.itens.length === 0 && (
-                      <p className="pf-empty-items">Nenhum item cadastrado para este evento.</p>
-                    )}
-                    
-                    {eventoSelecionado.itens.map(item => (
-                      <div key={item.id} className="pf-item-card">
-                        <div className="pf-item-main">
-                          <div className="pf-item-info">
-                            <h4>{item.nome}</h4>
-                            <p>{item.desc}</p>
-                            <span className="pf-item-qtd">{item.qtd}</span>
-                          </div>
-                          
-                          <div className="pf-item-actions">
-                            {item.status === 'cotar' && (
-                              <button className="pf-btn-cotar" onClick={() => abrirModal(item)}>Cotar item</button>
-                            )}
-                            {item.status === 'enviada' && (
-                              <>
-                                <span className="pf-badge pf-badge-gray">Enviada</span>
-                                <button className="pf-btn-edit" onClick={() => abrirModal(item)}>Editar</button>
-                              </>
-                            )}
-                            {item.status === 'em_analise' && (
-                              <>
-                                <span className="pf-badge pf-badge-yellow">Em análise</span>
-                                <button className="pf-btn-edit" onClick={() => abrirModal(item)}>Editar</button>
-                              </>
-                            )}
-                            {item.status === 'aprovada' && (
-                              <span className="pf-badge pf-badge-green">Aprovada</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Rodapé do item se já tiver proposta */}
-                        {item.valor && (
-                          <div className="pf-item-footer">
-                            <strong className={item.status === 'aprovada' ? 'text-green' : 'text-dark'}>
-                              R$ {item.valor}
-                            </strong> 
-                            {item.dataEnvio && ` · enviada ${item.dataEnvio}`}
-                            {item.validade && ` · válida até ${item.validade}`}
-                            {item.obs && ` · ${item.obs}`}
-                          </div>
-                        )}
+            <div className="opp-filtros" role="toolbar" aria-label="Filtro de categorias">
+              {FILTROS.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`opp-chip ${filtro === f ? "opp-chip--ativo" : ""}`}
+                  onClick={() => setFiltro(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            <div className="opp-cards" role="list">
+              {eventosFiltrados.length === 0 && (
+                <p className="opp-vazio">Nenhum evento encontrado.</p>
+              )}
+
+              {eventosFiltrados.map((ev) => {
+                const cot = contarCotados(ev);
+                const pct = (cot / ev.itens.length) * 100;
+                return (
+                  <div
+                    key={ev.id}
+                    role="listitem"
+                    className={`opp-card ${
+                      ev.id === eventoId ? "opp-card--ativo" : ""
+                    }`}
+                    onClick={() => setEventoId(ev.id)}
+                  >
+                    <div className="opp-card-topo">
+                      <span className="opp-card-tipo">{ev.tipo}</span>
+                      <span className={`opp-prazo opp-prazo--${ev.fecha.tom}`}>
+                        {ev.fecha.texto}
+                      </span>
+                    </div>
+                    <h3 className="opp-card-nome">{ev.nome}</h3>
+                    <p className="opp-card-local">
+                      {ev.local} · {ev.convidados} convidados
+                    </p>
+                    <div className="opp-progresso-linha">
+                      <div className="opp-barra">
+                        <div
+                          className={`opp-barra-preenchida ${
+                            cot === 0 ? "opp-barra-preenchida--vazia" : ""
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
-                    ))}
+                      <span
+                        className={`opp-progresso-texto ${
+                          ev.id === eventoId ? "opp-progresso-texto--ativo" : ""
+                        }`}
+                      >
+                        {cot}/{ev.itens.length} cotados
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </>
-            ) : (
-              <div className="pf-empty-state">Selecione um evento para ver os detalhes</div>
-            )}
+                );
+              })}
+            </div>
           </section>
 
+          {/* ----- Coluna direita: detalhe ----- */}
+          <section className="opp-detalhe" aria-label="Detalhes da Oportunidade">
+            <div className="opp-detalhe-banner">
+              <div className="opp-tag-evento">{eventoAtual.tipo}</div>
+              <h2 className="opp-detalhe-titulo">{eventoAtual.nome}</h2>
+
+              <div className="opp-detalhe-meta">
+                <div className="opp-meta-item">
+                  <Icone nome="calendario" className="opp-icone opp-icone--azul" />
+                  <span>{eventoAtual.data}</span>
+                </div>
+                <div className="opp-meta-item">
+                  <Icone nome="local" className="opp-icone opp-icone--azul" />
+                  <span>{eventoAtual.local}</span>
+                </div>
+                <div className="opp-meta-item">
+                  <Icone nome="pessoas" className="opp-icone opp-icone--azul" />
+                  <span>{eventoAtual.convidados} convidados</span>
+                </div>
+              </div>
+
+              <div className="opp-info-grid">
+                <div className="opp-info-card">
+                  <p className="opp-info-label">Prazo para cotar</p>
+                  <div className="opp-info-valor">
+                    <Icone nome="relogio" className="opp-icone opp-icone--azul" />
+                    <span>{eventoAtual.prazo}</span>
+                  </div>
+                </div>
+
+                <div className="opp-info-card">
+                  <p className="opp-info-label">Itens cotados</p>
+                  <p className="opp-info-valor">
+                    <span className="opp-destaque-azul">{totalCotados}</span>
+                    &nbsp;de {totalItens}
+                  </p>
+                </div>
+
+                <div className="opp-info-card opp-info-card--linha">
+                  <div>
+                    <p className="opp-info-label">Organizador</p>
+                    <p className="opp-info-valor">{eventoAtual.organizador}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="opp-btn-chat"
+                    title={`Conversar com ${eventoAtual.organizador}`}
+                  >
+                    <Icone nome="chat" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="opp-composicao">
+              <div className="opp-composicao-topo">
+                <h3 className="opp-composicao-titulo">Composição de custo</h3>
+                <span className="opp-composicao-dica">
+                  Cote cada item separadamente
+                </span>
+              </div>
+
+              <div className="opp-itens">
+                {eventoAtual.itens.map((item) =>
+                  !item.status ? (
+                    /* Item ainda não cotado */
+                    <div className="opp-item opp-item--pendente" key={item.id}>
+                      <div className="opp-item-linha">
+                        <div>
+                          <div className="opp-item-titulo-linha">
+                            <h4 className="opp-item-nome">{item.nome}</h4>
+                            <span className="opp-tag-qtd">{item.qtd}</span>
+                          </div>
+                          <p className="opp-item-desc">{item.desc}</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="opp-btn-cotar"
+                          onClick={() => abrirModal(item)}
+                        >
+                          + Cotar item
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Item já cotado */
+                    <div className="opp-item" key={item.id}>
+                      <div className="opp-item-linha opp-item-linha--topo">
+                        <div>
+                          <div className="opp-item-titulo-linha">
+                            <h4 className="opp-item-nome">{item.nome}</h4>
+                            <span className="opp-tag-qtd">{item.qtd}</span>
+                          </div>
+                          <p className="opp-item-desc">{item.desc}</p>
+                        </div>
+                        <div className="opp-item-acoes">
+                          <span className={`opp-badge ${STATUS[item.status].classe}`}>
+                            <span className="opp-badge-ponto" />
+                            {STATUS[item.status].rotulo}
+                          </span>
+                          {item.status !== "aprovada" && (
+                            <button
+                              type="button"
+                              className="opp-btn-editar"
+                              onClick={() => abrirModal(item)}
+                            >
+                              <Icone nome="editar" className="opp-icone opp-icone--sm" />
+                              Editar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="opp-item-rodape">
+                        <span className="opp-rodape-valor">R$ {item.valor}</span>
+                        <span className="opp-rodape-sep">·</span>
+                        <span className="opp-rodape-texto">
+                          Enviada {item.enviada}
+                        </span>
+                        <span className="opp-rodape-sep">·</span>
+                        <span className="opp-rodape-texto">
+                          Válida até {item.validade}
+                        </span>
+                        {item.obs && (
+                          <>
+                            <span className="opp-rodape-sep">·</span>
+                            <span className="opp-rodape-obs">"{item.obs}"</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </section>
         </div>
       </main>
 
-      {/* Modal de Proposta */}
-      {modalAberto && (
-        <div className="pf-modal-overlay">
-          <div className="pf-modal-content">
-            <div className="pf-modal-header">
+      {/* ===== Modal de cotação ===== */}
+      {modal && (
+        <div className="opp-modal-overlay" onClick={() => setModal(null)}>
+          <div className="opp-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="opp-modal-topo">
               <div>
-                <span>Proposta de Fornecimento</span>
-                <h3>{itemParaCotar?.nome} ({itemParaCotar?.qtd})</h3>
+                <h3 className="opp-modal-titulo">{modal.nome}</h3>
+                <p className="opp-modal-sub">{modal.qtd}</p>
               </div>
-              <button className="pf-modal-close" onClick={fecharModal}>✕</button>
+              <button
+                type="button"
+                className="opp-modal-fechar"
+                onClick={() => setModal(null)}
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
             </div>
-            
-            <form className="pf-modal-form" onSubmit={enviarProposta}>
-              <div className="pf-form-row">
-                <div className="pf-form-group">
-                  <label>Valor Total (R$) *</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    required 
+
+            <form className="opp-form" onSubmit={enviarProposta}>
+              <div>
+                <label className="opp-label">Valor da proposta (R$)</label>
+                <div className="opp-input-moeda">
+                  <span className="opp-moeda-prefixo">R$</span>
+                  <input
+                    type="text"
+                    className="opp-input opp-input--valor"
                     placeholder="0,00"
-                    value={valorProposta}
-                    onChange={(e) => setValorProposta(e.target.value)}
+                    required
+                    value={modal.valor}
+                    onChange={(e) => setModal({ ...modal, valor: e.target.value })}
                   />
-                  <small>Valor fechado para a demanda.</small>
-                </div>
-                <div className="pf-form-group">
-                  <label>Validade da Proposta *</label>
-                  <input 
-                    type="date" 
-                    required 
-                    value={validadeProposta}
-                    onChange={(e) => setValidadeProposta(e.target.value)}
-                  />
-                  <small>Prazo limite para confirmação.</small>
                 </div>
               </div>
 
-              <div className="pf-form-group">
-                <label>Observações e Logística</label>
-                <textarea 
-                  rows="2" 
-                  placeholder="Ex: Necessário ponto de água e tomada trifásica."
-                  value={obsProposta}
-                  onChange={(e) => setObsProposta(e.target.value)}
-                ></textarea>
+              <div>
+                <label className="opp-label">Validade da proposta</label>
+                <input
+                  type="date"
+                  className="opp-input"
+                  required
+                  value={modal.validade}
+                  onChange={(e) => setModal({ ...modal, validade: e.target.value })}
+                />
               </div>
 
-              <div className="pf-checkbox-group">
-                <input type="checkbox" id="termos" required />
-                <label htmlFor="termos">Declaro ter capacidade operacional para atender nas datas estipuladas.</label>
+              <div>
+                <label className="opp-label">Observações e inclusões</label>
+                <textarea
+                  className="opp-input opp-textarea"
+                  rows="3"
+                  placeholder="Ex: Incluso frete, montagem, desmontagem..."
+                  value={modal.obs}
+                  onChange={(e) => setModal({ ...modal, obs: e.target.value })}
+                />
               </div>
 
-              <div className="pf-modal-footer">
-                <button type="button" className="pf-btn-cancel" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="pf-btn-submit">Enviar Proposta</button>
+              <div className="opp-form-acoes">
+                <button
+                  type="button"
+                  className="opp-btn-cancelar"
+                  onClick={() => setModal(null)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="opp-btn-enviar">
+                  Enviar Proposta
+                </button>
               </div>
             </form>
           </div>
