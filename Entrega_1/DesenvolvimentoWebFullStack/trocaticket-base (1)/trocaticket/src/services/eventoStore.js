@@ -349,6 +349,28 @@ export function listarEventos() {
   return store.eventos;
 }
 
+export function getUsuario(id) {
+  return store.usuarios.find((usuario) => usuario.id === id) ?? null;
+}
+
+export function getUsuarioPorEmail(email) {
+  const normalizado = email.trim().toLowerCase();
+  return store.usuarios.find((usuario) => usuario.email?.toLowerCase() === normalizado) ?? null;
+}
+
+export function atualizarStatusUsuario(id, status, motivo = "") {
+  const indice = store.usuarios.findIndex((usuario) => usuario.id === id);
+  if (indice === -1) throw new Error(`Usuário "${id}" não encontrado.`);
+  if (!["em_analise", "aprovado", "reprovado"].includes(status)) {
+    throw new TypeError(`Status de cadastro inválido: "${status}".`);
+  }
+
+  const usuarios = [...store.usuarios];
+  usuarios[indice] = { ...usuarios[indice], status, motivo };
+  persistir({ ...store, usuarios });
+  return usuarios[indice];
+}
+
 export function getEvento(id) {
   return store.eventos.find((evento) => evento.id === id) ?? null;
 }
@@ -415,6 +437,47 @@ export function cadastrarUsuario(dados) {
     criadoEm: agora,
   };
   persistir({ ...store, usuario, usuarios: [...store.usuarios, usuario] });
+  return usuario;
+}
+
+export function atualizarCadastroReprovado(id, dados) {
+  const indice = store.usuarios.findIndex((usuario) => usuario.id === id);
+  if (indice === -1) throw new Error(`Usuário "${id}" não encontrado.`);
+
+  const email = dados.email.trim().toLowerCase();
+  const documento = dados.documento.replace(/\D/g, "");
+  const duplicado = store.usuarios.some(
+    (usuario, indiceUsuario) => indiceUsuario !== indice
+      && ((usuario.email ?? "").toLowerCase() === email || usuario.documento === documento),
+  );
+  if (duplicado) {
+    throw new Error("Este e-mail ou CPF/CNPJ já está cadastrado em outra conta.");
+  }
+
+  const anterior = store.usuarios[indice];
+  const palavrasNome = dados.nome.trim().split(/\s+/);
+  const usuario = {
+    ...anterior,
+    perfil: dados.perfil,
+    nome: dados.nome.trim(),
+    iniciais: palavrasNome.slice(0, 2).map((palavra) => palavra[0]).join("").toUpperCase(),
+    email,
+    telefone: dados.telefone.replace(/\D/g, ""),
+    documento,
+    tipoDocumento: documento.length === 11 ? "cpf" : "cnpj",
+    areaAtuacao: dados.perfil === "fornecedor" ? dados.area : "",
+    tipoOrganizacao: dados.perfil === "organizador" ? dados.area : "",
+    anexo: dados.arquivo
+      ? { nome: dados.arquivo.name, tipo: dados.arquivo.type, tamanho: dados.arquivo.size }
+      : anterior.anexo,
+    status: "em_analise",
+    motivo: "",
+    aceiteTermosEm: new Date().toISOString(),
+    criadoEm: new Date().toISOString(),
+  };
+  const usuarios = [...store.usuarios];
+  usuarios[indice] = usuario;
+  persistir({ ...store, usuarios });
   return usuario;
 }
 

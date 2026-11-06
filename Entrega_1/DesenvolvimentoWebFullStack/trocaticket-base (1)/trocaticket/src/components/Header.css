@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1120px;
+  max-width: 1104px;
 }
 
 .header__brand {
@@ -24,10 +24,10 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
-  border-radius: 8px;
-  background: #0b4a7a;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0b4a7a, #2f83c9);
   color: #fff;
+  box-shadow: 0 4px 14px rgba(43, 125, 190, 0.35);
 }
 
 .header__name {
@@ -35,7 +35,7 @@
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: #0b4a7a;
+  color: #0f172a;
 }
 
 .header__name strong {
@@ -54,6 +54,10 @@
 
 .header__link:hover {
   color: #0b4a7a;
+}
+
+.header__help-icon {
+  color: #3b9ef5;
 }
 
 .header__nav {

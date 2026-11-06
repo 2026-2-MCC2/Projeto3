@@ -1,5 +1,8 @@
+import { getUsuarioPorEmail } from "./eventoStore.js";
+
 const URL_USUARIOS = "/mock/usuarios.json";
 const LATENCIA_MS = 800;
+const CHAVE_CADASTRO = "trocaticket:cadastro-pendente";
 
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -17,6 +20,18 @@ async function buscarUsuarios() {
 }
 
 export async function autenticar({ email, senha, mfa, admin = false }) {
+  const usuarioLocal = getUsuarioPorEmail(email);
+  if (usuarioLocal?.status === "em_analise") {
+    sessionStorage.setItem(CHAVE_CADASTRO, JSON.stringify({
+      usuarioId: usuarioLocal.id,
+      perfil: usuarioLocal.perfil,
+      enviadoEm: usuarioLocal.criadoEm,
+    }));
+    const erro = new Error("Seu cadastro ainda está em análise.");
+    erro.code = "CADASTRO_EM_ANALISE";
+    throw erro;
+  }
+
   const usuarios = await buscarUsuarios();
   await esperar(LATENCIA_MS);
 

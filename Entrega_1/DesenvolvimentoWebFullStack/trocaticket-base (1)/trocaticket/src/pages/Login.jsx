@@ -6,6 +6,7 @@ import PasswordField from "../components/PasswordField.jsx";
 import Button from "../components/Button.jsx";
 import Alert from "../components/Alert.jsx";
 import { autenticar } from "../services/authService.js";
+import { PERFIS } from "../services/perfis.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { validarEmail, validarSenha } from "../utils/validators.js";
 import { rotaInicial } from "../utils/rotas.js";
@@ -56,6 +57,10 @@ export default function Login() {
       entrar(usuario, valores.lembrar);
       navigate(location.state?.from ?? rotaInicial[usuario.perfil], { replace: true });
     } catch (err) {
+      if (err.code === "CADASTRO_EM_ANALISE") {
+        navigate("/cadastro/em-analise", { replace: true });
+        return;
+      }
       setErroApi(err.message);
       setCarregando(false);
     }
@@ -68,7 +73,7 @@ export default function Login() {
           <div className="login__editorial-text">
             <h2>Acesse sua central de gestão de eventos, ingressos e parcerias.</h2>
             <p>
-              Infraestrutura dedicada a organizadores e fornecedores homologados com total
+              Infraestrutura dedicada aos perfis {PERFIS.map((perfil) => perfil.rotulo).join(" e ")} com total
               transparência, liquidez e conformidade jurídica.
             </p>
           </div>
@@ -150,7 +155,7 @@ export default function Login() {
                 <strong>Cadastro em homologação?</strong>
                 <span>Acompanhe a validação do seu CNPJ ou dados</span>
               </div>
-              <Link to="/cadastro/status" className="login__status-link">
+              <Link to="/cadastro/em-analise" className="login__status-link">
                 Consultar
               </Link>
             </div>

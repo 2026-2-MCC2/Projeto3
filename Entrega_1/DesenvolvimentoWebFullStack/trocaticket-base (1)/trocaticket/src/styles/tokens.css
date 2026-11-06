@@ -1,17 +1,17 @@
 :root {
-  --color-bg: #f9faf5;
+  --color-bg: #f7f9fc;
   --color-surface: #ffffff;
-  --color-primary: #424953;
-  --color-primary-hover: #2c333c;
+  --color-primary: #3b9ef5;
+  --color-primary-hover: #268de8;
   --color-on-primary: #ffffff;
-  --color-text-strong: #2c333c;
-  --color-text: #44474b;
-  --color-text-muted: #536069;
-  --color-neutral-100: #f3f4ef;
-  --color-neutral-200: #e7e9e4;
-  --color-border: #e2e4dc;
+  --color-text-strong: #0f172a;
+  --color-text: #334155;
+  --color-text-muted: #64748b;
+  --color-neutral-100: #eff6fd;
+  --color-neutral-200: #e5e9f0;
+  --color-border: #e5e9f0;
 
-  --font-sans: "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --fs-display: 3rem;
   --fs-title: 1.375rem;
   --fs-brand: 1.25rem;
@@ -36,6 +36,7 @@
 
   --container-max: 1120px;
   --header-height: 64px;
+  --header-h: 64px;
 }
 
 :root {

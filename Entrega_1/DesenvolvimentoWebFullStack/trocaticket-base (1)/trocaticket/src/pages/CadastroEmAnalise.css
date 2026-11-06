@@ -1,0 +1,386 @@
+.cadastro-analise {
+  display: flex;
+  min-height: 100%;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #f8f9fd;
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.cadastro-analise__card {
+  position: relative;
+  width: min(100%, 670px);
+  overflow: hidden;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08);
+}
+
+.cadastro-analise__accent {
+  height: 5px;
+  background: linear-gradient(90deg, #0b4a7a 0%, #3b9ef5 55%, #6c7cf7 100%);
+}
+
+.cadastro-analise__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 46px 40px 48px;
+  text-align: center;
+}
+
+.cadastro-analise__status-icon {
+  display: grid;
+  width: 80px;
+  height: 80px;
+  place-items: center;
+  border-radius: 50%;
+  animation: cadastro-analise-pulse 2s ease-in-out infinite;
+  background: #e9effc;
+  color: #3b9ef5;
+}
+
+.cadastro-analise__status-ring {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 1px solid #a9cbf5;
+  border-radius: 50%;
+  background: #e1ecfc;
+}
+
+.cadastro-analise__card--approved .cadastro-analise__status-icon {
+  color: #16a34a;
+}
+
+.cadastro-analise__card--approved .cadastro-analise__status-ring {
+  border-color: #86efac;
+  background: #dcfce7;
+}
+
+.cadastro-analise__card--rejected .cadastro-analise__status-icon {
+  color: #dc2626;
+}
+
+.cadastro-analise__card--rejected .cadastro-analise__status-ring {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
+
+.cadastro-analise__title {
+  margin-top: 24px;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cadastro-analise__title:focus {
+  outline: none;
+}
+
+.cadastro-analise__description {
+  max-width: 520px;
+  margin-top: 20px;
+  color: #475569;
+  font-size: 17px;
+  line-height: 26px;
+}
+
+.cadastro-analise__deadline {
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.cadastro-analise__deadline strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.cadastro-analise__reason {
+  width: min(100%, 510px);
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #e5eaf1;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.cadastro-analise__reason strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.cadastro-analise__steps {
+  width: min(100%, 510px);
+  margin-top: 40px;
+  padding: 20px;
+  border: 1px solid #e5eaf1;
+  border-radius: 16px;
+  background: #f8fafd;
+  text-align: left;
+}
+
+.cadastro-analise__steps h2 {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.cadastro-analise__stepper {
+  display: flex;
+  align-items: flex-start;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cadastro-analise__step {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  color: #0f172a;
+  text-align: center;
+}
+
+.cadastro-analise__node {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cadastro-analise__step-label {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.cadastro-analise__step--done .cadastro-analise__node {
+  background: #3b9ef5;
+  color: #fff;
+}
+
+.cadastro-analise__step--done .cadastro-analise__step-label {
+  font-weight: 600;
+}
+
+.cadastro-analise__step--current .cadastro-analise__node {
+  background: #0a3d66;
+  box-shadow: 0 0 0 3px #d7e8f9;
+  color: #d7e8f9;
+}
+
+.cadastro-analise__step--current .cadastro-analise__node svg {
+  animation: cadastro-analise-spin 1s linear infinite;
+}
+
+.cadastro-analise__step--current .cadastro-analise__step-label {
+  color: #0b4a7a;
+  font-weight: 700;
+}
+
+.cadastro-analise__step--pending {
+  color: #94a3b8;
+}
+
+.cadastro-analise__step--pending .cadastro-analise__step-label {
+  color: #94a3b8;
+}
+
+.cadastro-analise__step--rejected .cadastro-analise__node {
+  background: #dc2626;
+  color: #fff;
+}
+
+.cadastro-analise__step--rejected .cadastro-analise__step-label {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.cadastro-analise__connector {
+  height: 2px;
+  flex: 1 1 auto;
+  margin: 15px 4px 0;
+  background: linear-gradient(90deg, #3b9ef5 0 12%, #e2e8f0 12% 100%);
+}
+
+.cadastro-analise__connector--done {
+  background: #3b9ef5;
+}
+
+.cadastro-analise__connector--rejected {
+  background: #e2e8f0;
+}
+
+.cadastro-analise__actions {
+  display: flex;
+  width: min(100%, 448px);
+  min-height: 44px;
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.cadastro-analise__primary,
+.cadastro-analise__secondary {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cadastro-analise__primary {
+  flex: 0 0 219px;
+  background: #3b9ef5;
+  color: #fff;
+  font-weight: 700;
+}
+
+.cadastro-analise__primary:hover {
+  background: #268de8;
+}
+
+.cadastro-analise__secondary {
+  flex: 0 0 215px;
+  border-color: #dde3ec;
+  background: #fff;
+  color: #334155;
+  font-weight: 500;
+}
+
+.cadastro-analise__secondary:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.cadastro-analise__secondary:disabled {
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.cadastro-analise__help {
+  margin-top: 20px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cadastro-analise__help a {
+  color: #0b4a7a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cadastro-analise__help a:hover {
+  text-decoration: underline;
+}
+
+.cadastro-analise__error {
+  margin-top: 16px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.cadastro-analise__live,
+.cadastro-analise__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@keyframes cadastro-analise-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes cadastro-analise-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 719px) {
+  .cadastro-analise {
+    padding: 32px 16px;
+  }
+
+  .cadastro-analise__body {
+    padding: 36px 24px;
+  }
+
+  .cadastro-analise__title {
+    font-size: 24px;
+  }
+
+  .cadastro-analise__steps {
+    padding: 18px 16px;
+  }
+
+  .cadastro-analise__step-label {
+    font-size: 11.5px;
+  }
+
+  .cadastro-analise__actions {
+    flex-direction: column;
+  }
+
+  .cadastro-analise__primary,
+  .cadastro-analise__secondary {
+    width: 100%;
+    flex: none;
+  }
+}
+
+@media (max-width: 399px) {
+  .cadastro-analise__description {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cadastro-analise__status-icon,
+  .cadastro-analise__step--current .cadastro-analise__node svg {
+    animation: none;
+  }
+}

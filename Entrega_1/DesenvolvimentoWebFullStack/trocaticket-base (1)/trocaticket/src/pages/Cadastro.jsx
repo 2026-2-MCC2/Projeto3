@@ -15,8 +15,9 @@ import {
   Mail,
   Phone,
   ShieldCheck,
+  Handshake,
+  Ticket,
   UploadCloud,
-  Wrench,
   X,
 } from "lucide-react";
 import { mascararDocumento, mascararTelefone } from "../utils/masks.js";
@@ -32,6 +33,7 @@ import {
   validarArea,
 } from "../utils/validators.js";
 import { enviarCadastro } from "../services/cadastroService.js";
+import { PERFIS } from "../services/perfis.js";
 import "./Cadastro.css";
 
 const AREAS_FORNECEDOR = [
@@ -53,6 +55,11 @@ const TIPOS_ORGANIZACAO = [
   "Outro",
 ];
 
+const ICONE_PERFIL = {
+  ticket: Ticket,
+  handshake: Handshake,
+};
+
 const VALIDADORES = {
   nome: validarNome,
   email: validarEmail,
@@ -65,7 +72,7 @@ const VALIDADORES = {
 };
 
 function perfilValido(perfil) {
-  return perfil === "organizador" || perfil === "fornecedor";
+  return PERFIS.some((opcao) => opcao.id === perfil);
 }
 
 function formatarTamanho(bytes) {
@@ -84,11 +91,11 @@ export default function Cadastro({ perfilInicial }) {
   const perfilInicialValido = perfilValido(perfilDaRota) ? perfilDaRota : "fornecedor";
   const [valores, setValores] = useState(() => ({
     perfil: perfilInicialValido,
-    nome: "",
-    email: "",
-    telefone: "",
-    documento: "",
-    area: perfilInicialValido === "fornecedor" ? AREAS_FORNECEDOR[0] : "",
+    nome: location.state?.dadosCadastro?.nome ?? "",
+    email: location.state?.dadosCadastro?.email ?? "",
+    telefone: location.state?.dadosCadastro?.telefone ?? "",
+    documento: location.state?.dadosCadastro?.documento ?? "",
+    area: location.state?.dadosCadastro?.area ?? (perfilInicialValido === "fornecedor" ? AREAS_FORNECEDOR[0] : ""),
     senha: "",
     arquivo: null,
     termos: false,
@@ -175,15 +182,14 @@ export default function Cadastro({ perfilInicial }) {
 
     setCarregando(true);
     try {
-      const resultado = await enviarCadastro(valores);
+      const resultado = await enviarCadastro(valores, location.state?.cadastroId);
       setValores((atuais) => ({ ...atuais, senha: "" }));
-      navigate("/cadastro/status", {
-        state: {
-          protocolo: resultado.protocolo,
-          email: valores.email,
-          mensagem: "Cadastro enviado para análise",
-        },
-      });
+      sessionStorage.setItem("trocaticket:cadastro-pendente", JSON.stringify({
+        usuarioId: resultado.usuario.id,
+        perfil: resultado.usuario.perfil,
+        enviadoEm: new Date().toISOString(),
+      }));
+      navigate("/cadastro/em-analise", { replace: true });
     } catch (erro) {
       if (erro.message.includes("e-mail")) {
         setErros((atuais) => ({ ...atuais, email: erro.message }));
@@ -204,7 +210,7 @@ export default function Cadastro({ perfilInicial }) {
   return (
     <div className="cadastro-page">
       <div className="cadastro__container">
-        <Link to="/" className="cadastro__voltar">
+        <Link to="/escolha-perfil" className="cadastro__voltar">
           <ArrowLeft size={16} aria-hidden="true" />
           Voltar à seleção
         </Link>
@@ -247,25 +253,25 @@ export default function Cadastro({ perfilInicial }) {
               <fieldset className="cadastro__switcher">
                 <legend>Tipo de perfil</legend>
                 <div className="cadastro__pills" role="radiogroup" aria-label="Tipo de perfil">
-                  {[
-                    ["organizador", "Organizador", Building2],
-                    ["fornecedor", "Fornecedor", Wrench],
-                  ].map(([perfil, titulo, Icon]) => (
-                    <button
-                      key={perfil}
-                      ref={(elemento) => { perfilRefs.current[perfil] = elemento; }}
-                      type="button"
-                      role="radio"
-                      aria-checked={valores.perfil === perfil}
-                      tabIndex={valores.perfil === perfil ? 0 : -1}
-                      className={`cadastro__pill${valores.perfil === perfil ? " cadastro__pill--active" : ""}`}
-                      onClick={() => trocarPerfil(perfil)}
-                      onKeyDown={(evento) => handlePerfilKeyDown(evento, perfil)}
-                    >
-                      <Icon size={18} aria-hidden="true" />
-                      {titulo}
-                    </button>
-                  ))}
+                  {PERFIS.map((opcao) => {
+                    const Icon = ICONE_PERFIL[opcao.icone];
+                    return (
+                      <button
+                        key={opcao.id}
+                        ref={(elemento) => { perfilRefs.current[opcao.id] = elemento; }}
+                        type="button"
+                        role="radio"
+                        aria-checked={valores.perfil === opcao.id}
+                        tabIndex={valores.perfil === opcao.id ? 0 : -1}
+                        className={`cadastro__pill${valores.perfil === opcao.id ? " cadastro__pill--active" : ""}`}
+                        onClick={() => trocarPerfil(opcao.id)}
+                        onKeyDown={(evento) => handlePerfilKeyDown(evento, opcao.id)}
+                      >
+                        <Icon size={18} aria-hidden="true" />
+                        {opcao.rotulo}
+                      </button>
+                    );
+                  })}
                 </div>
               </fieldset>
 

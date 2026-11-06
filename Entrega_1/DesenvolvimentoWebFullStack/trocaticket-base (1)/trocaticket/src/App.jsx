@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
+import LayoutPublico from "./components/LayoutPublico.jsx";
 import AdminLayout from "./components/AdminLayout.jsx";
 import AdminPanelLayout from "./components/admin/AdminPanelLayout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -7,6 +8,7 @@ import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Cadastro from "./pages/Cadastro.jsx";
+import CadastroEmAnalise from "./pages/CadastroEmAnalise.jsx";
 import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import VisaoGeral from "./pages/admin/VisaoGeral.jsx";
@@ -30,6 +32,7 @@ import MinhasPropostas from "./pages/MinhasPropostas.jsx";
 import MensagensFornecedor from "./pages/MensagensFornecedor.jsx";
 import Mensagens from "./pages/Mensagens.jsx";
 import PerfilFornecedor from "./pages/PerfilFornecedor.jsx";
+import Resumo from "./pages/Resumo.jsx";
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
@@ -40,6 +43,7 @@ const publicas = [
   ["/privacidade", "Privacidade"],
   ["/seguranca", "Segurança"],
   ["/politicas", "Políticas de Concessão"],
+  ["/politicas-de-concessao", "Políticas de Concessão"],
 ];
 
 const protegidas = {
@@ -49,13 +53,19 @@ const protegidas = {
 export default function App() {
   return (
     <Routes>
-      {/* ===== Telas públicas (com Header/Footer do Layout) ===== */}
-      <Route element={<Layout />}>
+      {/* ===== Páginas públicas de acesso ===== */}
+      <Route element={<LayoutPublico />}>
         <Route path="/" element={<EscolhaPerfil />} />
+        <Route path="/escolha-perfil" element={<EscolhaPerfil />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/cadastro/em-analise" element={<CadastroEmAnalise />} />
         <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
         <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
+      </Route>
 
+      {/* ===== Demais páginas públicas (com Header/Footer) ===== */}
+      <Route element={<Layout />}>
         {/* Análise Cadastral (pública, após cadastro) */}
         <Route path="/cadastro/status" element={<AnaliseCadastral />} />
 

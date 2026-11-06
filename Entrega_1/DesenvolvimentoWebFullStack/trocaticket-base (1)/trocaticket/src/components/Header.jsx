@@ -50,7 +50,7 @@ export default function Header({ variant = "logado" }) {
             </>
           )}
           <Link to="/ajuda" className="header__link">
-            <CircleHelp size={15} aria-hidden="true" />
+            <CircleHelp size={16} className="header__help-icon" aria-hidden="true" />
             Central de Ajuda
           </Link>
         </nav>

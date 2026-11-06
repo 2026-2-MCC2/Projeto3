@@ -1,4 +1,4 @@
-import { cadastrarUsuario } from "./eventoStore.js";
+import { atualizarCadastroReprovado, cadastrarUsuario, getUsuario } from "./eventoStore.js";
 
 const URL_USUARIOS = "/mock/usuarios.json";
 const LATENCIA_MS = 1000;
@@ -8,7 +8,7 @@ const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * Simula a validação do backend e guarda somente os dados cadastrais permitidos.
  */
-export async function enviarCadastro(dados) {
+export async function enviarCadastro(dados, usuarioId = "") {
   let resposta;
   try {
     resposta = await fetch(URL_USUARIOS);
@@ -21,14 +21,18 @@ export async function enviarCadastro(dados) {
   const usuarios = await resposta.json();
   await esperar(LATENCIA_MS);
 
+  const usuarioAtual = usuarioId ? getUsuario(usuarioId) : null;
   const jaExiste = usuarios.some(
-    (u) => u.email.toLowerCase() === dados.email.trim().toLowerCase(),
+    (u) => u.email.toLowerCase() === dados.email.trim().toLowerCase()
+      && u.email.toLowerCase() !== usuarioAtual?.email?.toLowerCase(),
   );
   if (jaExiste) {
     throw new Error("Este e-mail já está cadastrado.");
   }
 
-  const usuario = cadastrarUsuario(dados);
+  const usuario = usuarioId
+    ? atualizarCadastroReprovado(usuarioId, dados)
+    : cadastrarUsuario(dados);
   return {
     protocolo: `TT-${Date.now().toString().slice(-8)}`,
     status: usuario.status,
