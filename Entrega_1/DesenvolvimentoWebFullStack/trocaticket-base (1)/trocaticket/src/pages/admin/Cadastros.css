@@ -1,0 +1,62 @@
+.cad-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--adm-border);
+}
+
+.cad-uf {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--adm-muted);
+  font-family: var(--adm-font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.cad-eventos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 112px;
+}
+
+.cad-eventos span:first-child {
+  width: 24px;
+}
+
+.cad-paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--adm-border);
+  font-size: 0.875rem;
+  color: var(--adm-muted-fg);
+}
+
+.cad-paginacao b {
+  color: var(--adm-fg);
+}
+
+.cad-historico {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .cad-historico {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .cad-historico {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

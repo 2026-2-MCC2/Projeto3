@@ -1,185 +1,215 @@
-import { useEffect, useMemo, useState } from "react";
-import { Download } from "lucide-react";
-import AdminPageHeader from "../../components/admin/AdminPageHeader.jsx";
-import AsyncState from "../../components/admin/AsyncState.jsx";
-import StatCard from "../../components/admin/StatCard.jsx";
-import Badge from "../../components/admin/Badge.jsx";
-import { buscarEventos } from "../../services/adminService.js";
-import { tomStatus, formatarMoeda, formatarData } from "../../utils/admin.js";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Banknote, CalendarRange, ChevronRight, ClipboardCheck, MapPin, Wallet } from "lucide-react";
+import { ChartCard } from "../../components/admin/ChartCard.jsx";
+import { ExportMenu } from "../../components/admin/ExportMenu.jsx";
+import { FilterChips, KpiCard, MiniBar, PageHeader, Pill, QueryBoundary } from "../../components/admin/ui.jsx";
+import { statusTone } from "../../utils/admin/status.js";
+import { useAdminQuery } from "../../hooks/useAdminQuery.js";
+import { useExporter } from "../../hooks/useExporter.js";
+import { listarCotacoes, listarEventos } from "../../services/adminApi.js";
+import { STATUS_EVENTO } from "../../services/adminSeed.js";
+import { formatBRL, formatBRLCompact, formatDate, formatNumber, formatPct } from "../../utils/admin/format.js";
 import "./Eventos.css";
 
-const STATUS = ["Todos", "Em produção", "Em cotação", "Planejamento", "Concluído", "Suspenso"];
-
-function exportarCsv(eventos) {
-  const cabecalho = ["Evento", "Status", "Organizador", "Data", "Previsto", "Realizado", "Cotações"];
-  const linhas = eventos.map((ev) => [
-    ev.nome,
-    ev.status,
-    ev.organizador,
-    ev.data,
-    ev.custoPrevisto,
-    ev.custoRealizado,
-    `${ev.cotacoesRespondidas}/${ev.cotacoesTotal}`,
-  ]);
-  const csv = [cabecalho, ...linhas].map((linha) => linha.map((v) => `"${v}"`).join(";")).join("\n");
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "eventos-trocaticket.csv";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
+const COLUNAS = [
+  { key: "nome", label: "Evento" },
+  { key: "status", label: "Status" },
+  { key: "organizador", label: "Organizador" },
+  { key: "cidade", label: "Cidade", format: (_, e) => `${e.cidade}/${e.uf}` },
+  { key: "data", label: "Data", format: (v) => formatDate(String(v)) },
+  { key: "publico", label: "Público" },
+  { key: "previsto", label: "Previsto", format: (v) => formatBRL(Number(v)) },
+  { key: "realizado", label: "Realizado", format: (v) => formatBRL(Number(v)) },
+  { key: "execucao", label: "Execução", format: (_, e) => formatPct((e.realizado / e.previsto) * 100, 0) },
+];
 
 export default function Eventos() {
-  const [estado, setEstado] = useState({ carregando: true, erro: "", lista: [] });
-  const [status, setStatus] = useState("Todos");
-  const [busca, setBusca] = useState("");
+  const query = useAdminQuery(() => Promise.all([listarEventos(), listarCotacoes()]).then(([eventos, cotacoes]) => ({ eventos, cotacoes })));
+  return <QueryBoundary query={query}>{({ eventos, cotacoes }) => <Conteudo eventos={eventos} cotacoes={cotacoes} />}</QueryBoundary>;
+}
 
-  function consultarEventos() {
-    return buscarEventos()
-      .then((lista) => ({ carregando: false, erro: "", lista }))
-      .catch((err) => ({ carregando: false, erro: err.message, lista: [] }));
-  }
+function Conteudo({ eventos, cotacoes }) {
+  const { pdf, csv } = useExporter();
+  const [status, setStatus] = useState("todos");
+  const lista = useMemo(() => eventos.filter((e) => status === "todos" || e.status === status), [eventos, status]);
 
-  function carregar() {
-    setEstado({ carregando: true, erro: "", lista: [] });
-    consultarEventos().then(setEstado);
-  }
+  const previsto = eventos.reduce((s, e) => s + e.previsto, 0);
+  const realizado = eventos.reduce((s, e) => s + e.realizado, 0);
+  const publico = eventos.reduce((s, e) => s + e.publico, 0);
+  const fechadas = cotacoes.filter((c) => c.situacao === "Encerrada").length;
+  const cotacoesDo = (id) => {
+    const cs = cotacoes.filter((c) => c.eventoId === id);
+    return { total: cs.length, fechadas: cs.filter((c) => c.situacao === "Encerrada").length };
+  };
 
-  useEffect(() => {
-    let ativo = true;
-    consultarEventos().then((resultado) => {
-      if (ativo) setEstado(resultado);
+  const porEvento = lista.map((e) => ({ evento: e.nome, previsto: e.previsto, realizado: e.realizado }));
+
+  const porOrganizador = useMemo(() => {
+    const m = new Map();
+    eventos.forEach((e) => {
+      const r = m.get(e.organizador) ?? { organizador: e.organizador, previsto: 0, realizado: 0, eventos: 0, publico: 0 };
+      r.previsto += e.previsto;
+      r.realizado += e.realizado;
+      r.eventos += 1;
+      r.publico += e.publico;
+      m.set(e.organizador, r);
     });
-    return () => { ativo = false; };
-  }, []);
-
-  const termo = busca.trim().toLowerCase();
-  const filtrados = useMemo(
-    () =>
-      estado.lista.filter((ev) => {
-        const bateStatus = status === "Todos" || ev.status === status;
-        const bateBusca = !termo || ev.nome.toLowerCase().includes(termo) || ev.organizador.toLowerCase().includes(termo);
-        return bateStatus && bateBusca;
-      }),
-    [estado.lista, status, termo]
-  );
-
-  const custoPrevistoTotal = estado.lista.reduce((soma, ev) => soma + ev.custoPrevisto, 0);
-  const custoRealizadoTotal = estado.lista.reduce((soma, ev) => soma + ev.custoRealizado, 0);
-  const percentualRealizado = custoPrevistoTotal ? Math.round((custoRealizadoTotal / custoPrevistoTotal) * 100) : 0;
+    return [...m.values()].sort((a, b) => b.previsto - a.previsto);
+  }, [eventos]);
 
   return (
-    <section aria-labelledby="eventos-titulo">
-      <AdminPageHeader
+    <>
+      <PageHeader
         title="Eventos"
-        searchPlaceholder="Buscar evento, organizador..."
-        searchValue={busca}
-        onSearchChange={setBusca}
+        description="Status, organizadores, custos e andamento das cotações de cada evento."
         actions={
-          <span className="updated-pill">
-            <span className="updated-pill__dot" aria-hidden="true" /> Atualizado há 2 min
-          </span>
+          <ExportMenu
+            label="Exportar eventos"
+            variant="primary"
+            onPDF={() =>
+              pdf({
+                title: "Eventos cadastrados",
+                subtitle: `Filtro: ${status === "todos" ? "todos os status" : status}`,
+                orientation: "landscape",
+                summary: [
+                  { label: "Eventos", value: String(lista.length) },
+                  { label: "Custo previsto", value: formatBRLCompact(previsto) },
+                  { label: "Custo realizado", value: formatBRLCompact(realizado) },
+                  { label: "Público esperado", value: formatNumber(publico) },
+                ],
+                tables: [{ columns: COLUNAS, rows: lista }],
+              })
+            }
+            onCSV={() => csv("eventos", COLUNAS, lista)}
+          />
         }
       />
 
-      <AsyncState loading={estado.carregando} error={estado.erro} onRetry={carregar}>
-        <div className="stat-grid">
-          <StatCard label="Eventos listados" value={estado.lista.length} />
-          <StatCard label="Custo previsto" value={formatarMoeda(custoPrevistoTotal)} />
-          <StatCard
-            label="Custo realizado"
-            value={formatarMoeda(custoRealizadoTotal)}
-            helper={`${percentualRealizado}% do previsto`}
-          />
-        </div>
+      <div className="adm-grid adm-grid--kpi">
+        <KpiCard label="Eventos cadastrados" value={eventos.length} unit="eventos" icon={CalendarRange} hint={`Capacidade de ${formatNumber(publico)} espectadores`} />
+        <KpiCard label="Custo previsto consolidado" value={formatBRLCompact(previsto)} icon={Wallet} tone="primary" hint="Orçamento aprovado nos editais" delay={60} />
+        <KpiCard label="Custo realizado" value={formatBRLCompact(realizado)} icon={Banknote} tone="brand" progress={(realizado / previsto) * 100} hint={`${formatPct((realizado / previsto) * 100)} liquidado até hoje`} delay={120} />
+        <KpiCard label="Cotações fechadas" value={`${fechadas}/${cotacoes.length}`} icon={ClipboardCheck} tone="success" progress={(fechadas / cotacoes.length) * 100} hint={`${formatPct((fechadas / cotacoes.length) * 100)} do total`} delay={180} />
+      </div>
 
-        <div className="admin-card eventos__card">
-          <div className="eventos__card-head">
-            <div className="filter-chips">
-              {STATUS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`filter-chip${status === s ? " filter-chip--active" : ""}`}
-                  onClick={() => setStatus(s)}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="eventos__exportar" onClick={() => exportarCsv(filtrados)}>
-              <Download size={15} aria-hidden="true" /> Exportar CSV
-            </button>
-          </div>
+      <div className="adm-grid adm-grid--3-2 adm-mt">
+        <ChartCard
+          title="Previsto × realizado por evento"
+          description="Valores em R$ dos eventos filtrados"
+          data={porEvento}
+          xKey="evento"
+          xLabel="Evento"
+          series={[
+            { key: "previsto", label: "Previsto" },
+            { key: "realizado", label: "Realizado" },
+          ]}
+          types={["horizontal", "bar", "line", "radar", "table"]}
+          valueFormat={formatBRL}
+          axisFormat={formatBRLCompact}
+          height={340}
+          footer="Base consolidada a partir das cotações e pagamentos registrados."
+        />
+        <ChartCard
+          title="Custo previsto por organizador"
+          description="Volume financeiro alocado por parceiro"
+          data={porOrganizador}
+          xKey="organizador"
+          xLabel="Organizador"
+          series={[
+            { key: "previsto", label: "Previsto", format: formatBRL },
+            { key: "realizado", label: "Realizado", format: formatBRL },
+            { key: "publico", label: "Público", format: formatNumber },
+          ]}
+          types={["donut", "pie", "horizontal", "table"]}
+          valueFormat={formatNumber}
+          height={340}
+        />
+      </div>
 
-          <div className="eventos__resultado">
-            <h2 className="admin-section-title">Eventos cadastrados</h2>
-            <span>{filtrados.length} resultados</span>
-          </div>
+      <div className="adm-row adm-row--between adm-mt" style={{ marginBottom: 12 }}>
+        <FilterChips
+          label="Status do evento"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: "todos", label: "Todos", count: eventos.length },
+            ...STATUS_EVENTO.map((s) => ({ value: s, label: s, count: eventos.filter((e) => e.status === s).length })),
+          ]}
+        />
+        <span className="adm-muted" style={{ fontSize: "0.875rem" }}>
+          Mostrando <b style={{ color: "var(--adm-fg)" }}>{lista.length}</b> eventos
+        </span>
+      </div>
 
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th scope="col">Evento</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Organizador</th>
-                  <th scope="col">Data</th>
-                  <th scope="col">Previsto</th>
-                  <th scope="col">Realizado</th>
-                  <th scope="col">Cotações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtrados.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="admin-empty-cell">
-                      Nenhum evento encontrado para os filtros atuais.
+      <section className="adm-panel adm-panel--flush">
+        <div className="adm-table-wrap">
+          <table className="adm-table adm-table--wide">
+            <thead>
+              <tr>
+                <th scope="col">Evento</th>
+                <th scope="col">Status</th>
+                <th scope="col">Organizador</th>
+                <th scope="col">Data</th>
+                <th scope="col" className="adm-right">Previsto</th>
+                <th scope="col">Execução do custo</th>
+                <th scope="col">Cotações</th>
+                <th scope="col">
+                  <span className="adm-sr-only">Abrir</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {lista.map((e) => {
+                const pct = (e.realizado / e.previsto) * 100;
+                const c = cotacoesDo(e.id);
+                return (
+                  <tr key={e.id} className="evt-linha">
+                    <td>
+                      <Link to={`/admin/eventos/${e.id}`} className="adm-strong evt-nome">
+                        {e.nome}
+                      </Link>
+                      <div className="evt-local">
+                        <MapPin aria-hidden="true" /> {e.cidade}, {e.uf} · {formatNumber(e.publico)} pax
+                      </div>
+                    </td>
+                    <td>
+                      <Pill tone={statusTone(e.status)} dot>
+                        {e.status}
+                      </Pill>
+                    </td>
+                    <td className="adm-strong">{e.organizador}</td>
+                    <td>{formatDate(e.data)}</td>
+                    <td className="adm-right adm-mono adm-tabular adm-strong">{formatBRL(e.previsto)}</td>
+                    <td>
+                      <div style={{ width: 160 }}>
+                        <div className="adm-row adm-row--between adm-mono" style={{ fontSize: "0.75rem", marginBottom: 4 }}>
+                          <span>{formatBRLCompact(e.realizado)}</span>
+                          <span className={e.status === "Suspenso" ? "adm-text-danger" : "adm-muted"}>{Math.round(pct)}%</span>
+                        </div>
+                        <MiniBar value={pct} tone={e.status === "Suspenso" ? "danger" : pct >= 100 ? "primary" : "brand"} />
+                      </div>
+                    </td>
+                    <td className="adm-mono" style={{ fontSize: "0.75rem" }}>{c.total ? `${c.fechadas}/${c.total}` : "—"}</td>
+                    <td className="adm-right">
+                      <Link to={`/admin/eventos/${e.id}`} aria-label={`Abrir ${e.nome}`} className="evt-abrir">
+                        <ChevronRight aria-hidden="true" />
+                      </Link>
                     </td>
                   </tr>
-                ) : (
-                  filtrados.map((ev) => {
-                    const percentualCotacoes = ev.cotacoesTotal
-                      ? Math.round((ev.cotacoesRespondidas / ev.cotacoesTotal) * 100)
-                      : 0;
-                    return (
-                      <tr key={ev.id}>
-                        <td>
-                          <strong>{ev.nome}</strong>
-                          <small>
-                            {ev.local}, {ev.uf}
-                          </small>
-                        </td>
-                        <td>
-                          <Badge tone={tomStatus(ev.status)}>{ev.status}</Badge>
-                        </td>
-                        <td>{ev.organizador}</td>
-                        <td>{formatarData(ev.data)}</td>
-                        <td>{formatarMoeda(ev.custoPrevisto)}</td>
-                        <td>{formatarMoeda(ev.custoRealizado)}</td>
-                        <td>
-                          <div className="eventos__progresso">
-                            <div className="eventos__progresso-barra">
-                              <div className="eventos__progresso-fill" style={{ width: `${percentualCotacoes}%` }} />
-                            </div>
-                            <span>
-                              {ev.cotacoesRespondidas}/{ev.cotacoesTotal}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+              {lista.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="adm-table-empty">
+                    Nenhum evento com este status.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      </AsyncState>
-    </section>
+      </section>
+    </>
   );
 }

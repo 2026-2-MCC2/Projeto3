@@ -1,297 +1,344 @@
-import { useEffect, useMemo, useState } from "react";
-import { FileText, ShieldCheck, X, Check, LoaderCircle } from "lucide-react";
-import AdminPageHeader from "../../components/admin/AdminPageHeader.jsx";
-import AsyncState from "../../components/admin/AsyncState.jsx";
-import Badge from "../../components/admin/Badge.jsx";
-import Alert from "../../components/Alert.jsx";
-import { buscarAprovacoes, aprovarCadastro, rejeitarCadastro } from "../../services/adminService.js";
-import { validarMotivoRejeicao } from "../../utils/validators.js";
-import { formatarDataHora } from "../../utils/admin.js";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { BadgeCheck, Building2, CalendarClock, CircleAlert, CircleCheck, Circle, FileText, Filter, MapPin, ShieldCheck, UserRound, X } from "lucide-react";
+import DocumentoCard from "../../components/admin/DocumentoCard.jsx";
+import { ExportMenu } from "../../components/admin/ExportMenu.jsx";
+import { Button, FilterChips, PageHeader, Pill, QueryBoundary } from "../../components/admin/ui.jsx";
+import { MODO_PLACEHOLDER } from "../../services/adminDocumentos.js";
+import { useAuth } from "../../hooks/useAuth.js";
+import { useAdminQuery } from "../../hooks/useAdminQuery.js";
+import { useExporter } from "../../hooks/useExporter.js";
+import { useToast } from "../../hooks/useToast.js";
+import { aprovarCadastro, atualizarChecklist, listarPendentes, rejeitarCadastro } from "../../services/adminApi.js";
+import { formatDateTime } from "../../utils/admin/format.js";
+import { validarChecklistCompleto, validarJustificativa } from "../../utils/admin/validacoes.js";
 import "./Aprovacoes.css";
 
-const FILTROS = [
-  { valor: "todos", label: "Todos" },
-  { valor: "Organizador", label: "Organizador" },
-  { valor: "Fornecedor", label: "Fornecedor" },
+const CHECK_META = {
+  valido: { label: "Válido", tone: "brand", proximo: "pendente" },
+  verificacao: { label: "Em verificação", tone: "warning", proximo: "valido" },
+  pendente: { label: "Pendente", tone: "danger", proximo: "verificacao" },
+};
+
+const COLUNAS = [
+  { key: "id", label: "ID" },
+  { key: "nome", label: "Empresa" },
+  { key: "tipo", label: "Tipo" },
+  { key: "cnpj", label: "CNPJ" },
+  { key: "cidade", label: "Cidade" },
+  { key: "uf", label: "UF" },
+  { key: "horasNaFila", label: "Horas na fila" },
+  { key: "checklist", label: "Checklist", format: (_, r) => `${r.checklist.filter((c) => c.status === "valido").length}/${r.checklist.length}` },
 ];
 
 export default function Aprovacoes() {
-  const [estado, setEstado] = useState({ carregando: true, erro: "", lista: [] });
-  const [filtro, setFiltro] = useState("todos");
-  const [selecionadoId, setSelecionadoId] = useState(null);
-  const [motivo, setMotivo] = useState("");
-  const [erroMotivo, setErroMotivo] = useState("");
-  const [processando, setProcessando] = useState(false);
-  const [mensagem, setMensagem] = useState("");
-
-  function consultarAprovacoes() {
-    return buscarAprovacoes()
-      .then((lista) => ({ estado: { carregando: false, erro: "", lista }, selecionadoId: lista[0]?.id ?? null }))
-      .catch((err) => ({ estado: { carregando: false, erro: err.message, lista: [] }, selecionadoId: null }));
-  }
-
-  function aplicarAprovacoes(resultado) {
-    setEstado(resultado.estado);
-    setSelecionadoId(resultado.selecionadoId);
-  }
-
-  function carregar() {
-    setEstado({ carregando: true, erro: "", lista: [] });
-    consultarAprovacoes().then(aplicarAprovacoes);
-  }
-
-  useEffect(() => {
-    let ativo = true;
-    consultarAprovacoes().then((resultado) => {
-      if (ativo) aplicarAprovacoes(resultado);
-    });
-    return () => { ativo = false; };
-  }, []);
-
-  const filtrados = useMemo(
-    () => (filtro === "todos" ? estado.lista : estado.lista.filter((a) => a.tipo === filtro)),
-    [estado.lista, filtro]
-  );
-
-  const selecionado = estado.lista.find((a) => a.id === selecionadoId) ?? filtrados[0] ?? null;
-
-  function selecionarProximo(idRemovido) {
-    const restantes = estado.lista.filter((a) => a.id !== idRemovido);
-    setEstado((e) => ({ ...e, lista: restantes }));
-    const proximo = restantes.find((a) => filtro === "todos" || a.tipo === filtro);
-    setSelecionadoId(proximo?.id ?? null);
-    setMotivo("");
-    setErroMotivo("");
-  }
-
-  async function handleAprovar() {
-    if (!selecionado || processando) return;
-    setProcessando(true);
-    setMensagem("");
-    try {
-      await aprovarCadastro(selecionado.id);
-      setMensagem(`Cadastro de "${selecionado.nome}" aprovado e acesso liberado.`);
-      selecionarProximo(selecionado.id);
-    } catch (err) {
-      setMensagem(err.message);
-    } finally {
-      setProcessando(false);
-    }
-  }
-
-  async function handleRejeitar(e) {
-    e.preventDefault();
-    if (!selecionado) return;
-    const erro = validarMotivoRejeicao(motivo);
-    setErroMotivo(erro);
-    if (erro) {
-      e.currentTarget.querySelector("#motivo-rejeicao")?.focus();
-      return;
-    }
-    setProcessando(true);
-    setMensagem("");
-    try {
-      await rejeitarCadastro(selecionado.id, motivo);
-      setMensagem(`Cadastro de "${selecionado.nome}" rejeitado. O solicitante foi notificado por e-mail.`);
-      selecionarProximo(selecionado.id);
-    } catch (err) {
-      setMensagem(err.message);
-    } finally {
-      setProcessando(false);
-    }
-  }
-
-  function handleVisualizar(doc) {
-    window.alert(`Pré-visualização de "${doc.nome}" (documento simulado no ambiente de testes).`);
-  }
+  const query = useAdminQuery(listarPendentes);
+  const { pdf, csv } = useExporter();
+  const total = query.data?.length;
 
   return (
-    <section aria-labelledby="aprovacoes-titulo">
-      <AdminPageHeader title="Aprovações Pendentes de Cadastro" searchPlaceholder="Buscar por razão social" />
+    <>
+      <PageHeader
+        eyebrow={total !== undefined && <Pill tone="danger" dot>{total} pendentes</Pill>}
+        title="Aprovações de cadastros"
+        description="Fila de análise e homologação documental de organizadores e fornecedores parceiros."
+        actions={
+          query.data && (
+            <ExportMenu
+              label="Exportar fila"
+              onPDF={() => pdf({ title: "Fila de aprovações", subtitle: "Cadastros aguardando análise documental", tables: [{ columns: COLUNAS, rows: query.data }] })}
+              onCSV={() => csv("fila-aprovacoes", COLUNAS, query.data)}
+            />
+          )
+        }
+      />
+      <QueryBoundary query={query} linhasSkeleton={2}>
+        {(pendentes) => <Fila pendentes={pendentes} />}
+      </QueryBoundary>
+    </>
+  );
+}
 
-      <AsyncState
-        loading={estado.carregando}
-        error={estado.erro}
-        onRetry={carregar}
-        empty={!estado.carregando && !estado.erro && estado.lista.length === 0}
-        emptyMessage="Não há cadastros pendentes no momento."
-      >
-        <div className="aprovacoes__layout">
-          <div className="admin-card aprovacoes__detalhe">
-            {!selecionado ? (
-              <p className="aprovacoes__vazio">Selecione um cadastro na fila ao lado.</p>
-            ) : (
-              <>
-                <header className="aprovacoes__detalhe-head">
-                  <span className="aprovacoes__status-dot" aria-hidden="true" />
-                  <h2 className="admin-section-title">Análise Cadastral</h2>
-                </header>
+function Fila({ pendentes }) {
+  const [params, setParams] = useSearchParams();
+  const id = params.get("id");
+  const [filtro, setFiltro] = useState("todos");
+  const [busca, setBusca] = useState("");
 
-                <div className="aprovacoes__titulo-linha">
-                  <h3>{selecionado.nome}</h3>
-                  <Badge tone={selecionado.tipo === "Fornecedor" ? "info" : "warning"}>{selecionado.tipo}</Badge>
-                  {selecionado.cnpjAtivoReceita && (
-                    <span className="aprovacoes__cnpj-ativo">
-                      <ShieldCheck size={13} aria-hidden="true" /> CNPJ Ativo na RF
-                    </span>
-                  )}
+  const lista = useMemo(
+    () =>
+      pendentes
+        .filter((p) => filtro === "todos" || p.tipo === filtro)
+        .filter((p) => [p.nome, p.cnpj, p.cidade].join(" ").toLowerCase().includes(busca.toLowerCase())),
+    [pendentes, filtro, busca],
+  );
+
+  const selecionado = pendentes.find((p) => p.id === id) ?? lista[0];
+  const selecionar = (pid) => setParams({ id: pid }, { replace: true });
+  const contar = (tipo) => pendentes.filter((p) => p.tipo === tipo).length;
+
+  return (
+    <div className="apr-layout">
+      <aside className="adm-stack adm-stack--sm" aria-label="Fila de cadastros">
+        <div className="adm-panel adm-stack adm-stack--sm" style={{ padding: 16 }}>
+          <label className="adm-search">
+            <Filter aria-hidden="true" />
+            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Filtrar por nome, CNPJ ou cidade…" aria-label="Filtrar fila" />
+          </label>
+          <FilterChips
+            label="Tipo de cadastro"
+            value={filtro}
+            onChange={setFiltro}
+            options={[
+              { value: "todos", label: "Todos", count: pendentes.length },
+              { value: "Organizador", label: "Organizadores", count: contar("Organizador") },
+              { value: "Fornecedor", label: "Fornecedores", count: contar("Fornecedor") },
+            ]}
+          />
+        </div>
+
+        {lista.length === 0 && <div className="adm-panel adm-empty">Nenhum cadastro encontrado.</div>}
+
+        {lista.map((p) => {
+          const ativo = selecionado?.id === p.id;
+          const critico = p.horasNaFila > 24;
+          return (
+            <button key={p.id} type="button" className={`adm-panel apr-card${ativo ? " is-active" : ""}`} aria-pressed={ativo} onClick={() => selecionar(p.id)}>
+              <div className="adm-row adm-row--between" style={{ flexWrap: "nowrap" }}>
+                <div className="adm-row" style={{ gap: 8 }}>
+                  <Pill tone={p.tipo === "Organizador" ? "brand" : "neutral"}>{p.tipo}</Pill>
+                  <span className="adm-muted" style={{ fontSize: "0.75rem" }}>{p.categoria}</span>
                 </div>
-                <p className="aprovacoes__categoria">
-                  Categoria: {selecionado.categoria} • Submetido em {formatarDataHora(selecionado.submetidoEm)}
-                </p>
+                <span className={`adm-mono adm-strong ${critico ? "adm-text-danger" : "adm-muted"}`} style={{ fontSize: "0.75rem" }}>
+                  {p.horasNaFila}h
+                </span>
+              </div>
+              <div className="apr-card__nome">{p.nome}</div>
+              <div className="adm-mono adm-muted" style={{ fontSize: "0.75rem" }}>CNPJ {p.cnpj}</div>
+              <div className="adm-row adm-row--between" style={{ marginTop: 12, fontSize: "0.75rem" }}>
+                <span className="apr-card__local">
+                  <MapPin aria-hidden="true" /> {p.cidade}/{p.uf}
+                </span>
+                {critico ? <Pill tone="danger">SLA crítico</Pill> : ativo ? <Pill tone="brand" dot>Em análise</Pill> : <span className="adm-muted">Aguardando</span>}
+              </div>
+            </button>
+          );
+        })}
+      </aside>
 
-                <div className="aprovacoes__grid">
-                  <div className="aprovacoes__campo">
-                    <span>CNPJ / Registro</span>
-                    <strong>{selecionado.cnpj}</strong>
-                    <small>Inscrição Estadual: {selecionado.inscricaoEstadual}</small>
-                  </div>
-                  <div className="aprovacoes__campo">
-                    <span>Contato principal</span>
-                    <strong>{selecionado.contatoEmail}</strong>
-                    <small>
-                      {selecionado.contatoTelefone} • Resp: {selecionado.contatoNome}
-                    </small>
-                  </div>
-                  <div className="aprovacoes__campo">
-                    <span>Endereço fiscal</span>
-                    <strong>{selecionado.endereco}</strong>
-                    <small>{selecionado.cidadeUf}</small>
-                  </div>
-                  <div className="aprovacoes__campo">
-                    <span>{selecionado.infoExtra.titulo}</span>
-                    <strong>{selecionado.infoExtra.linha1}</strong>
-                    <small>{selecionado.infoExtra.linha2}</small>
-                  </div>
-                </div>
+      {selecionado ? (
+        <Detalhe key={selecionado.id} p={selecionado} aoConcluir={() => setParams({}, { replace: true })} />
+      ) : (
+        <div className="adm-panel adm-state">
+          <BadgeCheck style={{ color: "var(--adm-success)" }} aria-hidden="true" />
+          <h2 style={{ color: "var(--adm-fg)" }}>Fila zerada</h2>
+          <p>Todos os cadastros foram analisados.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
-                <div className="aprovacoes__docs">
-                  <span className="aprovacoes__docs-titulo">Documentos comprobatórios anexados</span>
-                  <div className="aprovacoes__docs-lista">
-                    {selecionado.documentos.map((doc) => (
-                      <div className="aprovacoes__doc" key={doc.nome}>
-                        <FileText size={16} aria-hidden="true" />
-                        <div>
-                          <strong>{doc.nome}</strong>
-                          <small>
-                            {doc.tamanho} • {doc.origem}
-                          </small>
-                        </div>
-                        <button type="button" className="admin-link-button" onClick={() => handleVisualizar(doc)}>
-                          Visualizar
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+function Detalhe({ p, aoConcluir }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const autor = user?.nome ?? "Administrador";
+  const [checklist, setChecklist] = useState(p.checklist);
+  const [obs, setObs] = useState("");
+  const [erro, setErro] = useState("");
+  const [processando, setProcessando] = useState(null); // "aprovar" | "rejeitar" | null
 
-                <form onSubmit={handleRejeitar} noValidate>
-                  <label className="aprovacoes__motivo-label" htmlFor="motivo-rejeicao">
-                    Motivo da rejeição / Observações de auditoria
-                  </label>
-                  <textarea
-                    id="motivo-rejeicao"
-                    rows={3}
-                    className={`aprovacoes__motivo${erroMotivo ? " aprovacoes__motivo--invalido" : ""}`}
-                    placeholder="Exemplo: Documento do contrato social anexado está desatualizado ou ilegível. Por favor, submeter certidão atualizada com menos de 30 dias..."
-                    value={motivo}
-                    onChange={(e) => {
-                      setMotivo(e.target.value);
-                      if (erroMotivo) setErroMotivo(validarMotivoRejeicao(e.target.value));
-                    }}
-                    aria-invalid={erroMotivo ? "true" : "false"}
-                    aria-describedby={erroMotivo ? "motivo-erro" : undefined}
-                  />
-                  {erroMotivo && (
-                    <p id="motivo-erro" className="aprovacoes__erro">
-                      {erroMotivo}
-                    </p>
-                  )}
-                  <p className="aprovacoes__motivo-aviso">
-                    O motivo informado será enviado automaticamente por e-mail ao solicitante e armazenado no log de
-                    auditoria da plataforma.
-                  </p>
+  const validos = checklist.filter((c) => c.status === "valido").length;
 
-                  {mensagem && <Alert>{mensagem}</Alert>}
+  function alternarChecagem(item) {
+    const proximo = CHECK_META[item.status].proximo;
+    setChecklist((lista) => lista.map((c) => (c.id === item.id ? { ...c, status: proximo } : c)));
+    setErro("");
+    atualizarChecklist(p.id, item.id, proximo).catch(() => {
+      setChecklist((lista) => lista.map((c) => (c.id === item.id ? { ...c, status: item.status } : c)));
+      toast.error("Não foi possível salvar a checagem", "A alteração foi desfeita. Tente novamente.");
+    });
+  }
 
-                  <div className="aprovacoes__acoes">
-                    <button
-                      type="submit"
-                      className="aprovacoes__btn aprovacoes__btn--rejeitar"
-                      disabled={processando}
-                    >
-                      <X size={16} aria-hidden="true" /> Rejeitar cadastro
-                    </button>
-                    <button
-                      type="button"
-                      className="aprovacoes__btn aprovacoes__btn--aprovar"
-                      disabled={processando}
-                      onClick={handleAprovar}
-                    >
-                      {processando ? (
-                        <LoaderCircle size={16} className="aprovacoes__spinner" aria-hidden="true" />
-                      ) : (
-                        <Check size={16} aria-hidden="true" />
-                      )}
-                      {processando ? "Processando..." : "Aprovar cadastro e liberar acesso"}
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-          </div>
+  async function aprovar() {
+    const problema = validarChecklistCompleto(checklist);
+    if (problema) return setErro(problema);
+    setErro("");
+    setProcessando("aprovar");
+    try {
+      await aprovarCadastro(p.id, obs.trim(), autor);
+      toast.success(`${p.nome} aprovado`, "Cadastro ativado e registrado na auditoria.");
+      aoConcluir();
+    } catch (e) {
+      toast.error("Não foi possível aprovar", e.message);
+      setProcessando(null);
+    }
+  }
 
-          <div className="admin-card aprovacoes__fila">
-            <h2 className="admin-section-title aprovacoes__fila-titulo">Fila de Cadastros</h2>
-            <div className="filter-chips aprovacoes__filtros">
-              {FILTROS.map((f) => (
-                <button
-                  key={f.valor}
-                  type="button"
-                  className={`filter-chip${filtro === f.valor ? " filter-chip--active" : ""}`}
-                  onClick={() => setFiltro(f.valor)}
-                >
-                  {f.label}
-                  {f.valor === "todos" && ` (${estado.lista.length})`}
-                </button>
-              ))}
+  async function rejeitar() {
+    const problema = validarJustificativa(obs);
+    if (problema) return setErro(problema);
+    setErro("");
+    setProcessando("rejeitar");
+    try {
+      await rejeitarCadastro(p.id, obs.trim(), autor);
+      toast.info(`${p.nome} rejeitado`, "O solicitante será notificado por e-mail com o motivo informado.");
+      aoConcluir();
+    } catch (e) {
+      toast.error("Não foi possível rejeitar", e.message);
+      setProcessando(null);
+    }
+  }
+
+  const info = [
+    { label: "CNPJ", value: p.cnpj, mono: true },
+    { label: "Inscrição estadual", value: p.ie, mono: true },
+    { label: "Responsável legal", value: p.responsavel, icon: UserRound },
+    { label: "Contato comercial", value: p.telefone, mono: true },
+    { label: "E-mail corporativo", value: p.email, link: true },
+    { label: "CNAE primário", value: p.cnae },
+  ];
+
+  return (
+    <div className="adm-stack adm-rise">
+      <section className="adm-panel adm-panel--pad">
+        <div className="adm-row adm-row--between" style={{ alignItems: "flex-start" }}>
+          <div className="apr-title">
+            <div className="apr-title__logo" aria-hidden="true">
+              {p.nome.split(" ").slice(0, 2).map((w) => w[0]).join("")}
             </div>
-
-            <ul className="aprovacoes__lista">
-              {filtrados.map((a) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    className={`aprovacoes__item${a.id === selecionado?.id ? " aprovacoes__item--ativo" : ""}`}
-                    onClick={() => {
-                      setSelecionadoId(a.id);
-                      setMotivo("");
-                      setErroMotivo("");
-                      setMensagem("");
-                    }}
-                  >
-                    <div className="aprovacoes__item-topo">
-                      <strong>{a.nome}</strong>
-                      <Badge tone={a.tipo === "Fornecedor" ? "info" : "warning"}>{a.tipo}</Badge>
-                    </div>
-                    <small>{a.cnpj}</small>
-                    <div className="aprovacoes__item-rodape">
-                      <span>{formatarDataHora(a.submetidoEm)}</span>
-                      <span className={a.alerta ? "aprovacoes__item-alerta" : "aprovacoes__item-docs"}>
-                        {a.alerta ?? `${a.documentos.length} docs anexados`}
-                      </span>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <p className="aprovacoes__contagem">
-              Exibindo {filtrados.length} de {estado.lista.length} pendências
-            </p>
+            <div>
+              <div className="adm-row" style={{ gap: 8, fontSize: "0.75rem" }}>
+                <Pill tone="brand">
+                  <Building2 aria-hidden="true" />
+                  {p.tipo}
+                </Pill>
+                <Pill>Porte: {p.porte}</Pill>
+                <span className="apr-inline adm-muted">
+                  <CalendarClock aria-hidden="true" /> Submetido em {formatDateTime(p.submetidoEm)}
+                </span>
+              </div>
+              <h2 style={{ marginTop: 8, fontSize: "1.6rem" }}>{p.nome}</h2>
+              <p className="adm-muted" style={{ fontSize: "0.875rem" }}>Nome fantasia: {p.fantasia}</p>
+            </div>
+          </div>
+          <div className="adm-right">
+            <div className="adm-eyebrow">ID do cadastro</div>
+            <div className="adm-mono adm-strong apr-id">#{p.id}</div>
           </div>
         </div>
-      </AsyncState>
-    </section>
+
+        <dl className="apr-info adm-surface-box">
+          {info.map((i) => (
+            <div key={i.label}>
+              <dt className="adm-eyebrow">{i.label}</dt>
+              <dd className={`${i.mono ? "adm-mono" : ""}${i.link ? " apr-link" : ""}`}>{i.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="apr-endereco">
+          <div className="adm-icon-tile" style={{ width: 36, height: 36 }}>
+            <MapPin aria-hidden="true" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="adm-eyebrow">Endereço operacional declarado</div>
+            <div className="apr-endereco__texto">{p.endereco}</div>
+          </div>
+          <a className="adm-btn adm-btn--secondary adm-btn--sm" href={`https://www.google.com/maps/search/${encodeURIComponent(p.endereco)}`} target="_blank" rel="noreferrer">
+            Ver no mapa
+          </a>
+        </div>
+      </section>
+
+      <section className="adm-panel adm-panel--pad" aria-labelledby={`chk-${p.id}`}>
+        <div className="adm-row adm-row--between" style={{ marginBottom: 8 }}>
+          <h3 id={`chk-${p.id}`} className="apr-h3">
+            <ShieldCheck aria-hidden="true" /> Validação de conformidade
+          </h3>
+          <div className="adm-row" style={{ gap: 12 }}>
+            <div style={{ width: 112 }}>
+              <div className="adm-minibar adm-minibar--brand">
+                <span style={{ width: `${(validos / checklist.length) * 100}%` }} />
+              </div>
+            </div>
+            <span className="adm-mono adm-muted" style={{ fontSize: "0.75rem" }}>
+              {validos} de {checklist.length}
+            </span>
+          </div>
+        </div>
+        <p className="adm-help" style={{ marginBottom: 12 }}>Clique no status para alterar a situação de cada checagem.</p>
+        <ul className="apr-checks">
+          {checklist.map((c) => {
+            const meta = CHECK_META[c.status];
+            const Icone = c.status === "valido" ? CircleCheck : c.status === "verificacao" ? CircleAlert : Circle;
+            return (
+              <li key={c.id}>
+                <Icone className={`apr-checks__icon apr-checks__icon--${c.status}`} aria-hidden="true" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="adm-strong" style={{ fontSize: "0.875rem" }}>{c.titulo}</div>
+                  <div className="adm-muted" style={{ fontSize: "0.75rem" }}>{c.descricao}</div>
+                </div>
+                <Pill as="button" type="button" tone={meta.tone} title="Alterar status" aria-label={`${c.titulo}: ${meta.label}. Clique para alterar.`} onClick={() => alternarChecagem(c)}>
+                  {meta.label}
+                </Pill>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="adm-panel adm-panel--pad" aria-labelledby={`docs-${p.id}`}>
+        <div className="adm-row adm-row--between" style={{ marginBottom: 16 }}>
+          <h3 id={`docs-${p.id}`} className="apr-h3">
+            <FileText aria-hidden="true" /> Documentos submetidos
+          </h3>
+          {MODO_PLACEHOLDER && <Pill tone="warning">Exemplos · sem servidor de arquivos</Pill>}
+        </div>
+        <div className="apr-docs">
+          {p.documentos.map((d) => (
+            <DocumentoCard key={d.id} doc={d} />
+          ))}
+        </div>
+      </section>
+
+      <section className="adm-panel adm-panel--pad">
+        <div className="adm-field">
+          <label htmlFor={`obs-${p.id}`} style={{ color: "var(--adm-primary)", fontWeight: 600 }}>
+            Observações / motivo da rejeição
+          </label>
+          <textarea
+            id={`obs-${p.id}`}
+            className="adm-textarea"
+            rows={4}
+            value={obs}
+            onChange={(e) => {
+              setObs(e.target.value);
+              setErro("");
+            }}
+            aria-invalid={erro ? "true" : "false"}
+            aria-describedby={`obs-ajuda-${p.id}`}
+            placeholder="Ex.: Certidão negativa vencida. Envie uma versão emitida há menos de 30 dias."
+          />
+          <p id={`obs-ajuda-${p.id}`} className={`adm-help${erro ? " adm-help--error" : ""}`} role={erro ? "alert" : undefined}>
+            {erro || "Obrigatório para rejeitar. Enviado por e-mail ao solicitante e salvo na auditoria."}
+          </p>
+        </div>
+      </section>
+
+      <div className="adm-panel apr-acoes">
+        <span className="apr-acoes__nota">
+          <span aria-hidden="true" /> Ação registrada na auditoria com validação de segurança
+        </span>
+        <div className="adm-row" style={{ gap: 8 }}>
+          <Button variant="danger-outline" icon={X} loading={processando === "rejeitar"} disabled={processando !== null} onClick={rejeitar}>
+            Rejeitar cadastro
+          </Button>
+          <Button icon={BadgeCheck} loading={processando === "aprovar"} disabled={processando !== null} onClick={aprovar}>
+            Aprovar cadastro
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

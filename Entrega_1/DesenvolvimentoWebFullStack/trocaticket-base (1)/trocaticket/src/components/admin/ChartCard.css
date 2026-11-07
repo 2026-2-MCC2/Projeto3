@@ -1,0 +1,130 @@
+.adm-chart {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+}
+
+.adm-chart__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.adm-chart__titles {
+  min-width: 0;
+}
+
+.adm-chart__titles h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.adm-chart__titles p {
+  margin-top: 2px;
+  font-size: 0.875rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-chart__kinds {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  background: var(--adm-surface);
+}
+
+.adm-chart__kinds button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--adm-muted-fg);
+  cursor: pointer;
+}
+
+.adm-chart__kinds button:hover {
+  color: var(--adm-fg);
+}
+
+.adm-chart__kinds button[aria-checked="true"] {
+  background: var(--adm-card);
+  color: var(--adm-primary);
+  box-shadow: 0 1px 2px rgba(15, 26, 47, 0.15);
+}
+
+.adm-chart__kinds svg {
+  width: 16px;
+  height: 16px;
+}
+
+.adm-chart__area {
+  background: #fff;
+  width: 100%;
+}
+
+.adm-chart__table {
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+}
+
+.adm-chart__table .adm-table th,
+.adm-chart__table .adm-table td {
+  padding: 9px 12px;
+}
+
+.adm-chart__table thead {
+  position: sticky;
+  top: 0;
+}
+
+.adm-chart__footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--adm-border);
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-tooltip {
+  min-width: 160px;
+  padding: 8px 12px;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  background: var(--adm-card);
+  box-shadow: var(--adm-shadow-lift);
+  font-size: 0.75rem;
+}
+
+.adm-tooltip__title {
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--adm-fg);
+}
+
+.adm-tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-tooltip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.adm-tooltip__value {
+  margin-left: auto;
+  padding-left: 12px;
+  font-weight: 600;
+  color: var(--adm-fg);
+}

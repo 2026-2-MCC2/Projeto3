@@ -1,0 +1,93 @@
+.adm-modal {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: none;
+  max-height: none;
+  color: inherit;
+  overflow: visible;
+}
+
+.adm-modal::backdrop {
+  background: rgba(15, 26, 47, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.adm-modal:not([open]) {
+  display: none;
+}
+
+/* O <dialog> vai para a "top layer" do navegador, por isso o conteúdo recebe
+   a classe .adm de novo (para herdar as variáveis do tema). */
+.adm-modal__box.adm {
+  min-height: 0;
+  background: var(--adm-card);
+  border: 1px solid var(--adm-border);
+  border-radius: 18px;
+  box-shadow: var(--adm-shadow-lift);
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-modal--side {
+  margin: 0 0 0 auto;
+  height: 100vh;
+}
+
+.adm-modal--side .adm-modal__box.adm {
+  width: min(520px, 100vw);
+  height: 100vh;
+  max-height: none;
+  border-radius: 18px 0 0 18px;
+  animation: adm-slide-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.adm-modal:not(.adm-modal--side) .adm-modal__box.adm {
+  animation: adm-rise 0.25s ease both;
+}
+
+@keyframes adm-slide-in {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.adm-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 22px 14px;
+}
+
+.adm-modal__header h2 {
+  font-size: 1.35rem;
+}
+
+.adm-modal__header p {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-modal__body {
+  padding: 0 22px 22px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.adm-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--adm-border);
+}

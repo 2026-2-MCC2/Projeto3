@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { lazy } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import LayoutPublico from "./components/LayoutPublico.jsx";
 import AdminLayout from "./components/AdminLayout.jsx";
@@ -11,12 +12,6 @@ import Cadastro from "./pages/Cadastro.jsx";
 import CadastroEmAnalise from "./pages/CadastroEmAnalise.jsx";
 import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
-import VisaoGeral from "./pages/admin/VisaoGeral.jsx";
-import Aprovacoes from "./pages/admin/Aprovacoes.jsx";
-import Usuarios from "./pages/admin/Usuarios.jsx";
-import Eventos from "./pages/admin/Eventos.jsx";
-import Cotacoes from "./pages/admin/Cotacoes.jsx";
-import RelatoriosAuditoria from "./pages/admin/RelatoriosAuditoria.jsx";
 import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
 import EventoRedirect from "./pages/EventoRedirect.jsx";
 import CriarEvento from "./pages/CriarEvento.jsx";
@@ -33,6 +28,17 @@ import MensagensFornecedor from "./pages/MensagensFornecedor.jsx";
 import Mensagens from "./pages/Mensagens.jsx";
 import PerfilFornecedor from "./pages/PerfilFornecedor.jsx";
 import Resumo from "./pages/Resumo.jsx";
+
+// O painel administrativo é carregado por demanda para não aumentar o pacote
+// inicial usado pelas áreas pública, de organizador e de fornecedor.
+const VisaoGeral = lazy(() => import("./pages/admin/VisaoGeral.jsx"));
+const Aprovacoes = lazy(() => import("./pages/admin/Aprovacoes.jsx"));
+const Cadastros = lazy(() => import("./pages/admin/Cadastros.jsx"));
+const Eventos = lazy(() => import("./pages/admin/Eventos.jsx"));
+const EventoDetalhe = lazy(() => import("./pages/admin/EventoDetalhe.jsx"));
+const Cotacoes = lazy(() => import("./pages/admin/Cotacoes.jsx"));
+const Relatorios = lazy(() => import("./pages/admin/Relatorios.jsx"));
+const AdminNaoEncontrado = lazy(() => import("./pages/admin/AdminNaoEncontrado.jsx"));
 
 const publicas = [
   ["/cadastro/status", "Análise Cadastral"],
@@ -147,12 +153,13 @@ export default function App() {
         <Route path="/admin" element={<AdminPanelLayout />}>
           <Route index element={<VisaoGeral />} />
           <Route path="aprovacoes" element={<Aprovacoes />} />
-          <Route path="usuarios" element={<Usuarios />} />
+          <Route path="usuarios" element={<Cadastros />} />
+          <Route path="cadastros" element={<Navigate to="/admin/usuarios" replace />} />
           <Route path="eventos" element={<Eventos />} />
+          <Route path="eventos/:eventoId" element={<EventoDetalhe />} />
           <Route path="cotacoes" element={<Cotacoes />} />
-          <Route path="relatorios" element={<RelatoriosAuditoria />} />
-          <Route path="configuracoes" element={<EmConstrucao titulo="Configurações" />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="relatorios" element={<Relatorios />} />
+          <Route path="*" element={<AdminNaoEncontrado />} />
         </Route>
       </Route>
     </Routes>

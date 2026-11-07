@@ -1,0 +1,82 @@
+.adm-gsearch {
+  position: relative;
+  flex: 1;
+  max-width: 560px;
+}
+
+.adm-gsearch__box {
+  background: var(--adm-card);
+}
+
+.adm-gsearch__box svg.adm-spin {
+  color: var(--adm-brand);
+}
+
+.adm-gsearch__box kbd {
+  display: none;
+  padding: 1px 6px;
+  border: 1px solid var(--adm-border);
+  border-radius: 5px;
+  background: var(--adm-surface);
+  font-family: var(--adm-font-mono);
+  font-size: 10px;
+  color: var(--adm-muted-fg);
+}
+
+@media (min-width: 640px) {
+  .adm-gsearch__box kbd {
+    display: block;
+  }
+}
+
+.adm-gsearch__results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 6px;
+  box-shadow: var(--adm-shadow-lift);
+}
+
+.adm-gsearch__empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-gsearch__item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  grid-template-areas:
+    "tipo titulo"
+    "tipo detalhe";
+  column-gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.adm-gsearch__item:hover,
+.adm-gsearch__item:focus-visible {
+  background: var(--adm-accent);
+}
+
+.adm-gsearch__item .adm-eyebrow {
+  grid-area: tipo;
+}
+
+.adm-gsearch__item strong {
+  grid-area: titulo;
+  font-size: 0.875rem;
+}
+
+.adm-gsearch__item small {
+  grid-area: detalhe;
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}

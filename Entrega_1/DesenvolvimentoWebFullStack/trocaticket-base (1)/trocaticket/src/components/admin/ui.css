@@ -1,0 +1,91 @@
+.adm-page-header {
+  position: relative;
+  z-index: 10; /* o menu "Exportar" abre por cima dos cartões que vêm depois */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.adm-page-header__text {
+  max-width: 680px;
+}
+
+.adm-page-header__eyebrow {
+  margin-bottom: 8px;
+}
+
+.adm-page-header h1 {
+  font-size: clamp(1.9rem, 3vw, 2.6rem);
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.adm-page-header p {
+  margin-top: 8px;
+  color: var(--adm-muted-fg);
+  font-size: 1rem;
+}
+
+.adm-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* KPI com picote de ingresso (entalhes laterais) */
+.adm-kpi {
+  --notch: 9px;
+  position: relative;
+  padding: 20px;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+
+.adm-kpi__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adm-kpi__top .adm-eyebrow {
+  line-height: 1.4;
+}
+
+.adm-kpi__value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.adm-kpi__value span {
+  font-family: var(--adm-font-display);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.adm-kpi__value small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--adm-muted-fg);
+}
+
+.adm-kpi__hint {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-kpi .adm-minibar {
+  margin-bottom: 8px;
+}

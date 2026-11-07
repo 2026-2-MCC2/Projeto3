@@ -1,62 +1,32 @@
-import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  LayoutGrid,
-  CircleCheck,
-  Users,
-  CalendarDays,
-  FileText,
-  ChartColumn,
-  Settings,
-  LogOut,
-  Ticket,
-} from "lucide-react";
+import { CalendarRange, ChartNoAxesCombined, FileText, LayoutDashboard, LogOut, ShieldCheck, Ticket, UsersRound } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth.js";
-import { buscarAprovacoes } from "../../services/adminService.js";
-import { iniciais } from "../../utils/admin.js";
+import { useAdminQuery } from "../../hooks/useAdminQuery.js";
+import { listarPendentes } from "../../services/adminApi.js";
 import "./AdminSidebar.css";
 
-const GRUPOS = [
+const NAV = [
   {
-    titulo: "Geral",
-    itens: [{ to: "/admin", label: "Visão Geral", icon: LayoutGrid, fim: true }],
-  },
-  {
-    titulo: "Operacional",
+    grupo: "Operacional",
     itens: [
-      { to: "/admin/aprovacoes", label: "Aprovações", icon: CircleCheck, badge: "aprovacoes" },
-      { to: "/admin/usuarios", label: "Usuários", icon: Users },
-      { to: "/admin/eventos", label: "Eventos", icon: CalendarDays },
+      { to: "/admin", label: "Visão geral", icon: LayoutDashboard, fim: true },
+      { to: "/admin/aprovacoes", label: "Aprovações", icon: ShieldCheck, badge: true },
+      { to: "/admin/usuarios", label: "Cadastros", icon: UsersRound },
+      { to: "/admin/eventos", label: "Eventos", icon: CalendarRange },
       { to: "/admin/cotacoes", label: "Cotações", icon: FileText },
     ],
   },
   {
-    titulo: "Gestão & Controle",
-    itens: [
-      { to: "/admin/relatorios", label: "Relatórios e Auditoria", icon: ChartColumn },
-      { to: "/admin/configuracoes", label: "Configurações", icon: Settings },
-    ],
+    grupo: "Gestão & controle",
+    itens: [{ to: "/admin/relatorios", label: "Relatórios e auditoria", icon: ChartNoAxesCombined }],
   },
 ];
 
-export default function AdminSidebar() {
-  const { user, sair } = useAuth();
+export default function AdminSidebar({ aberto, onNavegar }) {
+  const { sair } = useAuth();
   const navigate = useNavigate();
-  const [pendentes, setPendentes] = useState(null);
-
-  useEffect(() => {
-    let ativo = true;
-    buscarAprovacoes()
-      .then((lista) => {
-        if (ativo) setPendentes(lista.length);
-      })
-      .catch(() => {
-        if (ativo) setPendentes(null);
-      });
-    return () => {
-      ativo = false;
-    };
-  }, []);
+  const { data: pendentes } = useAdminQuery(listarPendentes);
+  const totalPendentes = pendentes?.length ?? 0;
 
   function handleSair() {
     sair();
@@ -64,32 +34,31 @@ export default function AdminSidebar() {
   }
 
   return (
-    <aside className="admin-sidebar">
-      <div className="admin-sidebar__brand">
-        <span className="admin-sidebar__logo" aria-hidden="true">
-          <Ticket size={16} />
-        </span>
-        <span>TrocaTicket</span>
+    <aside className={`adm-sidebar${aberto ? " adm-sidebar--open" : ""}`} aria-label="Menu do painel administrativo">
+      <div className="adm-sidebar__brand">
+        <div className="adm-sidebar__logo">
+          <Ticket aria-hidden="true" />
+        </div>
+        <div>
+          <div className="adm-sidebar__name">TrocaTicket</div>
+          <div className="adm-sidebar__tag">ADMIN</div>
+        </div>
       </div>
 
-      <nav className="admin-sidebar__nav" aria-label="Navegação do painel administrativo">
-        {GRUPOS.map((grupo) => (
-          <div className="admin-sidebar__group" key={grupo.titulo}>
-            <span className="admin-sidebar__group-title">{grupo.titulo}</span>
+      <nav className="adm-sidebar__nav">
+        {NAV.map((g) => (
+          <div key={g.grupo}>
+            <div className="adm-sidebar__group">{g.grupo}</div>
             <ul>
-              {grupo.itens.map(({ to, label, icon: Icon, fim, badge }) => (
+              {g.itens.map(({ to, label, icon: Icone, fim, badge }) => (
                 <li key={to}>
-                  <NavLink
-                    to={to}
-                    end={fim}
-                    className={({ isActive }) =>
-                      `admin-sidebar__link${isActive ? " admin-sidebar__link--active" : ""}`
-                    }
-                  >
-                    <Icon size={17} aria-hidden="true" />
+                  <NavLink to={to} end={fim} onClick={onNavegar} className={({ isActive }) => `adm-sidebar__link${isActive ? " is-active" : ""}`}>
+                    <Icone aria-hidden="true" />
                     <span>{label}</span>
-                    {badge === "aprovacoes" && Boolean(pendentes) && (
-                      <span className="admin-sidebar__badge">{pendentes}</span>
+                    {badge && totalPendentes > 0 && (
+                      <span className="adm-sidebar__badge" aria-label={`${totalPendentes} pendentes`}>
+                        {totalPendentes}
+                      </span>
                     )}
                   </NavLink>
                 </li>
@@ -99,26 +68,16 @@ export default function AdminSidebar() {
         ))}
       </nav>
 
-      {user && (
-        <div className="admin-sidebar__user">
-          <span className="admin-sidebar__avatar" aria-hidden="true">
-            {iniciais(user.nome)}
-          </span>
-          <div className="admin-sidebar__user-info">
-            <strong>{user.nome}</strong>
-            <span>Administrador(a)</span>
-          </div>
-          <button
-            type="button"
-            className="admin-sidebar__logout"
-            onClick={handleSair}
-            aria-label="Sair do painel administrativo"
-            title="Sair"
-          >
-            <LogOut size={16} aria-hidden="true" />
-          </button>
+      <div className="adm-sidebar__foot">
+        <div className="adm-sidebar__sync">
+          <span className="adm-sidebar__pulse" aria-hidden="true" />
+          Base sincronizada
+          <small>Auditoria ativa em todas as ações</small>
         </div>
-      )}
+        <button type="button" className="adm-sidebar__logout" onClick={handleSair}>
+          <LogOut aria-hidden="true" /> Sair do painel
+        </button>
+      </div>
     </aside>
   );
 }
