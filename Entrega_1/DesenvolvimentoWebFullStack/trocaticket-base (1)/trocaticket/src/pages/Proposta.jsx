@@ -8,7 +8,6 @@ import {
   CalendarDays,
   ChevronDown,
   CircleHelp,
-  Info,
   Lightbulb,
   Search,
   Shield,

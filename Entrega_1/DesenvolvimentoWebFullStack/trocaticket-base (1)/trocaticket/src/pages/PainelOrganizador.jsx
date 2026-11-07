@@ -114,7 +114,7 @@ export default function PainelOrganizador() {
               </div>
               <Link className="button button--primary" to="/organizador/eventos/novo">
                 <Plus size={17} aria-hidden="true" />
-                Criar Evento
+                Novo Evento
               </Link>
             </div>
           </div>
