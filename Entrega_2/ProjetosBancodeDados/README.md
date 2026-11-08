@@ -34,19 +34,6 @@ O banco TROCATICKET possui dez tabelas:
 
 ### **3.1 Diagrama entidade-relacionamento**
 
-```mermaid
-erDiagram
-    USUARIOS ||--o| ORGANIZADORES : possui
-    USUARIOS ||--o| FORNECEDORES : possui
-    USUARIOS ||--o{ DOCUMENTOS : envia
-    USUARIOS ||--o{ ADMIN_AUDITORIA : realiza
-    ORGANIZADORES ||--o{ EVENTOS : organiza
-    EVENTOS ||--o{ ITENS : possui
-    EVENTOS ||--o{ CUSTOS : registra
-    EVENTOS ||--o{ PROPOSTAS : recebe
-    FORNECEDORES ||--o{ PROPOSTAS : envia
-    PROPOSTAS ||--o| SELECOES : recebe
-
     USUARIOS {
         INT ID_USUARIO PK
         VARCHAR NOME
