@@ -1,6 +1,6 @@
 import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
-import { assinarMudancas, aprovarCadastro, atualizarChecklist, listarPendentes, rejeitarCadastro } from "./adminApi.js";
+import { assinarMudancas, aprovarCadastro, atualizarChecklist, listarCotacoes, listarEventos, listarPendentes, rejeitarCadastro } from "./adminApi.js";
 import { clearToken, getToken, saveToken } from "./api.js";
 
 function storage() {
@@ -57,4 +57,33 @@ test("persiste checklist, aprovação e rejeição no backend e revalida consult
   assert.deepEqual(JSON.parse(requests[1].options.body), { observacao: "Documentos conferidos" });
   assert.deepEqual(JSON.parse(requests[2].options.body), { motivo: "Documento vencido" });
   assert.equal(changes, 3);
+});
+
+test("carrega e normaliza eventos administrativos reais", async () => {
+  saveToken("jwt-admin");
+  let requestUrl;
+  globalThis.fetch = async (url) => {
+    requestUrl = url;
+    return new Response(JSON.stringify([{
+      id: "18",
+      status: "planejamento",
+      dataInicio: "2026-09-10",
+      publico: { maximo: 500 },
+      local: { cidade: "São Paulo", uf: "SP" },
+      custos: { fornecedores: [{ valor: 1200 }], fiscais: [{ valor: 300 }] },
+    }]), { status: 200 });
+  };
+
+  const [evento] = await listarEventos();
+  assert.equal(requestUrl, "/api/admin/eventos");
+  assert.equal(evento.status, "Planejamento");
+  assert.equal(evento.previsto, 1500);
+  assert.equal(evento.realizado, null);
+  assert.equal(evento.publico, 500);
+  assert.equal(evento.cidade, "São Paulo");
+  assert.equal(evento.planejamento.length, 2);
+});
+
+test("não apresenta cotações como dados reais quando a API não oferece esse recurso", async () => {
+  await assert.rejects(listarCotacoes(), /API ainda não disponibiliza/);
 });

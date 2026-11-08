@@ -119,8 +119,8 @@ export default function RelatoriosAuditoria() {
             <div className="stat-grid">
               <StatCard label="Eventos no período" value={eventosNoPeriodo} />
               <StatCard label="Custo consolidado" value={formatarMoeda(custoConsolidado)} />
-              <StatCard label="Tempo médio de aprovação" value={`${estado.dados.kpis.tempoMedioAprovacaoDias} d`} />
-              <StatCard label="Economia em cotações" value={formatarMoeda(estado.dados.kpis.economiaCotacoes)} />
+              <StatCard label="Tempo médio de aprovação" value={estado.dados.kpis.tempoMedioAprovacaoDias == null ? "Não disponível" : `${estado.dados.kpis.tempoMedioAprovacaoDias} d`} />
+              <StatCard label="Economia em cotações" value={estado.dados.kpis.economiaCotacoes == null ? "Não disponível" : formatarMoeda(estado.dados.kpis.economiaCotacoes)} />
             </div>
 
             <div className="relatorios__linha-dupla">
@@ -199,7 +199,9 @@ export default function RelatoriosAuditoria() {
                     </tr>
                   </thead>
                   <tbody>
-                    {estado.dados.desempenhoFornecedores.map((f) => (
+                    {estado.dados.desempenhoFornecedores.length === 0 ? (
+                      <tr><td colSpan={5} className="admin-empty-cell">A API ainda não disponibiliza dados de propostas de fornecedores.</td></tr>
+                    ) : estado.dados.desempenhoFornecedores.map((f) => (
                       <tr key={f.nome}>
                         <td>
                           <strong>{f.nome}</strong>

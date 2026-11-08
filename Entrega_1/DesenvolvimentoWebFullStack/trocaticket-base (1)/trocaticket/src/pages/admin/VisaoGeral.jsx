@@ -7,7 +7,7 @@ import { Avatar, EmptyState, KpiCard, MiniBar, PageHeader, Pill, QueryBoundary, 
 import { statusTone } from "../../utils/admin/status.js";
 import { useAdminQuery } from "../../hooks/useAdminQuery.js";
 import { useExporter } from "../../hooks/useExporter.js";
-import { listarCotacoes, listarEventos, listarPendentes, obterSerie } from "../../services/adminApi.js";
+import { listarEventos, listarPendentes, obterSerie } from "../../services/adminApi.js";
 import { economia } from "../../services/adminCalculos.js";
 import { STATUS_EVENTO } from "../../services/adminSeed.js";
 import { formatBRL, formatBRLCompact, formatPct } from "../../utils/admin/format.js";
@@ -21,22 +21,24 @@ const PERIODOS = [
 
 /** Números derivados dos dados brutos (usados na tela e na exportação). */
 function calcular({ pendentes, eventos, cotacoes, serie }) {
-  const gmv = serie[serie.length - 1].gmv;
-  const gmvAnterior = serie.length > 1 ? serie[serie.length - 2].gmv : gmv;
+  const possuiGmv = serie.length > 0 && serie.every((item) => Number.isFinite(item.gmv));
+  const gmv = possuiGmv ? serie.reduce((total, item) => total + item.gmv, 0) : null;
   const ativos = eventos.filter((e) => e.status !== "Concluído" && e.status !== "Suspenso");
-  const economiaMedia = cotacoes.reduce((s, c) => s + economia(c).pct, 0) / cotacoes.length;
+  const economiaMedia = cotacoes.length
+    ? cotacoes.reduce((s, c) => s + economia(c).pct, 0) / cotacoes.length
+    : null;
   return {
     gmv,
-    variacao: ((gmv - gmvAnterior) / gmvAnterior) * 100,
+    variacao: gmv === null ? null : 0,
     ativos,
     cotacoesAbertas: cotacoes.filter((c) => c.situacao !== "Encerrada"),
     economiaMedia,
-    economiaValor: cotacoes.reduce((s, c) => s + economia(c).valor, 0),
+    economiaValor: cotacoes.length ? cotacoes.reduce((s, c) => s + economia(c).valor, 0) : null,
     resumo: [
-      { label: "Volume transacionado", value: formatBRL(gmv) },
+      { label: "Volume transacionado", value: gmv === null ? "Não disponível" : formatBRL(gmv) },
       { label: "Cadastros pendentes", value: String(pendentes.length) },
       { label: "Eventos ativos", value: String(ativos.length) },
-      { label: "Economia média", value: formatPct(economiaMedia) },
+      { label: "Economia média", value: economiaMedia === null ? "Não disponível" : formatPct(economiaMedia) },
     ],
   };
 }
@@ -45,7 +47,7 @@ export default function VisaoGeral() {
   const [periodo, setPeriodo] = useState("trimestre");
   const { pdf, csv } = useExporter();
   const query = useAdminQuery(
-    () => Promise.all([listarPendentes(), listarEventos(), listarCotacoes(), obterSerie(periodo)]).then(([pendentes, eventos, cotacoes, serie]) => ({ pendentes, eventos, cotacoes, serie })),
+    () => Promise.all([listarPendentes(), listarEventos(), obterSerie(periodo)]).then(([pendentes, eventos, serie]) => ({ pendentes, eventos, cotacoes: [], serie })),
     [periodo],
   );
 
@@ -126,15 +128,19 @@ function Conteudo({ dados }) {
       <div className="adm-grid adm-grid--kpi">
         <KpiCard
           label="Volume transacionado (GMV)"
-          value={formatBRLCompact(gmv)}
+          value={gmv === null ? "—" : formatBRLCompact(gmv)}
           icon={Banknote}
           tone="brand"
           hint={
             <span>
-              <strong className={variacao >= 0 ? "adm-text-success" : "adm-text-danger"}>
-                {variacao >= 0 ? "▲" : "▼"} {formatPct(Math.abs(variacao))}
-              </strong>{" "}
-              vs. período anterior
+              {variacao === null ? "A API não disponibiliza dados de vendas." : (
+                <>
+                  <strong className={variacao >= 0 ? "adm-text-success" : "adm-text-danger"}>
+                    {variacao >= 0 ? "▲" : "▼"} {formatPct(Math.abs(variacao))}
+                  </strong>{" "}
+                  vs. período anterior
+                </>
+              )}
             </span>
           }
         />
@@ -170,11 +176,11 @@ function Conteudo({ dados }) {
         />
         <KpiCard
           label="Economia em cotações"
-          value={formatBRLCompact(economiaValor)}
+          value={economiaValor === null ? "—" : formatBRLCompact(economiaValor)}
           icon={PiggyBank}
           tone="success"
           delay={180}
-          hint={`${cotacoesAbertas.length} cotações abertas · ${formatPct(economiaMedia)} de economia média`}
+          hint={economiaMedia === null ? "A API não disponibiliza dados de cotações." : `${cotacoesAbertas.length} cotações abertas · ${formatPct(economiaMedia)} de economia média`}
         />
       </div>
 

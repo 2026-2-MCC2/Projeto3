@@ -1,13 +1,13 @@
 import { apiRequest } from "./api.js";
 
-const STORAGE_KEY = "trocaticket:eventos";
+const STORAGE_KEY = "trocaticket:eventos:v2";
 
 const usuarioPadrao = {
-  id: "usuario-demo",
+  id: "",
   perfil: "organizador",
-  nome: "Orlando Ramos",
-  iniciais: "OR",
-  plano: "Produtor Pro",
+  nome: "",
+  iniciais: "",
+  plano: "",
   email: "",
   telefone: "",
   documento: "",
@@ -15,7 +15,7 @@ const usuarioPadrao = {
   areaAtuacao: "",
   tipoOrganizacao: "",
   anexo: null,
-  status: "aprovado",
+  status: "",
   aceiteTermosEm: "",
   criadoEm: "",
 };
@@ -263,19 +263,10 @@ function normalizarEvento(evento) {
 function criarStoreInicial() {
   return {
     usuario: usuarioPadrao,
-    usuarios: [
-      { id: "fornecedor-acustica-prime", perfil: "fornecedor", nome: "Acústica Prime Engenharia de Som", documento: "14820301000144", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: true, rating: 4.9, eventosRealizados: 42, selos: [] },
-      { id: "fornecedor-soundwave", perfil: "fornecedor", nome: "SoundWave Produções & Áudio", documento: "09341220000190", status: "aprovado", cidade: "São Paulo", uf: "SP", auditada: false, rating: 4.7, eventosRealizados: 28, selos: [] },
-      { id: "fornecedor-luz-arte", perfil: "fornecedor", nome: "Luz & Arte Cenografia Iluminação", documento: "22189540000112", status: "aprovado", cidade: "São Paulo", uf: "SP", auditada: true, rating: 4.8, eventosRealizados: 34, selos: [] },
-      { id: "fornecedor-stagepro", perfil: "fornecedor", nome: "StagePro Estruturas Metálicas", documento: "18239001000281", status: "aprovado", cidade: "Campinas", uf: "SP", auditada: true, rating: 4.9, eventosRealizados: 61, selos: ["Engenharia Certificada"] },
-      { id: "fornecedor-sentinela", perfil: "fornecedor", nome: "Sentinela Segurança Especializada", documento: "33190722000108", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: false, rating: 4.9, eventosRealizados: 53, selos: [] },
-      { id: "fornecedor-audio-sul", perfil: "fornecedor", nome: "Audio Sul Produções", documento: "41111111000120", status: "aprovado", cidade: "Porto Alegre", uf: "RS", auditada: false, rating: 4.6, eventosRealizados: 19, selos: [] },
-      { id: "fornecedor-lumen", perfil: "fornecedor", nome: "Lumen Eventos", documento: "42222222000130", status: "aprovado", cidade: "Florianópolis", uf: "SC", auditada: true, rating: 4.7, eventosRealizados: 22, selos: [] },
-      { id: "fornecedor-estrutural", perfil: "fornecedor", nome: "Estrutural Brasil", documento: "43333333000140", status: "aprovado", cidade: "Curitiba", uf: "PR", auditada: false, rating: 4.5, eventosRealizados: 15, selos: [] },
-    ],
-    eventos: eventosIniciais.map(normalizarEvento),
-    eventoAtivoId: eventosIniciais[0].id,
-    notificacoes: { fornecedores: 1, mensagens: 2 },
+    usuarios: [],
+    eventos: [],
+    eventoAtivoId: "",
+    notificacoes: { fornecedores: 0, mensagens: 0 },
   };
 }
 
@@ -293,37 +284,16 @@ function lerStore() {
       throw new TypeError("O formato armazenado de eventos é inválido.");
     }
     const inicial = criarStoreInicial();
-    const eventos = storeSalvo.eventos.map((eventoSalvo) => {
-      const evento = normalizarEvento(eventoSalvo);
-      const seed = inicial.eventos.find((item) => item.id === evento.id);
-      if (!seed || evento.propostas?.some((proposta) => proposta.itemCustoId)) return evento;
-      const idsCotacao = new Set(seed.custos.fornecedores
-        .filter((item) => item.alocacao === "cotacao")
-        .map((item) => item.id));
-      const custosExtras = evento.custos.fornecedores.filter((item) => !idsCotacao.has(item.id));
-      return {
-        ...evento,
-        tetoOrcamento: evento.tetoOrcamento ?? seed.tetoOrcamento,
-        custos: {
-          ...evento.custos,
-          fornecedores: [
-            ...seed.custos.fornecedores.filter((item) => item.alocacao === "cotacao"),
-            ...custosExtras,
-          ],
-        },
-        propostas: seed.propostas,
-      };
-    });
-    const usuarios = new Map([
-      ...inicial.usuarios.map((usuario) => [usuario.id, usuario]),
-      ...(Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : []).map((usuario) => [usuario.id, usuario]),
-    ]);
+    const idsEventosDemo = new Set(eventosIniciais.map(({ id }) => id));
+    const eventos = storeSalvo.eventos
+      .filter((eventoSalvo) => !idsEventosDemo.has(eventoSalvo.id))
+      .map(normalizarEvento);
     const carregado = {
       ...inicial,
       ...storeSalvo,
       eventos,
       usuario: { ...usuarioPadrao, ...storeSalvo.usuario },
-      usuarios: [...usuarios.values()],
+      usuarios: Array.isArray(storeSalvo.usuarios) ? storeSalvo.usuarios : [],
     };
     return carregado;
   } catch (erro) {
@@ -336,6 +306,7 @@ function lerStore() {
 
 let store = lerStore();
 const listeners = new Set();
+const atualizacoesPendentes = new Map();
 
 function notificar() {
   listeners.forEach((listener) => listener());
@@ -352,6 +323,7 @@ export function listarEventos() {
 }
 
 export async function carregarEventosRemotos() {
+  persistir({ ...store, eventos: [], eventoAtivoId: "" });
   const eventos = await apiRequest("/eventos");
   if (!Array.isArray(eventos)) throw new Error("A API retornou uma lista de eventos inválida.");
   const normalizados = eventos.map(normalizarEvento);
@@ -390,29 +362,43 @@ export function getEvento(id) {
 }
 
 export function setEvento(id, parcial) {
-  const indice = store.eventos.findIndex((evento) => evento.id === id);
-  if (indice === -1) throw new Error(`Evento "${id}" não encontrado.`);
+  const chave = String(id);
+  const anterior = atualizacoesPendentes.get(chave) ?? Promise.resolve();
+  const tarefa = anterior.catch(() => {}).then(async () => {
+    const indice = store.eventos.findIndex((evento) => evento.id === id);
+    if (indice === -1) throw new Error(`Evento "${id}" não encontrado.`);
 
-  const eventoAtualizado = Object.entries(parcial).reduce(
-    (evento, [chave, valor]) => ({
-      ...evento,
-      [chave]:
-        valor && typeof valor === "object" && !Array.isArray(valor)
-          ? { ...evento[chave], ...valor }
-          : valor,
-    }),
-    store.eventos[indice],
-  );
-  const eventos = [...store.eventos];
-  eventos[indice] = eventoAtualizado;
-  persistir({ ...store, eventos });
-  if (/^\d+$/.test(String(id))) {
-    apiRequest(`/eventos/${encodeURIComponent(id)}`, { method: "PUT", body: eventoAtualizado })
-      .catch((erro) => {
-        window.dispatchEvent(new CustomEvent("trocaticket:api-error", { detail: erro.message }));
-      });
-  }
-  return eventoAtualizado;
+    const eventoAtualizado = Object.entries(parcial).reduce(
+      (evento, [campo, valor]) => ({
+        ...evento,
+        [campo]:
+          valor && typeof valor === "object" && !Array.isArray(valor)
+            ? { ...evento[campo], ...valor }
+            : valor,
+      }),
+      store.eventos[indice],
+    );
+    if (/^\d+$/.test(chave)) {
+      await apiRequest(`/eventos/${encodeURIComponent(chave)}`, { method: "PUT", body: eventoAtualizado });
+    }
+    const eventos = [...store.eventos];
+    eventos[indice] = eventoAtualizado;
+    persistir({ ...store, eventos });
+    return eventoAtualizado;
+  });
+  let operacao;
+  operacao = tarefa.catch((erro) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("trocaticket:api-error", { detail: erro.message }));
+    } else {
+      console.error("Não foi possível salvar o evento.", erro);
+    }
+    return null;
+  }).finally(() => {
+    if (atualizacoesPendentes.get(chave) === operacao) atualizacoesPendentes.delete(chave);
+  });
+  atualizacoesPendentes.set(chave, operacao);
+  return operacao;
 }
 
 export function setEventoAtivo(id) {

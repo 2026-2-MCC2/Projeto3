@@ -10,6 +10,10 @@ Para preservar uma base existente, faça backup e aplique, nesta ordem, `migrati
 
 No desenvolvimento, o Vite encaminha `/api` para `http://localhost:3000`. Configure `VITE_API_PROXY_TARGET` no ambiente do Vite para outro endereço.
 
+## Deploy no Railway
+
+Use esta pasta como raiz do serviço backend. O arquivo `railway.json` configura a instalação, o comando de início e a verificação de saúde. Configure `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` e `DB_NAME` com referências às variáveis do serviço MySQL, além de um `JWT_SECRET` aleatório e exclusivo.
+
 ## Rotas
 | Método | Rota | Proteção | Descrição |
 |---|---|---|---|
@@ -24,12 +28,15 @@ No desenvolvimento, o Vite encaminha `/api` para `http://localhost:3000`. Config
 | PUT | /api/eventos/:id | JWT (ORGANIZADOR) | atualiza um evento próprio |
 | GET | /api/admin/aprovacoes | JWT (ADMIN) | fila de cadastros pendentes |
 | GET | /api/admin/cadastros | JWT (ADMIN) | cadastros aprovados/suspensos |
+| GET | /api/admin/eventos | JWT (ADMIN) | eventos cadastrados com dados do organizador |
 | PATCH | /api/admin/cadastros/:id/status | JWT (ADMIN) | suspende ou reativa cadastro com justificativa |
 | PUT | /api/admin/aprovacoes/:id/checklist/:itemId | JWT (ADMIN) | atualiza checagem documental |
 | POST | /api/admin/aprovacoes/:id/aprovar | JWT (ADMIN) | aprova após checklist válido |
 | POST | /api/admin/aprovacoes/:id/rejeitar | JWT (ADMIN) | rejeita e grava o motivo |
 | GET | /api/admin/aprovacoes/:id/documentos/:documentId | JWT (ADMIN) | documento enviado para análise |
 | GET | /api/admin/auditoria | JWT (ADMIN) | histórico de decisões administrativas |
+
+O backend ainda não implementa endpoints para cotações/propostas de fornecedores, mensagens, vendas de ingressos ou pagamentos. A tabela `PROPOSTAS` existente ainda não possui uma rota de leitura ou escrita integrada ao fluxo do evento.
 
 ### POST /api/auth/register
 Perfis aceitos: `ORGANIZADOR` ou `FORNECEDOR`.

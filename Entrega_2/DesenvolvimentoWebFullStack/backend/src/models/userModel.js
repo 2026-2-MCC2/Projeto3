@@ -9,6 +9,16 @@ async function findByEmail(email) {
   return rows[0] || null;
 }
 
+async function findRegistrationStatusById(id) {
+  const [rows] = await pool.query(
+    `SELECT STATUS_CADASTRO, MOTIVO_REPROVACAO
+       FROM USUARIOS
+      WHERE ID_USUARIO = ?`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 // Dados do usuário + id do organizador/fornecedor (quando existir)
 async function findById(id) {
   const [rows] = await pool.query(
@@ -85,4 +95,4 @@ async function findDocumentByUserId(id) {
   return rows[0] || null;
 }
 
-module.exports = { findByEmail, findById, create, findDocumentByUserId };
+module.exports = { findByEmail, findRegistrationStatusById, findById, create, findDocumentByUserId };

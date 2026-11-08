@@ -66,7 +66,13 @@ async function register(req, res, next) {
       documento,
     });
 
-    return res.status(201).json({ id, nome, email, perfil });
+    const statusToken = jwt.sign(
+      { purpose: 'registration_status' },
+      process.env.JWT_SECRET,
+      { subject: String(id), expiresIn: '30d' }
+    );
+
+    return res.status(201).json({ id, nome, email, perfil, statusToken });
   } catch (err) {
     // E-mail ou CNPJ duplicado (UNIQUE) numa corrida entre requisições
     if (err.code === 'ER_DUP_ENTRY') {
@@ -121,6 +127,54 @@ async function login(req, res, next) {
   }
 }
 
+async function registrationStatus(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ erro: 'Token de acompanhamento não informado.' });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+  } catch (err) {
+    if (err instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ erro: 'Token de acompanhamento inválido ou expirado.' });
+    }
+    return next(err);
+  }
+
+  if (
+    !payload
+    || payload.purpose !== 'registration_status'
+    || !/^\d+$/.test(String(payload.sub || ''))
+  ) {
+    return res.status(403).json({ erro: 'Token não autorizado para consultar o cadastro.' });
+  }
+
+  try {
+    const cadastro = await User.findRegistrationStatusById(payload.sub);
+    if (!cadastro) {
+      return res.status(404).json({ erro: 'Cadastro não encontrado.' });
+    }
+
+    const status = {
+      PENDENTE: 'em_analise',
+      APROVADO: 'aprovado',
+      REPROVADO: 'reprovado',
+    }[cadastro.STATUS_CADASTRO];
+    if (!status) {
+      return next(new Error('Status cadastral não suportado para acompanhamento.'));
+    }
+
+    return res.json({
+      status,
+      motivo: cadastro.MOTIVO_REPROVACAO || '',
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function me(req, res, next) {
   try {
     const u = await User.findById(req.user.id);
@@ -152,4 +206,4 @@ async function documentoAtual(req, res, next) {
   }
 }
 
-module.exports = { register, login, me, documentoAtual };
+module.exports = { register, login, registrationStatus, me, documentoAtual };

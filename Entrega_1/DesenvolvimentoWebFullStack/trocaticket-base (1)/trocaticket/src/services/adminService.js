@@ -1,74 +1,59 @@
-// "API" mockada do painel do administrador: os dados ficam em public/mock/*.json
-// e são lidos com fetch, com uma latência simulada para exercitar os estados de
-// carregamento. Para trocar por uma API real, basta mudar a URL e o método aqui —
-// as páginas que consomem estas funções não precisam mudar.
-const LATENCIA_MS = 700;
-
-const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function buscarJson(url) {
-  let resposta;
-  try {
-    resposta = await fetch(url);
-  } catch {
-    throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
-  }
-  if (!resposta.ok) {
-    throw new Error(`O servidor respondeu com erro (${resposta.status}). Tente novamente em instantes.`);
-  }
-  return resposta.json();
-}
-
-export async function buscarResumo() {
-  const dados = await buscarJson("/mock/resumo.json");
-  await esperar(LATENCIA_MS);
-  return dados;
-}
-
-export async function buscarAprovacoes() {
-  const dados = await buscarJson("/mock/aprovacoes.json");
-  await esperar(LATENCIA_MS);
-  return dados;
-}
-
-// Ações de auditoria ainda não têm backend: simulam a latência de uma escrita
-// real para que a UI (botões em "loading", bloqueio de duplo clique) já nasça
-// pronta para quando a API existir.
-export async function aprovarCadastro(id) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: "aprovado" };
-}
-
-export async function rejeitarCadastro(id, motivo) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: "rejeitado", motivo };
-}
+import { alterarStatusCadastro, listarAuditoria, listarCadastros, listarEventos } from "./adminApi.js";
 
 export async function buscarCadastros() {
-  const dados = await buscarJson("/mock/cadastros.json");
-  await esperar(LATENCIA_MS);
-  return dados;
+  const [cadastros, auditoria] = await Promise.all([listarCadastros(), listarAuditoria()]);
+  return {
+    cadastros: cadastros.map((cadastro) => ({ ...cadastro, situacao: cadastro.status })),
+    historico: auditoria
+      .filter((registro) => registro.entidade === "Cadastro" || registro.entidade === "Aprovação")
+      .map((registro) => ({
+        id: registro.id,
+        cadastroNome: registro.alvo,
+        descricao: [registro.acao, registro.justificativa].filter(Boolean).join(" · "),
+        autor: registro.autor,
+        data: registro.data,
+      })),
+  };
 }
 
-export async function alternarSituacaoCadastro(id, situacaoAtual) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: situacaoAtual === "Ativo" ? "Suspenso" : "Ativo" };
-}
-
-export async function buscarEventos() {
-  const dados = await buscarJson("/mock/eventos.json");
-  await esperar(LATENCIA_MS);
-  return dados;
-}
-
-export async function buscarCotacoes() {
-  const dados = await buscarJson("/mock/cotacoes.json");
-  await esperar(LATENCIA_MS);
-  return dados;
+export async function alternarSituacaoCadastro(id, _situacaoAtual, motivo) {
+  const resultado = await alterarStatusCadastro(id, motivo);
+  return { id, situacao: resultado.status };
 }
 
 export async function buscarRelatorios() {
-  const dados = await buscarJson("/mock/relatorios.json");
-  await esperar(LATENCIA_MS);
-  return dados;
+  const [eventos, auditoria] = await Promise.all([listarEventos(), listarAuditoria()]);
+  const agora = new Date();
+  const periodos = Array.from({ length: 12 }, (_, indice) => {
+    const data = new Date(agora.getFullYear(), agora.getMonth() - 11 + indice, 1);
+    return {
+      chave: `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`,
+      mes: data.toLocaleDateString("pt-BR", { month: "short" }),
+      eventos: 0,
+      custo: 0,
+    };
+  });
+  const porPeriodo = new Map(periodos.map((periodo) => [periodo.chave, periodo]));
+  const custosPorOrganizador = new Map();
+  eventos.forEach((evento) => {
+    const periodo = porPeriodo.get(String(evento.data).slice(0, 7));
+    if (periodo) {
+      periodo.eventos += 1;
+      periodo.custo += evento.previsto;
+    }
+    custosPorOrganizador.set(
+      evento.organizador,
+      (custosPorOrganizador.get(evento.organizador) ?? 0) + evento.previsto,
+    );
+  });
+  return {
+    eventosPorPeriodo: periodos,
+    custoPorOrganizador: [...custosPorOrganizador].map(([nome, valor]) => ({ nome, valor })),
+    desempenhoFornecedores: [],
+    auditoria: auditoria.map((registro) => ({
+      ...registro,
+      detalhe: [registro.alvo, registro.justificativa].filter(Boolean).join(" · "),
+    })),
+    kpis: { tempoMedioAprovacaoDias: null, economiaCotacoes: null },
+  };
 }
