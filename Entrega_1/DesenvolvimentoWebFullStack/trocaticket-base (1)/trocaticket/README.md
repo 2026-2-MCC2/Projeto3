@@ -9,13 +9,15 @@ npm install
 npm run dev
 ```
 
+Para usar o backend, inicie-o em `Entrega_2/DesenvolvimentoWebFullStack/backend` e configure `.env` com base em `.env.example` no frontend quando necessário. O Vite encaminha `/api` para `http://localhost:3000` por padrão.
+
 ## Estrutura
 
 - `src/components/` componentes reutilizáveis (Header, Footer, Layout, TextField, Button, OtpInput...)
 - `src/components/admin/` componentes exclusivos do painel administrativo (layout responsivo, sidebar, barra superior, busca global, gráficos, modais, notificações e exportação)
 - `src/pages/` uma página por rota
 - `src/pages/admin/` telas do painel do administrador (Visão Geral, Aprovações, Cadastros, Eventos, detalhe do evento, Cotações e Relatórios)
-- `src/services/` serviços do sistema e API simulada do painel administrativo
+- `src/services/` clientes da API, autenticação/eventos e integrações administrativas
 - `src/context/` e `src/hooks/` sessão do usuário (AuthProvider, useAuth)
 - `src/utils/` validadores e mapa de rotas
 - `src/styles/` tokens (cores, tipografia, espaçamento) e estilos base
@@ -26,7 +28,7 @@ npm run dev
 
 ## Painel do administrador (`/admin`)
 
-Acessível após login em `/login-admin` (conta de teste abaixo). O painel tem layout próprio, com sidebar responsiva, barra superior com busca global, notificações e tema visual isolado das áreas pública, organizador e fornecedor.
+O painel tem layout próprio, com sidebar responsiva, barra superior com busca global, notificações e tema visual isolado das áreas pública, organizador e fornecedor. Contas `ADMIN` são provisionadas diretamente no banco e autenticadas com MFA TOTP.
 
 | Rota | Tela |
 |---|---|
@@ -39,17 +41,9 @@ Acessível após login em `/login-admin` (conta de teste abaixo). O painel tem l
 
 A rota `/admin/cadastros` redireciona para `/admin/usuarios`. Rotas administrativas inexistentes exibem uma página 404 dentro do próprio painel. Os gráficos permitem alternar o formato e as telas oferecem exportação quando aplicável.
 
-**Dados do admin:** o painel usa atualmente dados demonstrativos definidos em `src/services/adminSeed.js`; as leituras e alterações simuladas passam por `src/services/adminApi.js` e ficam em memória/sessionStorage. Isso não grava em um backend real. Os documentos da tela de Aprovações também são placeholders até a integração com um serviço de arquivos. Para conectar o backend, substitua as funções de `adminApi.js` por chamadas à API mantendo os contratos usados pelas telas.
+**Integração disponível:** cadastro com aprovação, consulta de status, login, sessão, documentos enviados, eventos do organizador e autenticação administrativa com MFA usam a API real. O painel administrativo também conecta aprovações, checklist, documentos, cadastros, suspensão/reativação e auditoria. Para uma base existente, aplique as migrações do backend. Painéis de métricas/eventos/cotações, mensagens, propostas de fornecedor e algumas telas de perfil ainda usam demonstrações ou não têm API.
 
 O comando `npm test` executa os testes dos serviços e utilitários, incluindo os novos testes do painel administrativo.
-
-## Contas de teste (dados mockados)
-
-| Perfil | E-mail | Senha | MFA |
-|---|---|---|---|
-| Organizador | organizador@trocaticket.com.br | Troca@2026 | — |
-| Fornecedor | fornecedor@trocaticket.com.br | Troca@2026 | — |
-| Administrador (`/login-admin`) | gestao.auditoria@trocaticket.com.br | Admin@2026 | 123456 |
 
 ## Integrantes
 

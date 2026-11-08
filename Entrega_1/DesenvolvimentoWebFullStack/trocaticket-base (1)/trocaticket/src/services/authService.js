@@ -1,56 +1,16 @@
-import { getUsuarioPorEmail } from "./eventoStore.js";
-
-const URL_USUARIOS = "/mock/usuarios.json";
-const LATENCIA_MS = 800;
-const CHAVE_CADASTRO = "trocaticket:cadastro-pendente";
-
-const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function buscarUsuarios() {
-  let resposta;
-  try {
-    resposta = await fetch(URL_USUARIOS);
-  } catch {
-    throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
-  }
-  if (!resposta.ok) {
-    throw new Error(`O servidor respondeu com erro (${resposta.status}). Tente novamente em instantes.`);
-  }
-  return resposta.json();
-}
+import { apiRequest } from "./api.js";
 
 export async function autenticar({ email, senha, mfa, admin = false }) {
-  const usuarioLocal = getUsuarioPorEmail(email);
-  if (usuarioLocal?.status === "em_analise") {
-    sessionStorage.setItem(CHAVE_CADASTRO, JSON.stringify({
-      usuarioId: usuarioLocal.id,
-      perfil: usuarioLocal.perfil,
-      enviadoEm: usuarioLocal.criadoEm,
-    }));
-    const erro = new Error("Seu cadastro ainda está em análise.");
-    erro.code = "CADASTRO_EM_ANALISE";
-    throw erro;
-  }
-
-  const usuarios = await buscarUsuarios();
-  await esperar(LATENCIA_MS);
-
-  const usuario = usuarios.find(
-    (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.senha === senha
-  );
-  if (!usuario) throw new Error("E-mail ou senha incorretos.");
-
-  const ehAdmin = usuario.perfil === "admin";
-  if (ehAdmin && !admin) {
-    throw new Error("Este acesso é exclusivo do portal administrativo.");
-  }
-  if (admin && !ehAdmin) {
-    throw new Error("Esta conta não possui privilégio administrativo.");
-  }
-  if (admin && usuario.mfa !== mfa) {
-    throw new Error("Token MFA inválido ou expirado.");
-  }
-
-  const { id, nome, perfil } = usuario;
-  return { id, nome, email: usuario.email, perfil };
+  const resposta = await apiRequest("/auth/login", {
+    method: "POST",
+    body: { email: email.trim(), senha, ...(admin ? { admin: true, mfa } : {}) },
+  });
+  const usuario = resposta.usuario;
+  return {
+    token: resposta.token,
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    perfil: usuario.perfil.toLowerCase(),
+  };
 }

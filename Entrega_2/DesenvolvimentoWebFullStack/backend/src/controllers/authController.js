@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
+const { verifyTotp } = require('../utils/totp');
 
 const SALT_ROUNDS = 10;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -11,15 +12,15 @@ const apenasDigitos = (v) => String(v || '').replace(/\D/g, '');
 
 async function register(req, res, next) {
   try {
-    const { nome, senha, cnpj, telefone, categoria, descricao } = req.body;
+    const { nome, senha, cnpj, telefone, categoria, descricao, documento } = req.body;
     const email = String(req.body.email || '').trim().toLowerCase();
     const perfil = String(req.body.perfil || '').trim().toUpperCase();
 
     if (!nome || !email || !senha || !perfil) {
       return res.status(400).json({ erro: 'Nome, e-mail, senha e perfil são obrigatórios.' });
     }
-    if (nome.length > 50 || email.length > 50) {
-      return res.status(400).json({ erro: 'Nome e e-mail aceitam no máximo 50 caracteres.' });
+    if (nome.length > 120 || email.length > 50) {
+      return res.status(400).json({ erro: 'O nome aceita até 120 caracteres e o e-mail até 50.' });
     }
     if (!EMAIL_REGEX.test(email)) {
       return res.status(400).json({ erro: 'E-mail inválido.' });
@@ -38,6 +39,16 @@ async function register(req, res, next) {
     if (perfil === 'ORGANIZADOR' && !telefone) {
       return res.status(400).json({ erro: 'Telefone é obrigatório para organizadores.' });
     }
+    if (documento && (
+      typeof documento.nome !== 'string'
+      || typeof documento.tipo !== 'string'
+      || typeof documento.conteudo !== 'string'
+      || !['application/pdf', 'image/jpeg', 'image/png'].includes(documento.tipo)
+      || !/^[A-Za-z0-9+/]*={0,2}$/.test(documento.conteudo)
+      || Buffer.from(documento.conteudo, 'base64').length > 10 * 1024 * 1024
+    )) {
+      return res.status(400).json({ erro: 'Documento inválido. Envie PDF, JPG ou PNG com até 10 MB.' });
+    }
 
     const existente = await User.findByEmail(email);
     if (existente) {
@@ -52,6 +63,7 @@ async function register(req, res, next) {
       perfil,
       organizador: { cnpj: cnpjLimpo, telefone },
       fornecedor: { cnpj: cnpjLimpo, categoria, descricao },
+      documento,
     });
 
     return res.status(201).json({ id, nome, email, perfil });
@@ -66,7 +78,8 @@ async function register(req, res, next) {
 
 async function login(req, res, next) {
   try {
-    const { senha } = req.body;
+    const { senha, mfa } = req.body;
+    const adminRequested = req.body.admin === true;
     const email = String(req.body.email || '').trim().toLowerCase();
 
     if (!email || !senha) {
@@ -80,8 +93,16 @@ async function login(req, res, next) {
       return res.status(401).json({ erro: 'Credenciais inválidas.' });
     }
 
+    const isAdmin = String(usuario.PERFIL).toUpperCase() === 'ADMIN';
+    if (adminRequested !== isAdmin) {
+      return res.status(403).json({ erro: 'Credenciais inválidas para este tipo de acesso.' });
+    }
+    if (isAdmin && (!usuario.MFA_SECRET || !verifyTotp(usuario.MFA_SECRET, mfa))) {
+      return res.status(401).json({ erro: 'Código MFA inválido ou não configurado.' });
+    }
+
     const token = jwt.sign(
-      { id: usuario.ID_USUARIO, email: usuario.EMAIL, perfil: usuario.PERFIL },
+      { id: usuario.ID_USUARIO, email: usuario.EMAIL, perfil: String(usuario.PERFIL).toUpperCase() },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     );
@@ -119,4 +140,16 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { register, login, me };
+async function documentoAtual(req, res, next) {
+  try {
+    const documento = await User.findDocumentByUserId(req.user.id);
+    if (!documento) return res.status(404).json({ erro: 'Nenhum documento foi enviado para esta conta.' });
+    res.setHeader('Content-Type', documento.MIME_TYPE);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(documento.NOME_ARQUIVO)}"`);
+    return res.send(documento.CONTEUDO);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = { register, login, me, documentoAtual };

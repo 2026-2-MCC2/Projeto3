@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   Bell,
   CalendarDays,
@@ -18,6 +18,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.js";
 import {
   getStoreSnapshot,
+  carregarEventosRemotos,
   setEventoAtivo,
   subscribe,
 } from "../services/eventoStore.js";
@@ -97,10 +98,26 @@ export default function OrganizadorLayout() {
   );
   const paginaInicial = ["/organizador", "/eventos"].includes(location.pathname.replace(/\/+$/, ""));
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
+  const [erroApi, setErroApi] = useState("");
   const nomeUsuario = user?.nome ?? store.usuario.nome;
   const iniciaisUsuario = user?.iniciais
     ?? nomeUsuario.split(/\s+/).filter(Boolean).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase();
   const planoUsuario = user?.plano ?? store.usuario.plano;
+
+  useEffect(() => {
+    let ativo = true;
+    carregarEventosRemotos().then(() => {
+      if (ativo) setErroApi("");
+    }).catch((erro) => {
+      if (ativo) setErroApi(erro.message);
+    });
+    const aoFalhar = (evento) => setErroApi(evento.detail);
+    window.addEventListener("trocaticket:api-error", aoFalhar);
+    return () => {
+      ativo = false;
+      window.removeEventListener("trocaticket:api-error", aoFalhar);
+    };
+  }, []);
 
   function iniciarCadastro() {
     navigate("/organizador/eventos/novo");
@@ -186,6 +203,7 @@ export default function OrganizadorLayout() {
       </header>
 
       <main className="tt-main">
+        {erroApi && <p role="alert" className="tt-organizer-toast">{erroApi}</p>}
         {toast && <button type="button" className="tt-organizer-toast" role="status" onClick={() => navigate(location.pathname, { replace: true, state: null })}>{toast} <X size={14} aria-hidden="true" /></button>}
         {paginaInicial ? (
           <div className="tt-dashboard">

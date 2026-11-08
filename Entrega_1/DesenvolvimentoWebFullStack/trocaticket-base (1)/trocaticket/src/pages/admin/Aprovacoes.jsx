@@ -182,7 +182,7 @@ function Detalhe({ p, aoConcluir }) {
     setProcessando("rejeitar");
     try {
       await rejeitarCadastro(p.id, obs.trim(), autor);
-      toast.info(`${p.nome} rejeitado`, "O solicitante será notificado por e-mail com o motivo informado.");
+      toast.info(`${p.nome} rejeitado`, "O motivo foi registrado no acompanhamento do cadastro.");
       aoConcluir();
     } catch (e) {
       toast.error("Não foi possível rejeitar", e.message);

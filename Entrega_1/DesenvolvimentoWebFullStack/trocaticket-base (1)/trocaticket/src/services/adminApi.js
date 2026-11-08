@@ -1,28 +1,6 @@
 /*
- * API DO PAINEL DO ADMINISTRADOR (MOCK)
- * =====================================
- * Este é o ÚNICO arquivo que as telas /admin usam para ler e gravar dados.
- * Hoje ele simula um servidor: guarda tudo em memória (e na sessionStorage,
- * para sobreviver a um F5), com latência artificial para exercitar os estados
- * de "carregando" e "erro" das telas.
- *
- * COMO LIGAR O SERVIDOR REAL
- *   Troque o corpo de cada função por um fetch(), mantendo o nome, os
- *   parâmetros e o formato do retorno. Exemplo:
- *
- *     export async function listarEventos() {
- *       const r = await fetch("/api/admin/eventos", { headers: authHeaders() });
- *       if (!r.ok) throw new Error("Não foi possível carregar os eventos.");
- *       return r.json();
- *     }
- *
- *   As funções de ESCRITA (aprovar, rejeitar, alterar status...) devem gravar
- *   também o log de auditoria no servidor. Depois de uma escrita, chame
- *   `notificarMudanca()` para as telas abertas recarregarem sozinhas.
- *
- * DEMONSTRAR O ESTADO DE ERRO
- *   Abra qualquer tela do painel com `?simularErro=1` na URL
- *   (ex.: /admin/eventos?simularErro=1) — as leituras passam a falhar.
+ * Camada de dados do painel administrativo. Aprovações, cadastros e auditoria
+ * usam o backend; eventos, cotações e relatórios ainda consomem dados demo.
  */
 import {
   auditoriaSeed,
@@ -32,6 +10,7 @@ import {
   pendentesSeed,
   seriePorPeriodoSeed,
 } from "./adminSeed.js";
+import { apiRequest } from "./api.js";
 
 const LATENCIA_MS = 450;
 const CHAVE_SESSAO = "trocaticket:admin:db:v1";
@@ -107,11 +86,11 @@ async function ler(obter) {
 
 /* --------------------------------- LEITURAS -------------------------------- */
 
-export const listarPendentes = () => ler(() => db.pendentes);
-export const listarCadastros = () => ler(() => db.cadastros);
+export const listarPendentes = () => apiRequest("/admin/aprovacoes");
+export const listarCadastros = () => apiRequest("/admin/cadastros");
 export const listarEventos = () => ler(() => eventosSeed);
 export const listarCotacoes = () => ler(() => cotacoesSeed);
-export const listarAuditoria = () => ler(() => db.auditoria);
+export const listarAuditoria = () => apiRequest("/admin/auditoria");
 export const obterSerie = (periodo) => ler(() => seriePorPeriodoSeed[periodo] ?? []);
 
 export async function obterEvento(id) {
@@ -148,112 +127,41 @@ export async function buscarGlobal(termo) {
 
 /* --------------------------------- ESCRITAS -------------------------------- */
 
-function registrarAuditoria(entrada, autor) {
-  return {
-    ...entrada,
-    id: `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`,
-    data: new Date().toISOString(),
-    autor,
-  };
-}
-
-function exigirPendente(id) {
-  const p = db.pendentes.find((x) => x.id === id);
-  if (!p) throw new Error("Este cadastro já foi analisado por outra pessoa.");
-  return p;
-}
-
-/** Aprova o cadastro: sai da fila, entra em "cadastros" e é registrado na auditoria. */
-export async function aprovarCadastro(id, observacao, autor) {
-  await esperar(LATENCIA_MS);
-  const p = exigirPendente(id);
-  const novo = {
-    id: `c-${p.id}`,
-    nome: p.fantasia,
-    razao: p.nome,
-    cnpj: p.cnpj,
-    tipo: p.tipo,
-    categoria: p.categoria,
-    uf: p.uf,
-    cidade: p.cidade,
-    aprovadoEm: new Date().toISOString().slice(0, 10),
-    eventos: 0,
-    status: "Ativo",
-    responsavel: p.responsavel,
-    email: p.email,
-  };
-  db = {
-    pendentes: db.pendentes.filter((x) => x.id !== id),
-    cadastros: [novo, ...db.cadastros],
-    auditoria: [
-      registrarAuditoria(
-        {
-          entidade: "Aprovação",
-          acao: "Aprovado",
-          alvo: p.nome,
-          justificativa: observacao || "Documentação completa e checklist validado.",
-        },
-        autor,
-      ),
-      ...db.auditoria,
-    ],
-  };
+/** Aprova o cadastro no servidor e registra a ação na auditoria. */
+export async function aprovarCadastro(id, observacao) {
+  await apiRequest(`/admin/aprovacoes/${encodeURIComponent(id)}/aprovar`, {
+    method: "POST",
+    body: { observacao },
+  });
   notificarMudanca();
-  return p.nome;
+  return id;
 }
 
-/** Rejeita o cadastro (o motivo é enviado por e-mail ao solicitante pelo servidor). */
-export async function rejeitarCadastro(id, motivo, autor) {
-  await esperar(LATENCIA_MS);
-  const p = exigirPendente(id);
-  db = {
-    ...db,
-    pendentes: db.pendentes.filter((x) => x.id !== id),
-    auditoria: [
-      registrarAuditoria({ entidade: "Aprovação", acao: "Rejeitado", alvo: p.nome, justificativa: motivo }, autor),
-      ...db.auditoria,
-    ],
-  };
+/** Rejeita o cadastro e registra o motivo para consulta no acompanhamento. */
+export async function rejeitarCadastro(id, motivo) {
+  await apiRequest(`/admin/aprovacoes/${encodeURIComponent(id)}/rejeitar`, {
+    method: "POST",
+    body: { motivo },
+  });
   notificarMudanca();
-  return p.nome;
+  return id;
 }
 
 /** Altera a situação de uma checagem do checklist: "valido" | "verificacao" | "pendente". */
 export async function atualizarChecklist(id, itemId, status) {
-  await esperar(150);
-  db = {
-    ...db,
-    pendentes: db.pendentes.map((p) =>
-      p.id === id
-        ? { ...p, checklist: p.checklist.map((c) => (c.id === itemId ? { ...c, status } : c)) }
-        : p,
-    ),
-  };
+  await apiRequest(`/admin/aprovacoes/${encodeURIComponent(id)}/checklist/${encodeURIComponent(itemId)}`, {
+    method: "PUT",
+    body: { status },
+  });
   notificarMudanca();
 }
 
-/** Suspende (se ativo) ou reativa (se suspenso) um cadastro, com justificativa obrigatória. */
-export async function alterarStatusCadastro(cadastroId, motivo, autor) {
-  await esperar(LATENCIA_MS);
-  const c = db.cadastros.find((x) => x.id === cadastroId);
-  if (!c) throw new Error("Cadastro não encontrado.");
-  const novoStatus = c.status === "Ativo" ? "Suspenso" : "Ativo";
-  db = {
-    ...db,
-    cadastros: db.cadastros.map((x) => (x.id === cadastroId ? { ...x, status: novoStatus } : x)),
-    auditoria: [
-      registrarAuditoria(
-        {
-          entidade: "Cadastro",
-          acao: novoStatus === "Suspenso" ? "Suspensão" : "Reativação",
-          alvo: c.nome,
-          justificativa: motivo,
-        },
-        autor,
-      ),
-      ...db.auditoria,
-    ],
-  };
+/** Suspende ou reativa um cadastro no servidor, com justificativa obrigatória. */
+export async function alterarStatusCadastro(cadastroId, motivo) {
+  const resultado = await apiRequest(`/admin/cadastros/${encodeURIComponent(cadastroId)}/status`, {
+    method: "PATCH",
+    body: { motivo },
+  });
   notificarMudanca();
-  return { nome: c.nome, status: novoStatus };
+  return resultado;
 }

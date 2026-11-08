@@ -1,3 +1,5 @@
+import { apiRequest } from "./api.js";
+
 const STORAGE_KEY = "trocaticket:eventos";
 
 const usuarioPadrao = {
@@ -349,6 +351,18 @@ export function listarEventos() {
   return store.eventos;
 }
 
+export async function carregarEventosRemotos() {
+  const eventos = await apiRequest("/eventos");
+  if (!Array.isArray(eventos)) throw new Error("A API retornou uma lista de eventos inválida.");
+  const normalizados = eventos.map(normalizarEvento);
+  persistir({ ...store, eventos: normalizados, eventoAtivoId: normalizados[0]?.id ?? "" });
+  return normalizados;
+}
+
+export function substituirEventos(eventos) {
+  persistir({ ...store, eventos: eventos.map(normalizarEvento) });
+}
+
 export function getUsuario(id) {
   return store.usuarios.find((usuario) => usuario.id === id) ?? null;
 }
@@ -392,6 +406,12 @@ export function setEvento(id, parcial) {
   const eventos = [...store.eventos];
   eventos[indice] = eventoAtualizado;
   persistir({ ...store, eventos });
+  if (/^\d+$/.test(String(id))) {
+    apiRequest(`/eventos/${encodeURIComponent(id)}`, { method: "PUT", body: eventoAtualizado })
+      .catch((erro) => {
+        window.dispatchEvent(new CustomEvent("trocaticket:api-error", { detail: erro.message }));
+      });
+  }
   return eventoAtualizado;
 }
 
@@ -481,8 +501,7 @@ export function atualizarCadastroReprovado(id, dados) {
   return usuario;
 }
 
-export function criarEvento(dados = {}) {
-  const id = globalThis.crypto?.randomUUID?.() ?? `evento-${Date.now()}`;
+export async function criarEvento(dados = {}) {
   const {
     local,
     publico,
@@ -490,8 +509,7 @@ export function criarEvento(dados = {}) {
     precificacao,
     ...campos
   } = dados;
-  const evento = {
-    id,
+  const dadosEvento = {
     nome: "",
     categoria: "",
     descricao: "",
@@ -520,10 +538,12 @@ export function criarEvento(dados = {}) {
       ...precificacao,
     },
   };
+  const eventoRemoto = await apiRequest("/eventos", { method: "POST", body: dadosEvento });
+  const evento = normalizarEvento(eventoRemoto);
   const proximoStore = {
     ...store,
     eventos: [...store.eventos, evento],
-    eventoAtivoId: id,
+    eventoAtivoId: evento.id,
   };
   persistir(proximoStore);
   return evento;

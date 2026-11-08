@@ -1,41 +1,43 @@
-import { atualizarCadastroReprovado, cadastrarUsuario, getUsuario } from "./eventoStore.js";
+import { apiRequest } from "./api.js";
 
-const URL_USUARIOS = "/mock/usuarios.json";
-const LATENCIA_MS = 1000;
-
-const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Simula a validação do backend e guarda somente os dados cadastrais permitidos.
- */
 export async function enviarCadastro(dados, usuarioId = "") {
-  let resposta;
-  try {
-    resposta = await fetch(URL_USUARIOS);
-  } catch {
-    throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
+  if (usuarioId) {
+    throw new Error("A edição de cadastros reprovados ainda não está disponível na API.");
   }
-  if (!resposta.ok) {
-    throw new Error(`O servidor respondeu com erro (${resposta.status}). Tente novamente em instantes.`);
+  const documento = dados.documento.replace(/\D/g, "");
+  if (documento.length !== 14) {
+    throw new Error("A API atual aceita cadastro com CNPJ de 14 dígitos.");
   }
-  const usuarios = await resposta.json();
-  await esperar(LATENCIA_MS);
+  const anexo = dados.arquivo
+    ? {
+        nome: dados.arquivo.name,
+        tipo: dados.arquivo.type,
+        conteudo: await arquivoBase64(dados.arquivo),
+      }
+    : undefined;
+  const usuario = await apiRequest("/auth/register", {
+    method: "POST",
+    body: {
+      nome: dados.nome.trim(),
+      email: dados.email.trim(),
+      senha: dados.senha,
+      perfil: dados.perfil.toUpperCase(),
+      cnpj: documento,
+      telefone: dados.telefone.replace(/\D/g, ""),
+      categoria: dados.perfil === "fornecedor" ? dados.area : undefined,
+      descricao: "",
+      documento: anexo,
+    },
+  });
+  return { protocolo: `TT-${usuario.id}`, status: "em_analise", usuario };
+}
 
-  const usuarioAtual = usuarioId ? getUsuario(usuarioId) : null;
-  const jaExiste = usuarios.some(
-    (u) => u.email.toLowerCase() === dados.email.trim().toLowerCase()
-      && u.email.toLowerCase() !== usuarioAtual?.email?.toLowerCase(),
-  );
-  if (jaExiste) {
-    throw new Error("Este e-mail já está cadastrado.");
+async function arquivoBase64(arquivo) {
+  const bytes = new Uint8Array(await arquivo.arrayBuffer());
+  let binario = "";
+  const tamanhoBloco = 0x8000;
+  for (let inicio = 0; inicio < bytes.length; inicio += tamanhoBloco) {
+    binario += String.fromCharCode(...bytes.subarray(inicio, inicio + tamanhoBloco));
   }
-
-  const usuario = usuarioId
-    ? atualizarCadastroReprovado(usuarioId, dados)
-    : cadastrarUsuario(dados);
-  return {
-    protocolo: `TT-${Date.now().toString().slice(-8)}`,
-    status: usuario.status,
-    usuario,
-  };
+  return btoa(binario);
 }

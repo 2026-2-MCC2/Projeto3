@@ -3,9 +3,10 @@ import { useAuth } from "../hooks/useAuth.js";
 import { rotaInicial } from "../utils/rotas.js";
 
 export default function ProtectedRoute({ perfil }) {
-  const { user } = useAuth();
+  const { user, ready, authError } = useAuth();
   const location = useLocation();
 
+  if (!ready) return <p role="status">Validando sessão...</p>;
   if (!user) {
     const login = perfil === "admin" ? "/login-admin" : "/login";
     return <Navigate to={login} replace state={{ from: location.pathname }} />;
@@ -13,5 +14,10 @@ export default function ProtectedRoute({ perfil }) {
   if (user.perfil !== perfil) {
     return <Navigate to={rotaInicial[user.perfil]} replace />;
   }
-  return <Outlet />;
+  return (
+    <>
+      {authError && <p role="alert">{authError}</p>}
+      <Outlet />
+    </>
+  );
 }

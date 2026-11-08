@@ -9,7 +9,6 @@ import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Cadastro from "./pages/Cadastro.jsx";
-import CadastroEmAnalise from "./pages/CadastroEmAnalise.jsx";
 import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
@@ -20,7 +19,7 @@ import PropostasRecebidas from "./pages/PropostasRecebidas.jsx";
 import ResumoConsolidacao from "./pages/ResumoConsolidacao.jsx";
 import PrecificacaoTicket from "./pages/PrecificacaoTicket.jsx";
 import Publicar from "./pages/Publicar.jsx";
-import AnaliseCadastral from "./pages/AnaliseCadastral.jsx";
+import CadastroEmAnalise from "./pages/CadastroEmAnalise.jsx";
 import FornecedorLayout from "./pages/FornecedorLayout.jsx";
 import PainelFornecedor from "./pages/PainelFornecedor.jsx";
 import MinhasPropostas from "./pages/MinhasPropostas.jsx";
@@ -65,7 +64,10 @@ export default function App() {
         <Route path="/escolha-perfil" element={<EscolhaPerfil />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/cadastro/em-analise" element={<CadastroEmAnalise />} />
+        <Route
+          path="/cadastro/em-analise"
+          element={<CadastroEmAnalise />}
+        />
         <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
         <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
       </Route>
@@ -73,7 +75,7 @@ export default function App() {
       {/* ===== Demais páginas públicas (com Header/Footer) ===== */}
       <Route element={<Layout />}>
         {/* Análise Cadastral (pública, após cadastro) */}
-        <Route path="/cadastro/status" element={<AnaliseCadastral />} />
+        <Route path="/cadastro/status" element={<CadastroEmAnalise />} />
 
         {publicas
           .filter(([path]) => path !== "/cadastro/status") // Remove a que já tem rota
@@ -120,7 +122,7 @@ export default function App() {
           <Route path="eventos/:id/propostas" element={<PropostasRecebidas />} />
           <Route path="eventos/novo/resumo" element={<ResumoConsolidacao />} />
           <Route path="eventos/novo/publicar" element={<Publicar />} />
-          <Route path="eventos" element={<EmConstrucao titulo="Histórico de Eventos" />} />
+          <Route path="eventos" element={<Navigate to="/organizador" replace />} />
           <Route path="mensagens" element={<Mensagens perfil="organizador" />} />
           <Route path="perfil" element={<EmConstrucao titulo="Meu Perfil" />} />
           <Route path="resumo" element={<Resumo />} />
@@ -140,7 +142,7 @@ export default function App() {
         <Route path="/eventos/:id/precificacao" element={<OrganizadorLayout />}>
           <Route index element={<PrecificacaoTicket />} />
         </Route>
-        <Route path="/eventos" element={<OrganizadorLayout />} />
+        <Route path="/eventos" element={<Navigate to="/organizador" replace />} />
       </Route>
 
       {/* ===== Admin ===== */}

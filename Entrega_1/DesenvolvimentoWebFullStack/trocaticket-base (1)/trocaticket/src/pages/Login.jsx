@@ -57,10 +57,6 @@ export default function Login() {
       entrar(usuario, valores.lembrar);
       navigate(location.state?.from ?? rotaInicial[usuario.perfil], { replace: true });
     } catch (err) {
-      if (err.code === "CADASTRO_EM_ANALISE") {
-        navigate("/cadastro/em-analise", { replace: true });
-        return;
-      }
       setErroApi(err.message);
       setCarregando(false);
     }
@@ -96,6 +92,7 @@ export default function Login() {
             <h1 id="login-titulo" className="login__title">
               Acesse sua Conta
             </h1>
+            {location.state?.mensagem && <Alert>{location.state.mensagem}</Alert>}
 
             <form className="login__form" onSubmit={handleSubmit} noValidate>
               <TextField
@@ -152,11 +149,11 @@ export default function Login() {
                 <Hourglass size={15} />
               </span>
               <div className="login__status-text">
-                <strong>Cadastro em homologação?</strong>
-                <span>Acompanhe a validação do seu CNPJ ou dados</span>
+                <strong>Já criou sua conta?</strong>
+                <span>Acesse com seu e-mail e senha cadastrados</span>
               </div>
-              <Link to="/cadastro/em-analise" className="login__status-link">
-                Consultar
+              <Link to="/cadastro" className="login__status-link">
+                Criar conta
               </Link>
             </div>
 

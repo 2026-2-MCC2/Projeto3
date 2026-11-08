@@ -21,8 +21,8 @@ export default function DocumentoCard({ doc }) {
     try {
       const ok = await baixarDocumento(doc);
       if (!ok) toast.info("Download indisponível no modo demonstração", "Quando o servidor de arquivos estiver conectado, o arquivo será baixado aqui.");
-    } catch {
-      toast.error("Não foi possível baixar o documento", "Tente novamente em instantes.");
+    } catch (error) {
+      toast.error("Não foi possível baixar o documento", error.message);
     }
   }
 

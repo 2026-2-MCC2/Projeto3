@@ -1,36 +1,21 @@
-/*
- * DOCUMENTOS SUBMETIDOS (PLACEHOLDER)
- * ===================================
- * Na tela de Aprovações, cada cadastro tem uma lista de documentos
- * (contrato social, CND, comprovante de endereço...). Como ainda não existe
- * servidor de arquivos, estes documentos são APENAS PLACEHOLDERS: a tela
- * mostra nome, tamanho e uma pré-visualização de exemplo.
- *
- * Formato de cada documento (vem em `pendente.documentos`):
- *   { id: string, nome: string, tamanho: string, info: string, url: string | null }
- *
- * COMO LIGAR AO SERVIDOR
- *   1. Faça a API devolver `url` em cada documento (ex.: URL assinada do
- *      armazenamento) — a pré-visualização passa a exibir o PDF de verdade
- *      num <iframe> e o botão "Baixar" faz o download real. Nada mais precisa mudar.
- *   2. Se preferir buscar a URL só quando o admin clicar, implemente
- *      `obterUrlDocumento` abaixo com um fetch() ao servidor.
- */
+import { apiRequest } from "./api.js";
 
-const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** true enquanto não existe servidor de arquivos. Pode ser removido na integração. */
-export const MODO_PLACEHOLDER = true;
+const urls = new Map();
+export const MODO_PLACEHOLDER = false;
 
 /**
- * Devolve a URL do arquivo ou null quando o documento ainda é placeholder.
- * TODO(servidor): substituir por algo como
- *   const r = await fetch(`/api/admin/documentos/${doc.id}/url`);
- *   return (await r.json()).url;
+ * Busca o arquivo do servidor com o token administrativo e cria uma URL local
+ * para pré-visualização e download.
  */
 export async function obterUrlDocumento(doc) {
-  await esperar(250);
-  return doc.url ?? null;
+  if (urls.has(doc.id)) return urls.get(doc.id);
+  const documento = await apiRequest(
+    `/admin/aprovacoes/${encodeURIComponent(doc.usuarioId)}/documentos/${encodeURIComponent(doc.id)}`,
+  );
+  const bytes = Uint8Array.from(atob(documento.conteudo), (character) => character.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: documento.tipo }));
+  urls.set(doc.id, url);
+  return url;
 }
 
 /**

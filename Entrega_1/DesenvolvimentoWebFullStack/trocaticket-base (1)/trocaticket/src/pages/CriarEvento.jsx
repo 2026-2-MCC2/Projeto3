@@ -255,14 +255,14 @@ function FormularioEvento({ eventoId }) {
     };
   }
 
-  function salvarEvento(status) {
+  async function salvarEvento(status) {
     const dados = valorEvento(formulario, status);
     let id = idSalvo;
     if (id) {
       setEvento(id, dados);
       setEventoAtivo(id);
     } else {
-      const novoEvento = criarEvento(dados);
+      const novoEvento = await criarEvento(dados);
       id = novoEvento.id;
       setIdSalvo(id);
     }
@@ -271,18 +271,22 @@ function FormularioEvento({ eventoId }) {
     return id;
   }
 
-  function salvarRascunho() {
+  async function salvarRascunho() {
     if (!formulario.nome.trim()) {
       setEnviado(false);
       setTocados((atual) => ({ ...atual, nome: true }));
       refs.current.nome?.focus();
       return;
     }
-    salvarEvento("rascunho");
-    setToast("Rascunho salvo");
+    try {
+      await salvarEvento("rascunho");
+      setToast("Rascunho salvo");
+    } catch (erro) {
+      setToast(erro.message);
+    }
   }
 
-  function avancar() {
+  async function avancar() {
     setEnviado(true);
     const primeiroCampoInvalido = [
       "nome",
@@ -299,8 +303,12 @@ function FormularioEvento({ eventoId }) {
       refs.current[primeiroCampoInvalido]?.focus({ preventScroll: true });
       return;
     }
-    const id = salvarEvento("planejamento");
-    navigate(`/organizador/eventos/${id}/custos`);
+    try {
+      const id = await salvarEvento("planejamento");
+      navigate(`/organizador/eventos/${id}/custos`);
+    } catch (erro) {
+      setToast(erro.message);
+    }
   }
 
   function cancelar() {

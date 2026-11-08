@@ -71,6 +71,12 @@ export function validarDocumento(valor) {
   return "";
 }
 
+export function validarCnpjCadastro(valor) {
+  const erro = validarDocumento(valor);
+  if (erro) return erro;
+  return valor.replace(/\D/g, "").length === 14 ? "" : "Informe um CNPJ com 14 dígitos.";
+}
+
 export function validarArea(valor) {
   if (!valor) return "Selecione sua área de atuação principal.";
   return "";

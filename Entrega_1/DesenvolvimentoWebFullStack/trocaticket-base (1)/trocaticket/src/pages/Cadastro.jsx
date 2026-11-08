@@ -24,7 +24,7 @@ import { mascararDocumento, mascararTelefone } from "../utils/masks.js";
 import {
   forcaSenha,
   validarArquivo,
-  validarDocumento,
+  validarCnpjCadastro,
   validarEmail,
   validarNome,
   validarSenha,
@@ -64,7 +64,7 @@ const VALIDADORES = {
   nome: validarNome,
   email: validarEmail,
   telefone: validarTelefone,
-  documento: validarDocumento,
+  documento: validarCnpjCadastro,
   area: validarArea,
   senha: validarSenha,
   arquivo: validarArquivo,
@@ -183,17 +183,17 @@ export default function Cadastro({ perfilInicial }) {
     setCarregando(true);
     try {
       const resultado = await enviarCadastro(valores, location.state?.cadastroId);
-      setValores((atuais) => ({ ...atuais, senha: "" }));
       sessionStorage.setItem("trocaticket:cadastro-pendente", JSON.stringify({
-        usuarioId: resultado.usuario.id,
-        perfil: resultado.usuario.perfil,
-        enviadoEm: new Date().toISOString(),
+        usuarioId: String(resultado.usuario.id),
+        perfil: valores.perfil,
+        statusToken: resultado.usuario.statusToken,
       }));
+      setValores((atuais) => ({ ...atuais, senha: "" }));
       navigate("/cadastro/em-analise", { replace: true });
     } catch (erro) {
-      if (erro.message.includes("e-mail")) {
+      if (erro.message.toLowerCase().includes("e-mail")) {
         setErros((atuais) => ({ ...atuais, email: erro.message }));
-      } else if (erro.message.includes("CPF ou CNPJ")) {
+      } else if (erro.message.includes("CNPJ")) {
         setErros((atuais) => ({ ...atuais, documento: erro.message }));
       }
       setErroApi(erro.message);
@@ -240,7 +240,7 @@ export default function Cadastro({ perfilInicial }) {
             <header className="cadastro__header">
               <h1 id={id("titulo")}>Cadastro</h1>
               <p>
-                Preencha seus dados para solicitar acesso à plataforma. Seu cadastro passará por análise cadastral prévia.
+                Preencha seus dados para criar sua conta e acessar a plataforma.
               </p>
             </header>
 
@@ -342,7 +342,7 @@ export default function Cadastro({ perfilInicial }) {
 
               <div className="cadastro__row">
                 <div className="cadastro__field">
-                  <label htmlFor={id("documento")}>CPF ou CNPJ</label>
+                  <label htmlFor={id("documento")}>CNPJ</label>
                   <div className={`cadastro__control${erros.documento ? " is-invalid" : ""}`}>
                     <Fingerprint size={18} aria-hidden="true" />
                     <input
@@ -514,7 +514,7 @@ export default function Cadastro({ perfilInicial }) {
                   <span>
                     Li e concordo com os{" "}
                     <a href="/termos" target="_blank" rel="noreferrer">Termos de Serviço</a>, a{" "}
-                    <a href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a> e o processo de homologação cadastral.
+                    <a href="/privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a> e o armazenamento dos dados enviados.
                   </span>
                 </label>
                 {erros.termos && <p id={id("termos-erro")} className="cadastro__field-error">{erros.termos}</p>}

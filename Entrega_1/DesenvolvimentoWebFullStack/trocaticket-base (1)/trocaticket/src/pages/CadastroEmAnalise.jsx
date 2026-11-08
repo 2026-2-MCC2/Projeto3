@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowRight,
@@ -10,12 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { PRAZO_ANALISE } from "../services/config.js";
-import { getUsuario } from "../services/eventoStore.js";
-import {
-  consultarStatusCadastro,
-  obterLimiteReenvios,
-  reenviarConfirmacao,
-} from "../services/statusCadastroService.js";
+import { consultarStatusCadastro } from "../services/statusCadastroService.js";
 import "./CadastroEmAnalise.css";
 
 const CHAVE_CADASTRO = "trocaticket:cadastro-pendente";
@@ -23,7 +18,7 @@ const ESTADOS_VALIDOS = ["em_analise", "aprovado", "reprovado"];
 
 function lerCadastroPendente() {
   const cadastro = JSON.parse(sessionStorage.getItem(CHAVE_CADASTRO) ?? "null");
-  if (!cadastro || !cadastro.usuarioId || !["organizador", "fornecedor"].includes(cadastro.perfil)) {
+  if (!cadastro || !cadastro.usuarioId || !cadastro.statusToken || !["organizador", "fornecedor"].includes(cadastro.perfil)) {
     return null;
   }
   return cadastro;
@@ -32,25 +27,9 @@ function lerCadastroPendente() {
 function lerEstadoInicial() {
   try {
     const cadastro = lerCadastroPendente();
-    const limite = cadastro
-      ? obterLimiteReenvios(cadastro.usuarioId)
-      : { restante: 3, cooldownAte: 0 };
-    const segundos = Math.max(0, Math.ceil((limite.cooldownAte - Date.now()) / 1000));
-    return {
-      cadastro,
-      erro: "",
-      cooldownAte: segundos ? limite.cooldownAte : 0,
-      segundos,
-      restante: limite.restante,
-    };
+    return { cadastro, erro: "" };
   } catch {
-    return {
-      cadastro: null,
-      erro: "Não foi possível ler os dados de acompanhamento do cadastro.",
-      cooldownAte: 0,
-      segundos: 0,
-      restante: 3,
-    };
+    return { cadastro: null, erro: "Não foi possível ler os dados de acompanhamento do cadastro." };
   }
 }
 
@@ -100,7 +79,6 @@ function Etapas({ status }) {
 }
 
 export default function CadastroEmAnalise() {
-  const navigate = useNavigate();
   const tituloRef = useRef(null);
   const statusRef = useRef("");
   const [inicial] = useState(lerEstadoInicial);
@@ -108,12 +86,8 @@ export default function CadastroEmAnalise() {
   const [status, setStatus] = useState("");
   const [motivo, setMotivo] = useState("");
   const [carregandoStatus, setCarregandoStatus] = useState(Boolean(cadastro));
-  const [reenviando, setReenviando] = useState(false);
   const [toast, setToast] = useState("");
   const [erroStatus, setErroStatus] = useState(inicial.erro);
-  const [cooldownAte, setCooldownAte] = useState(inicial.cooldownAte);
-  const [segundosRestantes, setSegundosRestantes] = useState(inicial.segundos);
-  const [reenviarDisponivel, setReenviarDisponivel] = useState(inicial.restante);
 
   useEffect(() => {
     tituloRef.current?.focus();
@@ -162,22 +136,6 @@ export default function CadastroEmAnalise() {
     };
   }, [cadastro, atualizarStatus]);
 
-  useEffect(() => {
-    if (!cooldownAte) {
-      return undefined;
-    }
-    const atualizarContagem = () => {
-      const restante = Math.max(0, Math.ceil((cooldownAte - Date.now()) / 1000));
-      setSegundosRestantes(restante);
-      if (!restante) {
-        setCooldownAte(0);
-        setReenviarDisponivel(obterLimiteReenvios(cadastro.usuarioId).restante);
-      }
-    };
-    const intervalo = window.setInterval(atualizarContagem, 1000);
-    return () => window.clearInterval(intervalo);
-  }, [cadastro, cooldownAte]);
-
   if (!cadastro && !erroStatus) {
     return <Navigate to="/escolha-perfil" replace />;
   }
@@ -190,50 +148,8 @@ export default function CadastroEmAnalise() {
     );
   }
 
-  async function reenviarEmail() {
-    setReenviando(true);
-    setToast("");
-    try {
-      await reenviarConfirmacao(cadastro.usuarioId);
-      const limite = obterLimiteReenvios(cadastro.usuarioId);
-      setReenviarDisponivel(limite.restante);
-      setCooldownAte(limite.cooldownAte);
-      setSegundosRestantes(Math.max(0, Math.ceil((limite.cooldownAte - Date.now()) / 1000)));
-      setToast("E-mail reenviado");
-    } catch (erro) {
-      setToast(erro.message === "Limite de reenvios atingido. Tente novamente mais tarde."
-        ? erro.message
-        : "Não foi possível reenviar. Tente novamente.");
-      console.error("Falha ao reenviar o e-mail de confirmação.", erro);
-    } finally {
-      setReenviando(false);
-    }
-  }
-
-  function corrigirCadastro() {
-    const usuario = getUsuario(cadastro.usuarioId);
-    if (!usuario) {
-      setToast("Não foi possível recuperar os dados do cadastro. Fale com a equipe de suporte.");
-      return;
-    }
-    navigate("/cadastro", {
-      state: {
-        cadastroId: usuario.id,
-        perfil: usuario.perfil,
-        dadosCadastro: {
-          nome: usuario.nome,
-          email: usuario.email,
-          telefone: usuario.telefone,
-          area: usuario.areaAtuacao || usuario.tipoOrganizacao,
-        },
-      },
-    });
-  }
-
   const aprovado = status === "aprovado";
   const reprovado = status === "reprovado";
-  const limiteAtingido = reenviarDisponivel <= 0;
-  const reenvioDesabilitado = reenviando || segundosRestantes > 0 || limiteAtingido;
   const titulo = aprovado
     ? "Cadastro Aprovado"
     : reprovado
@@ -262,8 +178,8 @@ export default function CadastroEmAnalise() {
             {aprovado
               ? "Seu acesso foi liberado. Entre com seu e-mail e senha para começar."
               : reprovado
-                ? "Não foi possível aprovar seu cadastro com os documentos enviados. Consulte o motivo e corrija os dados para uma nova análise."
-                : "Seu cadastro está sendo analisado. Você receberá a notificação de validação cadastral por e-mail após a análise documental."}
+                  ? "Não foi possível aprovar seu cadastro com os documentos enviados. Consulte o motivo e fale com o suporte para orientações."
+                  : "Seu cadastro está sendo analisado. Acompanhe o status nesta página; notificações por e-mail ainda não estão disponíveis."}
           </p>
 
           {status === "em_analise" && (
@@ -283,35 +199,12 @@ export default function CadastroEmAnalise() {
 
           <div className="cadastro-analise__actions">
             {reprovado ? (
-              <>
-                <button className="cadastro-analise__primary" type="button" onClick={corrigirCadastro}>
-                  Corrigir dados e reenviar <ArrowRight size={16} aria-hidden="true" />
-                </button>
-                <Link className="cadastro-analise__secondary" to="/suporte">Falar com o suporte</Link>
-              </>
+              <Link className="cadastro-analise__primary" to="/suporte">Falar com o suporte</Link>
             ) : (
-              <>
-                <Link className="cadastro-analise__primary" to="/login">
-                  {aprovado ? "Acessar a plataforma" : "Fazer Login"}
-                  <ArrowRight size={16} aria-hidden="true" />
-                </Link>
-                {!aprovado && (
-                  <button
-                    className="cadastro-analise__secondary"
-                    type="button"
-                    onClick={reenviarEmail}
-                    disabled={reenvioDesabilitado}
-                  >
-                    {reenviando
-                      ? <><LoaderCircle size={16} aria-hidden="true" /> Enviando…</>
-                      : limiteAtingido
-                        ? "Limite de reenvios atingido. Tente novamente mais tarde."
-                        : segundosRestantes
-                          ? `Reenviar em ${segundosRestantes}s`
-                          : "Reenviar E-mail"}
-                  </button>
-                )}
-              </>
+              <Link className="cadastro-analise__primary" to={aprovado ? "/login" : "/escolha-perfil"}>
+                {aprovado ? "Acessar a plataforma" : "Voltar ao início"}
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             )}
           </div>
 

@@ -1,71 +1,60 @@
-import { test } from "node:test";
+import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
-import { aprovarCadastro, alterarStatusCadastro, atualizarChecklist, buscarGlobal, listarAuditoria, listarCadastros, listarPendentes, obterEvento, rejeitarCadastro, restaurarDadosDemo } from "./adminApi.js";
+import { assinarMudancas, aprovarCadastro, atualizarChecklist, listarPendentes, rejeitarCadastro } from "./adminApi.js";
+import { clearToken, getToken, saveToken } from "./api.js";
 
-test("aprovar tira da fila, cria o cadastro ativo e registra a auditoria", async () => {
-  restaurarDadosDemo();
-  const antes = await listarPendentes();
-  const alvo = antes[0];
-  await aprovarCadastro(alvo.id, "Tudo certo", "Tester");
+function storage() {
+  const values = new Map();
+  return {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, String(value)),
+    removeItem: (key) => values.delete(key),
+  };
+}
 
-  const depois = await listarPendentes();
-  assert.equal(depois.length, antes.length - 1);
-  assert.ok(!depois.some((p) => p.id === alvo.id));
+globalThis.localStorage = storage();
+globalThis.sessionStorage = storage();
+const fetchOriginal = globalThis.fetch;
 
-  const cadastros = await listarCadastros();
-  const novo = cadastros.find((c) => c.razao === alvo.nome);
-  assert.equal(novo.status, "Ativo");
-
-  const log = await listarAuditoria();
-  assert.equal(log[0].acao, "Aprovado");
-  assert.equal(log[0].autor, "Tester");
+afterEach(() => {
+  globalThis.fetch = fetchOriginal;
+  clearToken();
 });
 
-test("rejeitar grava o motivo na auditoria e não cria cadastro", async () => {
-  restaurarDadosDemo();
-  const [alvo] = await listarPendentes();
-  const totalCadastros = (await listarCadastros()).length;
-  await rejeitarCadastro(alvo.id, "Certidão vencida", "Tester");
-  assert.equal((await listarCadastros()).length, totalCadastros);
-  const log = await listarAuditoria();
-  assert.equal(log[0].acao, "Rejeitado");
-  assert.equal(log[0].justificativa, "Certidão vencida");
+test("lê a fila de aprovações protegida pelo token administrativo", async () => {
+  saveToken("jwt-admin");
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url, options };
+    return new Response(JSON.stringify([]), { status: 200 });
+  };
+
+  assert.deepEqual(await listarPendentes(), []);
+  assert.equal(request.url, "/api/admin/aprovacoes");
+  assert.equal(request.options.headers.Authorization, `Bearer ${getToken()}`);
 });
 
-test("analisar o mesmo cadastro duas vezes falha com mensagem clara", async () => {
-  restaurarDadosDemo();
-  const [alvo] = await listarPendentes();
-  await rejeitarCadastro(alvo.id, "Motivo qualquer", "Tester");
-  await assert.rejects(() => aprovarCadastro(alvo.id, "", "Tester"), /já foi analisado/);
-});
+test("persiste checklist, aprovação e rejeição no backend e revalida consultas", async () => {
+  const requests = [];
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, options });
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+  let changes = 0;
+  const unsubscribe = assinarMudancas(() => { changes += 1; });
 
-test("suspender e reativar alternam o status e auditam", async () => {
-  restaurarDadosDemo();
-  const ativo = (await listarCadastros()).find((c) => c.status === "Ativo");
-  const r1 = await alterarStatusCadastro(ativo.id, "Pendência documental", "Tester");
-  assert.equal(r1.status, "Suspenso");
-  const r2 = await alterarStatusCadastro(ativo.id, "Regularizado", "Tester");
-  assert.equal(r2.status, "Ativo");
-  const log = await listarAuditoria();
-  assert.deepEqual(log.slice(0, 2).map((l) => l.acao), ["Reativação", "Suspensão"]);
-});
+  await atualizarChecklist("12", "cnd", "valido");
+  await aprovarCadastro("12", "Documentos conferidos");
+  await rejeitarCadastro("13", "Documento vencido");
+  unsubscribe();
 
-test("checklist é atualizado no cadastro pendente", async () => {
-  restaurarDadosDemo();
-  const [alvo] = await listarPendentes();
-  const item = alvo.checklist.find((c) => c.status !== "valido");
-  await atualizarChecklist(alvo.id, item.id, "valido");
-  const [depois] = await listarPendentes();
-  assert.equal(depois.checklist.find((c) => c.id === item.id).status, "valido");
-});
-
-test("obterEvento sinaliza 'não encontrado'", async () => {
-  await assert.rejects(() => obterEvento("nao-existe"), (e) => e.naoEncontrado === true);
-  assert.equal((await obterEvento("festival-litoral-2026")).nome, "Festival Litoral 2026");
-});
-
-test("busca global exige 2+ letras e encontra eventos e cadastros", async () => {
-  assert.deepEqual(await buscarGlobal("a"), []);
-  const achados = await buscarGlobal("litoral");
-  assert.ok(achados.some((r) => r.tipo === "Evento" && r.rota === "/admin/eventos/festival-litoral-2026"));
+  assert.deepEqual(requests.map(({ url, options }) => [url, options.method]), [
+    ["/api/admin/aprovacoes/12/checklist/cnd", "PUT"],
+    ["/api/admin/aprovacoes/12/aprovar", "POST"],
+    ["/api/admin/aprovacoes/13/rejeitar", "POST"],
+  ]);
+  assert.deepEqual(JSON.parse(requests[0].options.body), { status: "valido" });
+  assert.deepEqual(JSON.parse(requests[1].options.body), { observacao: "Documentos conferidos" });
+  assert.deepEqual(JSON.parse(requests[2].options.body), { motivo: "Documento vencido" });
+  assert.equal(changes, 3);
 });
