@@ -71,10 +71,7 @@ Raiz/
 ├── README.md
 │
 ├── .gitignore
-│
-└── Src/
-    ├── Entrega 1/
-    └── Entrega 2/
+
 ```
 A pasta raiz contem dois arquivos que devem ser alterados:
 
