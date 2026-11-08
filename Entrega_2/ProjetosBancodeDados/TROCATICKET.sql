@@ -1,7 +1,3 @@
--- Script SQL do banco TROCATICKET
--- Compatível com MySQL 5.7+ / MySQL 8.0.
--- ATENÇÃO: DROP DATABASE apaga o banco TROCATICKET existente e todos os seus dados.
-
 DROP DATABASE IF EXISTS TROCATICKET;
 CREATE DATABASE TROCATICKET;
 USE TROCATICKET;
