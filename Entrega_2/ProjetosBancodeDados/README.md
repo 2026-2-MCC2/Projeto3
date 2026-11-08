@@ -1,12 +1,12 @@
-# **Banco de Dados — TrocaTicket**
+# Banco de Dados — TrocaTicket
 
-## **1. Introdução**
+## 1. Introdução
 
 O banco de dados do TrocaTicket foi desenvolvido em MySQL para armazenar e relacionar as informações necessárias ao funcionamento da plataforma. A estrutura contempla usuários, organizadores, fornecedores, documentos, auditoria administrativa, eventos, itens, custos, propostas comerciais e seleções de propostas.
 
 A modelagem utiliza chaves primárias (PK), chaves estrangeiras (FK), restrições de unicidade e validações de integridade para organizar os dados e reduzir inconsistências.
 
-## **2. Tecnologias e recursos**
+## 2. Tecnologias e recursos
 
 - **SGBD:** MySQL 8.0.16 ou superior.
 - **Ferramenta de gerenciamento:** MySQL Workbench.
@@ -15,121 +15,26 @@ A modelagem utiliza chaves primárias (PK), chaves estrangeiras (FK), restriçõ
 - **Armazenamento de arquivos:** LONGBLOB.
 - **Valores monetários:** DECIMAL(12,2).
 
-As restrições CHECK são efetivamente aplicadas a partir do MySQL 8.0.16.
+As restrições `CHECK` são efetivamente aplicadas a partir do MySQL 8.0.16.
 
-## **3. Estrutura do banco de dados**
+## 3. Estrutura do banco de dados
 
-O banco TROCATICKET possui dez tabelas:
+O banco `TROCATICKET` possui dez tabelas:
 
-1. USUARIOS
-2. ORGANIZADORES
-3. FORNECEDORES
-4. DOCUMENTOS
-5. ADMIN_AUDITORIA
-6. EVENTOS
-7. ITENS
-8. CUSTOS
-9. PROPOSTAS
-10. SELECOES
+1. `USUARIOS`
+2. `ORGANIZADORES`
+3. `FORNECEDORES`
+4. `DOCUMENTOS`
+5. `ADMIN_AUDITORIA`
+6. `EVENTOS`
+7. `ITENS`
+8. `CUSTOS`
+9. `PROPOSTAS`
+10. `SELECOES`
 
-### **3.1 Diagrama entidade-relacionamento**
 
-    USUARIOS {
-        INT ID_USUARIO PK
-        VARCHAR NOME
-        VARCHAR EMAIL UK
-        VARCHAR SENHA
-        VARCHAR PERFIL
-        VARCHAR MFA_SECRET
-        VARCHAR STATUS_CADASTRO
-        TEXT MOTIVO_REPROVACAO
-        JSON CHECKLIST_JSON
-        DATETIME APROVADO_EM
-        TIMESTAMP CRIADO_EM
-    }
 
-    ORGANIZADORES {
-        INT ID_ORGANIZADOR PK
-        INT ID_USUARIO FK_UK
-        VARCHAR CNPJ UK
-        VARCHAR TELEFONE
-    }
-
-    FORNECEDORES {
-        INT ID_FORNECEDOR PK
-        INT ID_USUARIO FK_UK
-        VARCHAR CNPJ UK
-        VARCHAR CATEGORIA
-        TEXT DESCRICAO
-    }
-
-    DOCUMENTOS {
-        INT ID_DOCUMENTO PK
-        INT ID_USUARIO FK
-        VARCHAR NOME_ARQUIVO
-        VARCHAR MIME_TYPE
-        LONGBLOB CONTEUDO
-        TIMESTAMP CRIADO_EM
-    }
-
-    ADMIN_AUDITORIA {
-        INT ID_AUDITORIA PK
-        INT ID_ADMIN FK
-        VARCHAR ENTIDADE
-        VARCHAR ACAO
-        VARCHAR ALVO
-        TEXT JUSTIFICATIVA
-        TIMESTAMP CRIADO_EM
-    }
-
-    EVENTOS {
-        INT ID_EVENTO PK
-        INT ID_ORGANIZADOR FK
-        VARCHAR NOME
-        VARCHAR LOCALIZACAO
-        DATETIME DATA_INICIO
-        DATETIME DATA_FINAL
-        INT PUBLICO_MINIMO
-        INT PUBLICO_MAXIMO
-        DECIMAL MARGEM_LUCRO
-        VARCHAR STATUS
-        JSON DADOS_JSON
-    }
-
-    ITENS {
-        INT ID_ITEM PK
-        INT ID_EVENTO FK
-        VARCHAR NOME
-        VARCHAR CATEGORIA
-        INT QUANTIDADE
-    }
-
-    CUSTOS {
-        INT ID_CUSTO PK
-        INT ID_EVENTO FK
-        VARCHAR DESCRICAO
-        VARCHAR CATEGORIA
-        DECIMAL VALOR
-    }
-
-    PROPOSTAS {
-        INT ID_PROPOSTA PK
-        INT ID_FORNECEDOR FK
-        INT ID_EVENTO FK
-        DECIMAL VALOR
-        TEXT DESCRICAO
-        DATE VALIDADE
-        VARCHAR SITUACAO
-    }
-
-    SELECOES {
-        INT ID_SELECAO PK
-        INT ID_PROPOSTA FK_UK
-        DATETIME DATA_SELECAO
-    }
-```
-
-### **3.2 Cardinalidades**
+### 3.1 Cardinalidades
 
 | Relacionamento | Cardinalidade | Regra representada |
 |---|---|---|
@@ -144,11 +49,11 @@ O banco TROCATICKET possui dez tabelas:
 | FORNECEDORES — PROPOSTAS | 1 : N | Um fornecedor pode enviar várias propostas. |
 | PROPOSTAS — SELECOES | 1 : 0..1 | Uma proposta pode não ter sido selecionada ou possuir um registro de seleção. |
 
-As cardinalidades 1 : 0..1 são implementadas com chave estrangeira NOT NULL e restrição UNIQUE na tabela dependente. As cardinalidades 1 : N são implementadas por meio de chaves estrangeiras na tabela do lado N.
+As cardinalidades `1 : 0..1` são implementadas com chave estrangeira `NOT NULL` e restrição `UNIQUE` na tabela dependente. As cardinalidades `1 : N` são implementadas por meio de chaves estrangeiras na tabela do lado N.
 
-## **4. Dicionário de dados**
+## 4. Dicionário de dados
 
-### **4.1 USUARIOS**
+### 4.1 USUARIOS
 
 Armazena os dados de identificação, autenticação e situação cadastral dos usuários da plataforma.
 
@@ -166,7 +71,7 @@ Armazena os dados de identificação, autenticação e situação cadastral dos 
 | APROVADO_EM | DATETIME | NULL; data e hora da aprovação. |
 | CRIADO_EM | TIMESTAMP | NOT NULL; padrão CURRENT_TIMESTAMP. |
 
-### **4.2 ORGANIZADORES**
+### 4.2 ORGANIZADORES
 
 Armazena os dados empresariais e de contato dos organizadores. `ID_USUARIO` é FK e UNIQUE, garantindo no máximo um cadastro de organizador por usuário.
 
@@ -177,7 +82,7 @@ Armazena os dados empresariais e de contato dos organizadores. `ID_USUARIO` é F
 | CNPJ | VARCHAR(18) | NOT NULL, UNIQUE. |
 | TELEFONE | VARCHAR(20) | NOT NULL. |
 
-### **4.3 FORNECEDORES**
+### 4.3 FORNECEDORES
 
 Armazena os dados cadastrais e a categoria de atuação dos fornecedores. `ID_USUARIO` é FK e UNIQUE, garantindo no máximo um cadastro de fornecedor por usuário.
 
@@ -189,7 +94,7 @@ Armazena os dados cadastrais e a categoria de atuação dos fornecedores. `ID_US
 | CATEGORIA | VARCHAR(50) | NULL; categoria de atuação. |
 | DESCRICAO | TEXT | NULL; descrição dos serviços ou produtos. |
 
-### **4.4 DOCUMENTOS**
+### 4.4 DOCUMENTOS
 
 Armazena arquivos enviados pelos usuários e seus metadados.
 
@@ -202,7 +107,7 @@ Armazena arquivos enviados pelos usuários e seus metadados.
 | CONTEUDO | LONGBLOB | NOT NULL; conteúdo binário. |
 | CRIADO_EM | TIMESTAMP | Padrão CURRENT_TIMESTAMP. |
 
-### **4.5 ADMIN_AUDITORIA**
+### 4.5 ADMIN_AUDITORIA
 
 Registra ações administrativas para fins de rastreabilidade.
 
@@ -218,7 +123,7 @@ Registra ações administrativas para fins de rastreabilidade.
 
 A FK garante que o administrador registrado exista como usuário. A aplicação também deve validar se seu perfil possui permissão administrativa.
 
-### **4.6 EVENTOS**
+### 4.6 EVENTOS
 
 Armazena os eventos cadastrados pelos organizadores, incluindo período, localização, público previsto e margem de lucro.
 
@@ -236,7 +141,7 @@ Armazena os eventos cadastrados pelos organizadores, incluindo período, localiz
 | STATUS | VARCHAR(50) | NULL; situação do evento. |
 | DADOS_JSON | JSON | NULL; informações complementares. |
 
-### **4.7 ITENS**
+### 4.7 ITENS
 
 Armazena os itens necessários para a realização dos eventos.
 
@@ -248,7 +153,7 @@ Armazena os itens necessários para a realização dos eventos.
 | CATEGORIA | VARCHAR(50) | NOT NULL. |
 | QUANTIDADE | INT | NOT NULL; deve ser maior que zero. |
 
-### **4.8 CUSTOS**
+### 4.8 CUSTOS
 
 Armazena os custos associados a cada evento.
 
@@ -260,7 +165,7 @@ Armazena os custos associados a cada evento.
 | CATEGORIA | VARCHAR(50) | NOT NULL. |
 | VALOR | DECIMAL(12,2) | NOT NULL; valor não negativo. |
 
-### **4.9 PROPOSTAS**
+### 4.9 PROPOSTAS
 
 Armazena propostas comerciais enviadas por fornecedores para eventos específicos. A inclusão de `ID_EVENTO` permite identificar a qual evento cada proposta está vinculada.
 
@@ -274,7 +179,7 @@ Armazena propostas comerciais enviadas por fornecedores para eventos específico
 | VALIDADE | DATE | NOT NULL; data limite de validade. |
 | SITUACAO | VARCHAR(50) | NOT NULL; situação da proposta. |
 
-### **4.10 SELECOES**
+### 4.10 SELECOES
 
 Registra a seleção de propostas. A restrição UNIQUE em `ID_PROPOSTA` impede que a mesma proposta tenha mais de um registro de seleção.
 
@@ -284,7 +189,7 @@ Registra a seleção de propostas. A restrição UNIQUE em `ID_PROPOSTA` impede 
 | ID_PROPOSTA | INT | FK, NOT NULL, UNIQUE; referência a PROPOSTAS. |
 | DATA_SELECAO | DATETIME | NOT NULL; padrão CURRENT_TIMESTAMP. |
 
-## **5. Regras de integridade**
+## 5. Regras de integridade
 
 O script aplica as seguintes regras:
 
@@ -296,17 +201,17 @@ O script aplica as seguintes regras:
 - **Preservação:** as FKs utilizam ON DELETE RESTRICT para impedir a exclusão de registros que ainda possuam dependências.
 - **Atualização:** ON UPDATE CASCADE propaga alterações de identificadores referenciados.
 
-## **6. Observações de implementação**
+## 6. Observações de implementação
 
-1. A aplicação deve armazenar em SENHA somente hashes seguros de senha.
-2. A aplicação deve validar se o usuário associado a ADMIN_AUDITORIA realmente possui perfil administrativo. A FK, isoladamente, apenas confirma que o usuário existe.
-3. O campo MARGEM_LUCRO representa uma porcentagem. A aplicação deve manter uma convenção única, por exemplo, 20.00 para 20%.
-4. O campo CNPJ aceita valores com ou sem pontuação, desde que respeite o limite de 18 caracteres. A aplicação deve normalizar e validar o documento.
-5. O campo MFA_SECRET deve ser protegido, pois contém informação sensível de autenticação.
-6. A regra de que uma proposta pertence a um único evento está representada por ID_EVENTO em PROPOSTAS.
-7. A regra de que uma proposta pode ser selecionada no máximo uma vez está representada por UNIQUE em SELECOES.ID_PROPOSTA.
+1. A aplicação deve armazenar em `SENHA` somente hashes seguros de senha.
+2. A aplicação deve validar se o usuário associado a `ADMIN_AUDITORIA` realmente possui perfil administrativo. A FK, isoladamente, apenas confirma que o usuário existe.
+3. O campo `MARGEM_LUCRO` representa uma porcentagem. A aplicação deve manter uma convenção única, por exemplo, `20.00` para 20%.
+4. O campo `CNPJ` aceita valores com ou sem pontuação, desde que respeite o limite de 18 caracteres. A aplicação deve normalizar e validar o documento.
+5. O campo `MFA_SECRET` deve ser protegido, pois contém informação sensível de autenticação.
+6. A regra de que uma proposta pertence a um único evento está representada por `ID_EVENTO` em `PROPOSTAS`.
+7. A regra de que uma proposta pode ser selecionada no máximo uma vez está representada por UNIQUE em `SELECOES.ID_PROPOSTA`.
 
-## **7. Execução do script**
+## 7. Execução do script
 
 O arquivo `Script SQL.sql` contém a criação do banco e das dez tabelas.
 
@@ -316,11 +221,11 @@ O arquivo `Script SQL.sql` contém a criação do banco e das dez tabelas.
 2. Abra o arquivo `Script SQL.sql`.
 3. Confira se a linha `DROP DATABASE IF EXISTS TROCATICKET` permanece comentada.
 4. Execute o script.
-5. Atualize a área Schemas e verifique a criação do banco TROCATICKET e das dez tabelas.
+5. Atualize a área Schemas e verifique a criação do banco `TROCATICKET` e das dez tabelas.
 
-> **Atenção:** se for necessário recriar o banco do zero, descomente a instrução DROP DATABASE. Isso apagará todos os dados existentes no banco.
+> **Atenção:** se for necessário recriar o banco do zero, descomente a instrução `DROP DATABASE`. Isso apagará todos os dados existentes no banco.
 
-## **8. Organização dos arquivos**
+## 8. Organização dos arquivos
 
 ```text
 Entrega 2/
@@ -331,7 +236,7 @@ Entrega 2/
     └── Modelo Lógico.pdf
 ```
 
-## **9. Considerações finais**
+## 9. Considerações finais
 
 A estrutura do banco de dados foi organizada para sustentar as principais funcionalidades do TrocaTicket, relacionando usuários, organizadores, fornecedores, eventos, custos e propostas comerciais.
 
