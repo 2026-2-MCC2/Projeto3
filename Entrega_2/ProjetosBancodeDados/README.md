@@ -232,8 +232,7 @@ Entrega 2/
 └── ProjetoBancodeDados/
     ├── README.md
     ├── Script SQL.sql
-    ├── Modelo Conceitual.pdf
-    └── Modelo Lógico.pdf
+    
 ```
 
 ## 9. Considerações finais
