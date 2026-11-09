@@ -47,31 +47,25 @@ A TrocaTicket atende quatro stakeholders principais com soluções específicas:
 
 ```text
 Raiz/
-│
 ├── Projeto3/
-│
-├── Entrega 1/
-│   ├── Cálculo/
-│   ├── DesenvolvimentoWebFullStack/
-│   ├── GestãoEmpresarial/
-│   ├── ProjetoBancodeDados/
-│   └── ProjetoInterdisciplinar/
-│
-├── Entrega 2/
-│   ├── Cálculo/
-│   ├── DesenvolvimentoWebFullStack/
-│   ├── GestãoEmpresarial/
-│   ├── ProjetoBancodeDados/
-│   └── ProjetoInterdisciplinar/
-│
-├── Banner/
-│
-├── Projeto de Extensão/
-│
+│   ├── documentos/
+│   │   ├── entrega1/
+│   │   │   ├── Calculo/
+│   │   │   ├── DesenvolvimentoWebFullStack/
+│   │   │   ├── GestaoEmpresarial/
+│   │   │   ├── ProjetoBancodeDados/
+│   │   │   └── ProjetoInterdisciplinar/
+│   │   └── entrega2/
+│   │       ├── Calculo/
+│   │       ├── DesenvolvimentoWebFullStack/
+│   │       ├── GestaoEmpresarial/
+│   │       ├── ProjetoBancodeDados/
+│   │       └── ProjetoInterdisciplinar/
+│   └── src/
+│       ├── frontend/
+│       └── backend/
 ├── README.md
-│
-├── .gitignore
-
+└── .gitignore
 ```
 A pasta raiz contem dois arquivos que devem ser alterados:
 
