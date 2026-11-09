@@ -152,4 +152,24 @@ async function documentoAtual(req, res, next) {
   }
 }
 
-module.exports = { register, login, me, documentoAtual };
+async function registrationStatus(req, res, next) {
+  try {
+    const u = await User.findById(req.user.id);
+
+    if (!u) {
+      return res.status(404).json({
+        erro: 'Usuário não encontrado.'
+      });
+    }
+
+    return res.status(200).json({
+      status: u.STATUS_CADASTRO
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { register, login, me, documentoAtual, registrationStatus };
+
