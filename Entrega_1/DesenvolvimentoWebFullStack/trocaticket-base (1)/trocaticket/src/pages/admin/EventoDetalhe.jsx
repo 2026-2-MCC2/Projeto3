@@ -7,14 +7,14 @@ import { EmptyState, KpiCard, MiniBar, PageHeader, Pill, QueryBoundary } from ".
 import { statusTone } from "../../utils/admin/status.js";
 import { useAdminQuery } from "../../hooks/useAdminQuery.js";
 import { useExporter } from "../../hooks/useExporter.js";
-import { obterEvento } from "../../services/adminApi.js";
+import { listarCotacoes, obterEvento } from "../../services/adminApi.js";
 import { economia, melhorProposta } from "../../services/adminCalculos.js";
 import { formatBRL, formatBRLCompact, formatDate, formatNumber, formatPct } from "../../utils/admin/format.js";
 
 export default function EventoDetalhe() {
   const { eventoId } = useParams();
   const query = useAdminQuery(
-    () => obterEvento(eventoId).then((evento) => ({ evento, cotacoes: [] })),
+    () => Promise.all([obterEvento(eventoId), listarCotacoes()]).then(([evento, cotacoes]) => ({ evento, cotacoes: cotacoes.filter((c) => c.eventoId === eventoId) })),
     [eventoId],
   );
 
@@ -45,13 +45,10 @@ export default function EventoDetalhe() {
 
 function Conteudo({ e, cs }) {
   const { pdf, csv } = useExporter();
-  const pct = e.realizado == null || !e.previsto ? null : (e.realizado / e.previsto) * 100;
-  const ocupacao = e.ingressosVendidos == null || !e.publico ? null : (e.ingressosVendidos / e.publico) * 100;
-  const planejamento = e.planejamento.map((linha) => ({
-    ...linha,
-    saldo: linha.realizado == null ? null : linha.previsto - linha.realizado,
-  }));
-  const vendas = e.ingressosVendidos == null ? [] : [
+  const pct = (e.realizado / e.previsto) * 100;
+  const ocupacao = (e.ingressosVendidos / e.publico) * 100;
+  const planejamento = e.planejamento.map((l) => ({ ...l, saldo: l.previsto - l.realizado }));
+  const vendas = [
     { canal: "Venda primária", ingressos: e.ingressosVendidos - e.ingressosRevenda },
     { canal: "Revenda (troca)", ingressos: e.ingressosRevenda },
     { canal: "Disponíveis", ingressos: Math.max(0, e.publico - e.ingressosVendidos) },
@@ -60,8 +57,8 @@ function Conteudo({ e, cs }) {
   const colPlan = [
     { key: "categoria", label: "Categoria" },
     { key: "previsto", label: "Previsto", format: (v) => formatBRL(Number(v)) },
-    { key: "realizado", label: "Realizado", format: (v) => v == null ? "Não disponível" : formatBRL(Number(v)) },
-    { key: "saldo", label: "Saldo", format: (v) => v == null ? "Não disponível" : formatBRL(Number(v)) },
+    { key: "realizado", label: "Realizado", format: (v) => formatBRL(Number(v)) },
+    { key: "saldo", label: "Saldo", format: (v) => formatBRL(Number(v)) },
   ];
   const colCot = [
     { key: "id", label: "Código" },
@@ -91,9 +88,9 @@ function Conteudo({ e, cs }) {
                 subtitle: `${e.organizador} · ${e.cidade}/${e.uf} · ${formatDate(e.data)} · ${e.status}`,
                 summary: [
                   { label: "Previsto", value: formatBRL(e.previsto) },
-                  { label: "Realizado", value: e.realizado == null ? "Não disponível" : formatBRL(e.realizado) },
+                  { label: "Realizado", value: formatBRL(e.realizado) },
                   { label: "Público", value: formatNumber(e.publico) },
-                  { label: "Ingressos vendidos", value: e.ingressosVendidos == null ? "Não disponível" : formatNumber(e.ingressosVendidos) },
+                  { label: "Ingressos vendidos", value: formatNumber(e.ingressosVendidos) },
                 ],
                 tables: [
                   { title: "Planejamento por categoria", columns: colPlan, rows: planejamento },
@@ -108,14 +105,14 @@ function Conteudo({ e, cs }) {
 
       <div className="adm-grid adm-grid--kpi">
         <KpiCard label="Orçamento previsto" value={formatBRLCompact(e.previsto)} icon={Wallet} tone="primary" hint="Planejamento aprovado" />
-        <KpiCard label="Custo realizado" value={pct == null ? "—" : formatBRLCompact(e.realizado)} icon={Banknote} tone="brand" progress={pct ?? 0} hint={pct == null ? "A API ainda não registra pagamentos realizados." : `${formatPct(pct)} executado`} delay={60} />
-        <KpiCard label="Ingressos vendidos" value={ocupacao == null ? "—" : formatNumber(e.ingressosVendidos)} icon={Ticket} tone="success" progress={ocupacao ?? 0} hint={ocupacao == null ? "A API ainda não registra vendas de ingressos." : `${formatPct(ocupacao)} da capacidade de ${formatNumber(e.publico)}`} delay={120} />
+        <KpiCard label="Custo realizado" value={formatBRLCompact(e.realizado)} icon={Banknote} tone="brand" progress={pct} hint={`${formatPct(pct)} executado`} delay={60} />
+        <KpiCard label="Ingressos vendidos" value={formatNumber(e.ingressosVendidos)} icon={Ticket} tone="success" progress={ocupacao} hint={`${formatPct(ocupacao)} da capacidade de ${formatNumber(e.publico)}`} delay={120} />
         <KpiCard
           label="Ingressos em revenda"
-          value={e.ingressosRevenda == null ? "—" : formatNumber(e.ingressosRevenda)}
+          value={formatNumber(e.ingressosRevenda)}
           icon={Repeat2}
           tone="warning"
-          hint={e.ingressosRevenda == null ? "A API ainda não registra revendas." : `${formatPct((e.ingressosRevenda / Math.max(1, e.ingressosVendidos)) * 100)} dos vendidos voltaram à troca`}
+          hint={`${formatPct((e.ingressosRevenda / Math.max(1, e.ingressosVendidos)) * 100)} dos vendidos voltaram à troca`}
           delay={180}
         />
       </div>
@@ -123,7 +120,7 @@ function Conteudo({ e, cs }) {
       <div className="adm-grid adm-grid--3-2 adm-mt">
         <ChartCard
           title="Valores do planejamento"
-          description="Valores previstos; dados de pagamentos realizados ainda não são disponibilizados."
+          description="Previsto × realizado por categoria de custo"
           data={planejamento}
           xKey="categoria"
           xLabel="Categoria"
@@ -139,7 +136,7 @@ function Conteudo({ e, cs }) {
         />
         <ChartCard
           title="Ingressos por canal"
-          description="A API ainda não disponibiliza dados de ingressos vendidos."
+          description="Venda primária, revenda e disponíveis"
           data={vendas}
           xKey="canal"
           xLabel="Canal"
@@ -158,7 +155,7 @@ function Conteudo({ e, cs }) {
           </Link>
         </div>
         {cs.length === 0 ? (
-          <EmptyState>A API ainda não disponibiliza dados de cotações e propostas.</EmptyState>
+          <EmptyState>Nenhuma cotação aberta para este evento.</EmptyState>
         ) : (
           <div className="evd-cotacoes">
             {cs.map((c) => {

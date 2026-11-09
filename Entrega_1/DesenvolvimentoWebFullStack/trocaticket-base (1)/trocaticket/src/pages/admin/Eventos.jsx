@@ -7,7 +7,7 @@ import { FilterChips, KpiCard, MiniBar, PageHeader, Pill, QueryBoundary } from "
 import { statusTone } from "../../utils/admin/status.js";
 import { useAdminQuery } from "../../hooks/useAdminQuery.js";
 import { useExporter } from "../../hooks/useExporter.js";
-import { listarEventos } from "../../services/adminApi.js";
+import { listarCotacoes, listarEventos } from "../../services/adminApi.js";
 import { STATUS_EVENTO } from "../../services/adminSeed.js";
 import { formatBRL, formatBRLCompact, formatDate, formatNumber, formatPct } from "../../utils/admin/format.js";
 import "./Eventos.css";
@@ -20,12 +20,12 @@ const COLUNAS = [
   { key: "data", label: "Data", format: (v) => formatDate(String(v)) },
   { key: "publico", label: "Público" },
   { key: "previsto", label: "Previsto", format: (v) => formatBRL(Number(v)) },
-  { key: "realizado", label: "Realizado", format: (v) => v == null ? "Não disponível" : formatBRL(Number(v)) },
-  { key: "execucao", label: "Execução", format: (_, e) => e.realizado == null ? "Não disponível" : formatPct((e.realizado / e.previsto) * 100, 0) },
+  { key: "realizado", label: "Realizado", format: (v) => formatBRL(Number(v)) },
+  { key: "execucao", label: "Execução", format: (_, e) => formatPct((e.realizado / e.previsto) * 100, 0) },
 ];
 
 export default function Eventos() {
-  const query = useAdminQuery(() => listarEventos().then((eventos) => ({ eventos, cotacoes: [] })));
+  const query = useAdminQuery(() => Promise.all([listarEventos(), listarCotacoes()]).then(([eventos, cotacoes]) => ({ eventos, cotacoes })));
   return <QueryBoundary query={query}>{({ eventos, cotacoes }) => <Conteudo eventos={eventos} cotacoes={cotacoes} />}</QueryBoundary>;
 }
 
@@ -35,22 +35,22 @@ function Conteudo({ eventos, cotacoes }) {
   const lista = useMemo(() => eventos.filter((e) => status === "todos" || e.status === status), [eventos, status]);
 
   const previsto = eventos.reduce((s, e) => s + e.previsto, 0);
-  const possuiRealizado = eventos.some((evento) => evento.realizado != null);
-  const realizado = eventos.reduce((s, e) => s + (e.realizado ?? 0), 0);
+  const realizado = eventos.reduce((s, e) => s + e.realizado, 0);
   const publico = eventos.reduce((s, e) => s + e.publico, 0);
+  const fechadas = cotacoes.filter((c) => c.situacao === "Encerrada").length;
   const cotacoesDo = (id) => {
     const cs = cotacoes.filter((c) => c.eventoId === id);
     return { total: cs.length, fechadas: cs.filter((c) => c.situacao === "Encerrada").length };
   };
 
-  const porEvento = lista.map((e) => ({ evento: e.nome, previsto: e.previsto, realizado: e.realizado ?? 0 }));
+  const porEvento = lista.map((e) => ({ evento: e.nome, previsto: e.previsto, realizado: e.realizado }));
 
   const porOrganizador = useMemo(() => {
     const m = new Map();
     eventos.forEach((e) => {
       const r = m.get(e.organizador) ?? { organizador: e.organizador, previsto: 0, realizado: 0, eventos: 0, publico: 0 };
       r.previsto += e.previsto;
-      r.realizado += e.realizado ?? 0;
+      r.realizado += e.realizado;
       r.eventos += 1;
       r.publico += e.publico;
       m.set(e.organizador, r);
@@ -62,7 +62,7 @@ function Conteudo({ eventos, cotacoes }) {
     <>
       <PageHeader
         title="Eventos"
-        description="Status, organizadores, custos e andamento dos eventos. Dados de cotações ainda não são disponibilizados pela API."
+        description="Status, organizadores, custos e andamento das cotações de cada evento."
         actions={
           <ExportMenu
             label="Exportar eventos"
@@ -75,7 +75,7 @@ function Conteudo({ eventos, cotacoes }) {
                 summary: [
                   { label: "Eventos", value: String(lista.length) },
                   { label: "Custo previsto", value: formatBRLCompact(previsto) },
-                  { label: "Custo realizado", value: possuiRealizado ? formatBRLCompact(realizado) : "Não disponível" },
+                  { label: "Custo realizado", value: formatBRLCompact(realizado) },
                   { label: "Público esperado", value: formatNumber(publico) },
                 ],
                 tables: [{ columns: COLUNAS, rows: lista }],
@@ -89,8 +89,8 @@ function Conteudo({ eventos, cotacoes }) {
       <div className="adm-grid adm-grid--kpi">
         <KpiCard label="Eventos cadastrados" value={eventos.length} unit="eventos" icon={CalendarRange} hint={`Capacidade de ${formatNumber(publico)} espectadores`} />
         <KpiCard label="Custo previsto consolidado" value={formatBRLCompact(previsto)} icon={Wallet} tone="primary" hint="Orçamento aprovado nos editais" delay={60} />
-        <KpiCard label="Custo realizado" value={possuiRealizado ? formatBRLCompact(realizado) : "—"} icon={Banknote} tone="brand" progress={possuiRealizado && previsto > 0 ? (realizado / previsto) * 100 : 0} hint={possuiRealizado ? `${formatPct((realizado / previsto) * 100)} liquidado até hoje` : "A API ainda não registra pagamentos realizados."} delay={120} />
-        <KpiCard label="Cotações fechadas" value="—" icon={ClipboardCheck} tone="success" hint="A API ainda não disponibiliza dados de cotações." delay={180} />
+        <KpiCard label="Custo realizado" value={formatBRLCompact(realizado)} icon={Banknote} tone="brand" progress={(realizado / previsto) * 100} hint={`${formatPct((realizado / previsto) * 100)} liquidado até hoje`} delay={120} />
+        <KpiCard label="Cotações fechadas" value={`${fechadas}/${cotacoes.length}`} icon={ClipboardCheck} tone="success" progress={(fechadas / cotacoes.length) * 100} hint={`${formatPct((fechadas / cotacoes.length) * 100)} do total`} delay={180} />
       </div>
 
       <div className="adm-grid adm-grid--3-2 adm-mt">
@@ -108,7 +108,7 @@ function Conteudo({ eventos, cotacoes }) {
           valueFormat={formatBRL}
           axisFormat={formatBRLCompact}
           height={340}
-          footer="A API disponibiliza os custos previstos; pagamentos realizados ainda não são registrados."
+          footer="Base consolidada a partir das cotações e pagamentos registrados."
         />
         <ChartCard
           title="Custo previsto por organizador"
@@ -161,7 +161,7 @@ function Conteudo({ eventos, cotacoes }) {
             </thead>
             <tbody>
               {lista.map((e) => {
-                const pct = e.realizado == null || !e.previsto ? null : (e.realizado / e.previsto) * 100;
+                const pct = (e.realizado / e.previsto) * 100;
                 const c = cotacoesDo(e.id);
                 return (
                   <tr key={e.id} className="evt-linha">
@@ -184,10 +184,10 @@ function Conteudo({ eventos, cotacoes }) {
                     <td>
                       <div style={{ width: 160 }}>
                         <div className="adm-row adm-row--between adm-mono" style={{ fontSize: "0.75rem", marginBottom: 4 }}>
-                          <span>{e.realizado == null ? "—" : formatBRLCompact(e.realizado)}</span>
-                          <span className={e.status === "Suspenso" ? "adm-text-danger" : "adm-muted"}>{pct === null ? "—" : `${Math.round(pct)}%`}</span>
+                          <span>{formatBRLCompact(e.realizado)}</span>
+                          <span className={e.status === "Suspenso" ? "adm-text-danger" : "adm-muted"}>{Math.round(pct)}%</span>
                         </div>
-                        <MiniBar value={pct ?? 0} tone={e.status === "Suspenso" ? "danger" : pct >= 100 ? "primary" : "brand"} />
+                        <MiniBar value={pct} tone={e.status === "Suspenso" ? "danger" : pct >= 100 ? "primary" : "brand"} />
                       </div>
                     </td>
                     <td className="adm-mono" style={{ fontSize: "0.75rem" }}>{c.total ? `${c.fechadas}/${c.total}` : "—"}</td>

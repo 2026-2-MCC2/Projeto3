@@ -27,7 +27,7 @@ export default function Relatorios() {
       <PageHeader
         eyebrow={<span className="adm-eyebrow">Gestão & controle</span>}
         title="Relatórios e auditoria"
-        description="Consulte cadastros, eventos e valores do planejamento. Vendas, propostas e mensagens ainda não são disponibilizadas pela API."
+        description="Monte consultas sobre usuários, eventos, propostas e valores do planejamento, e acompanhe tudo o que foi feito no painel."
         actions={<Segmented label="Seção" options={ABAS} value={aba} onChange={mudarAba} />}
       />
       {aba === "gerador" ? <Gerador /> : <Auditoria />}

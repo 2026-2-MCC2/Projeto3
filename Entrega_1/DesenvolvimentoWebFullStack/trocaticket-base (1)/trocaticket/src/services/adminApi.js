@@ -1,10 +1,57 @@
-/* Camada de dados do painel administrativo. */
+/*
+ * Camada de dados do painel administrativo. Aprovações, cadastros e auditoria
+ * usam o backend; eventos, cotações e relatórios ainda consomem dados demo.
+ */
+import {
+  auditoriaSeed,
+  cadastrosSeed,
+  cotacoesSeed,
+  eventosSeed,
+  pendentesSeed,
+  seriePorPeriodoSeed,
+} from "./adminSeed.js";
 import { apiRequest } from "./api.js";
 
+const LATENCIA_MS = 450;
+const CHAVE_SESSAO = "trocaticket:admin:db:v1";
+
+/* ---------------------------- estado em memória --------------------------- */
+
+const clonar = (valor) => JSON.parse(JSON.stringify(valor));
+
+function estadoInicial() {
+  return {
+    pendentes: clonar(pendentesSeed),
+    cadastros: clonar(cadastrosSeed),
+    auditoria: clonar(auditoriaSeed),
+  };
+}
+
+function carregarSessao() {
+  try {
+    const bruto = sessionStorage.getItem(CHAVE_SESSAO);
+    return bruto ? JSON.parse(bruto) : null;
+  } catch {
+    return null;
+  }
+}
+
+let db = carregarSessao() ?? estadoInicial();
 const ouvintes = new Set();
+let pularLatenciaAte = 0;
+
+function persistir() {
+  try {
+    sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(db));
+  } catch {
+    /* storage indisponível: segue só em memória */
+  }
+}
 
 /** Avisa as telas abertas que os dados mudaram (elas recarregam sozinhas). */
 export function notificarMudanca() {
+  persistir();
+  pularLatenciaAte = Date.now() + 800; // só do mock: a releitura pós-escrita não "viaja" de novo
   ouvintes.forEach((fn) => fn());
 }
 
@@ -14,148 +61,67 @@ export function assinarMudancas(fn) {
   return () => ouvintes.delete(fn);
 }
 
+/** Volta todos os dados para o estado de demonstração original. */
+export function restaurarDadosDemo() {
+  db = estadoInicial();
+  notificarMudanca();
+}
+
+/* ------------------------------ infraestrutura ---------------------------- */
+
+const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function simularRede() {
+  // Com um servidor real esta função some: a latência vem da rede de verdade.
+  if (Date.now() >= pularLatenciaAte) await esperar(LATENCIA_MS);
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("simularErro")) {
+    throw new Error("Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.");
+  }
+}
+
+async function ler(obter) {
+  await simularRede();
+  return clonar(obter());
+}
+
 /* --------------------------------- LEITURAS -------------------------------- */
 
 export const listarPendentes = () => apiRequest("/admin/aprovacoes");
 export const listarCadastros = () => apiRequest("/admin/cadastros");
-function normalizarEventoAdmin(evento) {
-  const status = {
-    planejamento: "Planejamento",
-    rascunho: "Planejamento",
-    em_cotacao: "Em cotação",
-    cotacao: "Em cotação",
-    publicado: "Em produção",
-    concluido: "Concluído",
-    suspenso: "Suspenso",
-  }[String(evento.status).toLowerCase()] ?? evento.status;
-  const custos = evento.custos ?? {};
-  const previsto = [
-    ...(Array.isArray(custos.fornecedores) ? custos.fornecedores : []),
-    ...(Array.isArray(custos.fiscais) ? custos.fiscais : []),
-  ].reduce((total, item) => total + (Number(item.valor) || 0), 0);
-  const planejamento = Array.isArray(evento.planejamento)
-    ? evento.planejamento
-    : [
-        ...(Array.isArray(custos.fornecedores) ? custos.fornecedores : []),
-        ...(Array.isArray(custos.fiscais) ? custos.fiscais : []),
-      ].map((item) => ({
-        categoria: item.titulo ?? item.categoriaId ?? "Outro",
-        previsto: Number(item.valor) || 0,
-        realizado: null,
-      }));
-  return {
-    ...evento,
-    status,
-    cidade: evento.local?.cidade ?? "",
-    uf: evento.local?.uf ?? "",
-    data: evento.dataInicio ?? "",
-    publico: Number(evento.publico?.maximo) || 0,
-    previsto,
-    realizado: custos.realizado == null ? null : Number(custos.realizado),
-    planejamento,
-  };
-}
-
-export async function listarEventos() {
-  const eventos = await apiRequest("/admin/eventos");
-  if (!Array.isArray(eventos)) throw new Error("A API retornou uma lista de eventos inválida.");
-  return eventos.map(normalizarEventoAdmin);
-}
-export async function listarCotacoes() {
-  throw new Error("A API ainda não disponibiliza endpoints de cotações e propostas.");
-}
+export const listarEventos = () => ler(() => eventosSeed);
+export const listarCotacoes = () => ler(() => cotacoesSeed);
 export const listarAuditoria = () => apiRequest("/admin/auditoria");
-export async function obterSerie(periodo) {
-  const eventos = await listarEventos();
-  const hoje = new Date();
-  const inicio = periodo === "30d"
-    ? new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 30)
-    : periodo === "ano"
-      ? new Date(hoje.getFullYear(), 0, 1)
-      : new Date(hoje.getFullYear(), Math.floor(hoje.getMonth() / 3) * 3, 1);
-  const fim = periodo === "30d"
-    ? new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1)
-    : periodo === "ano"
-      ? new Date(hoje.getFullYear() + 1, 0, 1)
-      : new Date(inicio.getFullYear(), inicio.getMonth() + 3, 1);
-  const filtrados = eventos.filter((evento) => {
-    const data = new Date(evento.data).getTime();
-    return Number.isFinite(data) && data >= inicio.getTime() && data < fim.getTime();
-  });
-  if (periodo === "30d") {
-    return filtrados.length
-      ? [{
-          periodo: "Últimos 30 dias",
-          previsto: filtrados.reduce((total, evento) => total + evento.previsto, 0),
-          realizado: filtrados.some((evento) => evento.realizado != null)
-            ? filtrados.reduce((total, evento) => total + (evento.realizado ?? 0), 0)
-            : null,
-          eventos: filtrados.length,
-        }]
-      : [];
-  }
-  const agrupados = new Map();
-  filtrados.forEach((evento) => {
-    const data = new Date(evento.data);
-    const chave = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
-    const grupo = agrupados.get(chave) ?? {
-      periodo: data.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }),
-      previsto: 0,
-      realizado: 0,
-      eventos: 0,
-      eventosComRealizado: 0,
-    };
-    grupo.previsto += evento.previsto;
-    grupo.eventos += 1;
-    if (evento.realizado != null) {
-      grupo.realizado += evento.realizado;
-      grupo.eventosComRealizado += 1;
-    }
-    agrupados.set(chave, grupo);
-  });
-  return [...agrupados.values()].map(({ eventosComRealizado, ...grupo }) => ({
-    ...grupo,
-    realizado: eventosComRealizado ? grupo.realizado : null,
-  }));
-}
+export const obterSerie = (periodo) => ler(() => seriePorPeriodoSeed[periodo] ?? []);
 
 export async function obterEvento(id) {
-  const eventos = await listarEventos();
-  const evento = eventos.find((item) => item.id === String(id));
+  const evento = await ler(() => eventosSeed.find((e) => e.id === id) ?? null);
   if (!evento) throw Object.assign(new Error("Evento não encontrado."), { naoEncontrado: true });
   return evento;
 }
 
 /** Conjunto de dados que alimenta o gerador de relatórios. */
-export async function obterDatasetRelatorios() {
-  const [cadastros, eventos, auditoria] = await Promise.all([
-    listarCadastros(),
-    listarEventos(),
-    listarAuditoria(),
-  ]);
-  return { cadastros, eventos, cotacoes: [], auditoria };
-}
+export const obterDatasetRelatorios = () =>
+  ler(() => ({ cadastros: db.cadastros, eventos: eventosSeed, cotacoes: cotacoesSeed }));
 
 /** Busca global da barra superior (cadastros, pendentes, eventos e cotações). */
 export async function buscarGlobal(termo) {
   const t = termo.trim().toLowerCase();
   if (t.length < 2) return [];
+  await esperar(120); // busca "ao digitar": latência curta
   const tem = (...campos) => campos.join(" ").toLowerCase().includes(t);
-  const [pendentes, cadastros, eventos] = await Promise.all([
-    listarPendentes(),
-    listarCadastros(),
-    listarEventos(),
-  ]);
   return [
-    ...pendentes
+    ...db.pendentes
       .filter((p) => tem(p.nome, p.fantasia, p.cnpj, p.id))
       .map((p) => ({ tipo: "Aprovação", titulo: p.nome, detalhe: `${p.tipo} · ${p.cidade}/${p.uf}`, rota: `/admin/aprovacoes?id=${p.id}` })),
-    ...cadastros
+    ...db.cadastros
       .filter((c) => tem(c.nome, c.razao, c.cnpj))
       .map((c) => ({ tipo: "Cadastro", titulo: c.nome, detalhe: `${c.tipo} · ${c.cidade}/${c.uf}`, rota: `/admin/usuarios?busca=${encodeURIComponent(c.nome)}` })),
-    ...eventos
+    ...eventosSeed
       .filter((e) => tem(e.nome, e.organizador, e.cidade))
       .map((e) => ({ tipo: "Evento", titulo: e.nome, detalhe: `${e.organizador} · ${e.status}`, rota: `/admin/eventos/${e.id}` })),
+    ...cotacoesSeed
+      .filter((c) => tem(c.servico, c.id))
+      .map((c) => ({ tipo: "Cotação", titulo: c.servico, detalhe: `${c.id} · ${c.situacao}`, rota: `/admin/cotacoes?id=${c.id}` })),
   ].slice(0, 12);
 }
 

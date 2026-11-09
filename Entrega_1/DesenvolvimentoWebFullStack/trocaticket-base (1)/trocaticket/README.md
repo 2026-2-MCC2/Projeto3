@@ -11,10 +11,6 @@ npm run dev
 
 Para usar o backend, inicie-o em `Entrega_2/DesenvolvimentoWebFullStack/backend` e configure `.env` com base em `.env.example` no frontend quando necessário. O Vite encaminha `/api` para `http://localhost:3000` por padrão.
 
-## Deploy no Railway
-
-O serviço do front-end deve usar esta pasta como raiz. O arquivo `railway.json` configura a build e o servidor estático da pasta `dist`; defina `VITE_API_URL` com a URL pública do serviço backend antes da build.
-
 ## Estrutura
 
 - `src/components/` componentes reutilizáveis (Header, Footer, Layout, TextField, Button, OtpInput...)
@@ -45,7 +41,7 @@ O painel tem layout próprio, com sidebar responsiva, barra superior com busca g
 
 A rota `/admin/cadastros` redireciona para `/admin/usuarios`. Rotas administrativas inexistentes exibem uma página 404 dentro do próprio painel. Os gráficos permitem alternar o formato e as telas oferecem exportação quando aplicável.
 
-**Integração disponível:** cadastro com aprovação, consulta de status, login, sessão, documentos enviados, eventos do organizador e autenticação administrativa com MFA usam a API real. O painel administrativo também conecta aprovações, checklist, documentos, cadastros, suspensão/reativação, auditoria e listagem de eventos. Métricas de vendas/pagamentos, cotações, propostas de fornecedores e mensagens ainda não têm endpoints; essas telas informam essa limitação em vez de apresentar dados fictícios. Para uma base existente, aplique as migrações do backend.
+**Integração disponível:** cadastro com aprovação, consulta de status, login, sessão, documentos enviados, eventos do organizador e autenticação administrativa com MFA usam a API real. O painel administrativo também conecta aprovações, checklist, documentos, cadastros, suspensão/reativação e auditoria. Para uma base existente, aplique as migrações do backend. Painéis de métricas/eventos/cotações, mensagens, propostas de fornecedor e algumas telas de perfil ainda usam demonstrações ou não têm API.
 
 O comando `npm test` executa os testes dos serviços e utilitários, incluindo os novos testes do painel administrativo.
 

@@ -42,16 +42,10 @@ export default function Usuarios() {
   );
 
   async function handleAlternar(cadastro) {
-    const motivo = window.prompt("Informe a justificativa para alterar a situação do cadastro (mínimo de 5 caracteres).");
-    if (motivo === null) return;
-    if (motivo.trim().length < 5) {
-      setErroAcao("A justificativa deve ter pelo menos 5 caracteres.");
-      return;
-    }
     setProcessandoId(cadastro.id);
     setErroAcao("");
     try {
-      const { situacao } = await alternarSituacaoCadastro(cadastro.id, cadastro.situacao, motivo.trim());
+      const { situacao } = await alternarSituacaoCadastro(cadastro.id, cadastro.situacao);
       setEstado((e) => ({
         ...e,
         cadastros: e.cadastros.map((c) => (c.id === cadastro.id ? { ...c, situacao } : c)),

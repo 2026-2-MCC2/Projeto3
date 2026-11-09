@@ -216,41 +216,6 @@ async function listRegistrations(req, res, next) {
   }
 }
 
-async function listEvents(req, res, next) {
-  try {
-    const [rows] = await pool.query(
-      `SELECT e.ID_EVENTO, e.NOME, e.LOCALIZACAO, e.DATA_INICIO, e.DATA_FINAL,
-              e.PUBLICO_MINIMO, e.PUBLICO_MAXIMO, e.MARGEM_LUCRO, e.STATUS,
-              e.DADOS_JSON, u.NOME AS ORGANIZADOR
-         FROM EVENTOS e
-         LEFT JOIN ORGANIZADORES o ON o.ID_ORGANIZADOR = e.ID_ORGANIZADOR
-         LEFT JOIN USUARIOS u ON u.ID_USUARIO = o.ID_USUARIO
-        ORDER BY e.ID_EVENTO DESC`
-    );
-    return res.json(rows.map((row) => {
-      const event = typeof row.DADOS_JSON === 'string'
-        ? JSON.parse(row.DADOS_JSON)
-        : row.DADOS_JSON;
-      return {
-        ...(event || {}),
-        id: String(row.ID_EVENTO),
-        nome: event?.nome || row.NOME,
-        status: event?.status || row.STATUS || 'planejamento',
-        dataInicio: event?.dataInicio || row.DATA_INICIO,
-        dataFim: event?.dataFim || row.DATA_FINAL,
-        publico: event?.publico || {
-          minimo: row.PUBLICO_MINIMO,
-          maximo: row.PUBLICO_MAXIMO,
-        },
-        local: event?.local || { nome: row.LOCALIZACAO, cidade: '', uf: '' },
-        organizador: row.ORGANIZADOR || 'Organizador não identificado',
-      };
-    }));
-  } catch (err) {
-    return next(err);
-  }
-}
-
 async function changeRegistrationStatus(req, res, next) {
   const reason = String(req.body.motivo || '').trim();
   if (reason.length < 5 || reason.length > 2000) {
@@ -343,7 +308,6 @@ async function listAudit(req, res, next) {
 module.exports = {
   listPending,
   listRegistrations,
-  listEvents,
   changeRegistrationStatus,
   updateChecklist,
   reviewRegistration,
