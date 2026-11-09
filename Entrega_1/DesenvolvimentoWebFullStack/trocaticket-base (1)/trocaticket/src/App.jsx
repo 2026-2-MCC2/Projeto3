@@ -27,6 +27,12 @@ import MensagensFornecedor from "./pages/MensagensFornecedor.jsx";
 import Mensagens from "./pages/Mensagens.jsx";
 import PerfilFornecedor from "./pages/PerfilFornecedor.jsx";
 import Resumo from "./pages/Resumo.jsx";
+import SegurancaInstitucional from "./pages/SegurancaInstitucional.jsx";
+import TermosDeUso from "./pages/TermosDeUso.jsx";
+import Suporte from "./pages/Suporte.jsx";
+import CentralDeAjuda from "./pages/CentralDeAjuda.jsx";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade.jsx";
+
 
 // O painel administrativo é carregado por demanda para não aumentar o pacote
 // inicial usado pelas áreas pública, de organizador e de fornecedor.
@@ -39,17 +45,14 @@ const Cotacoes = lazy(() => import("./pages/admin/Cotacoes.jsx"));
 const Relatorios = lazy(() => import("./pages/admin/Relatorios.jsx"));
 const AdminNaoEncontrado = lazy(() => import("./pages/admin/AdminNaoEncontrado.jsx"));
 
-const publicas = [
+const publicas =
+  [
   ["/cadastro/status", "Análise Cadastral"],
   ["/recuperar-senha", "Recuperar senha"],
-  ["/ajuda", "Central de Ajuda"],
-  ["/suporte", "Suporte"],
-  ["/termos", "Termos de Uso"],
-  ["/privacidade", "Privacidade"],
-  ["/seguranca", "Segurança"],
   ["/politicas", "Políticas de Concessão"],
   ["/politicas-de-concessao", "Políticas de Concessão"],
 ];
+
 
 const protegidas = {
   fornecedor: [["/fornecedor", "Painel do Fornecedor"]],
@@ -68,6 +71,12 @@ export default function App() {
           path="/cadastro/em-analise"
           element={<CadastroEmAnalise />}
         />
+          {/* ===== Novas páginas ===== */}
+  <Route path="/seguranca" element={<SegurancaInstitucional />} />
+  <Route path="/termos" element={<TermosDeUso />} />
+  <Route path="/suporte" element={<Suporte />} />
+  <Route path="/ajuda" element={<CentralDeAjuda />} />
+  <Route path="/privacidade" element={<PoliticaPrivacidade />} />
         <Route path="/cadastro/organizador" element={<Cadastro perfilInicial="organizador" />} />
         <Route path="/cadastro/fornecedor" element={<Cadastro perfilInicial="fornecedor" />} />
       </Route>
