@@ -39,6 +39,21 @@ async function register(req, res, next) {
     if (perfil === 'ORGANIZADOR' && !telefone) {
       return res.status(400).json({ erro: 'Telefone é obrigatório para organizadores.' });
     }
+
+    console.log('DIAGNÓSTICO DOCUMENTO:', {
+  existe: !!documento,
+  nomeValido: typeof documento?.nome === 'string',
+  tipoValido: typeof documento?.tipo === 'string',
+  conteudoValido: typeof documento?.conteudo === 'string',
+  tipo: documento?.tipo,
+  base64Valido: typeof documento?.conteudo === 'string'
+    ? /^[A-Za-z0-9+/]*={0,2}$/.test(documento.conteudo)
+    : false,
+  tamanhoBytes: typeof documento?.conteudo === 'string'
+    ? Buffer.from(documento.conteudo, 'base64').length
+    : null
+});
+
     if (documento && (
       typeof documento.nome !== 'string'
       || typeof documento.tipo !== 'string'
@@ -50,21 +65,27 @@ async function register(req, res, next) {
       return res.status(400).json({ erro: 'Documento inválido. Envie PDF, JPG ou PNG com até 10 MB.' });
     }
 
-    const existente = await User.findByEmail(email);
-    if (existente) {
-      return res.status(409).json({ erro: 'E-mail já cadastrado.' });
-    }
+    
 
-    const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
-    const id = await User.create({
-      nome,
-      email,
-      senhaHash,
-      perfil,
-      organizador: { cnpj: cnpjLimpo, telefone },
-      fornecedor: { cnpj: cnpjLimpo, categoria, descricao },
-      documento,
-    });
+const existente = await User.findByEmail(email);
+
+if (existente) {
+  return res.status(409).json({
+    erro: 'Este e-mail já está cadastrado.'
+  });
+}
+
+const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
+
+const id = await User.create({
+  nome,
+  email,
+  senhaHash,
+  perfil,
+  organizador: { cnpj: cnpjLimpo, telefone },
+  fornecedor: { cnpj: cnpjLimpo, categoria, descricao },
+  documento
+});
 
     return res.status(201).json({ id, nome, email, perfil });
   } catch (err) {
