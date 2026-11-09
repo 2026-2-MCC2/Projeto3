@@ -1,0 +1,54 @@
+.adm-main {
+  min-height: 100vh;
+}
+
+@media (min-width: 1024px) {
+  .adm-main {
+    padding-left: var(--adm-sidebar-w);
+  }
+}
+
+.adm-content {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+  outline: none;
+}
+
+@media (min-width: 640px) {
+  .adm-content {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+.adm-skip {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 200;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--adm-primary);
+  color: var(--adm-primary-fg);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.adm-skip:focus {
+  top: 8px;
+}
+
+.adm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  border: 0;
+  background: rgba(15, 26, 47, 0.5);
+}
+
+@media (min-width: 1024px) {
+  .adm-scrim {
+    display: none;
+  }
+}

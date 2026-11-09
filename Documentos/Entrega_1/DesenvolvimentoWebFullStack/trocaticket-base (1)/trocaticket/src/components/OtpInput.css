@@ -1,0 +1,37 @@
+.otp {
+  display: flex;
+  gap: 10px;
+}
+
+.otp__digit {
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text-strong);
+}
+
+.otp__digit:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0;
+}
+
+.otp__digit--invalid {
+  border-color: var(--color-danger);
+}
+
+@media (max-width: 400px) {
+  .otp {
+    gap: 6px;
+  }
+  .otp__digit {
+    height: 48px;
+    font-size: 20px;
+  }
+}

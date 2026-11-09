@@ -1,0 +1,101 @@
+.evt-nome {
+  text-decoration: none;
+}
+
+.evt-linha:hover .evt-nome {
+  color: var(--adm-primary);
+}
+
+.evt-local {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.evt-local svg {
+  width: 12px;
+  height: 12px;
+}
+
+.evt-abrir {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--adm-muted-fg);
+}
+
+.evt-abrir:hover {
+  background: var(--adm-muted);
+  color: var(--adm-fg);
+}
+
+.evt-abrir svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---- detalhe do evento ---- */
+.evd-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--adm-muted-fg);
+  text-decoration: none;
+}
+
+.evd-voltar:hover {
+  color: var(--adm-fg);
+}
+
+.evd-voltar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.evd-cotacoes {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .evd-cotacoes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.evd-propostas {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evd-propostas li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.evd-propostas__nome {
+  width: 144px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.evd-propostas__valor {
+  width: 96px;
+  text-align: right;
+  font-size: 0.75rem;
+}

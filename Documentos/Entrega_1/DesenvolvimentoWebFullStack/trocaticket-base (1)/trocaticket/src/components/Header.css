@@ -1,0 +1,113 @@
+.header {
+  z-index: 1;
+  background: #fff;
+  border-bottom: 1px solid #e5e9f0;
+}
+
+.header__inner {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1104px;
+}
+
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+}
+
+.header__logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0b4a7a, #2f83c9);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(43, 125, 190, 0.35);
+}
+
+.header__name {
+  display: flex;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+}
+
+.header__name strong {
+  color: #3b9ef5;
+}
+
+.header__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+}
+
+.header__link:hover {
+  color: #0b4a7a;
+}
+
+.header__help-icon {
+  color: #3b9ef5;
+}
+
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header__user {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.header__logout {
+  padding: 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.header__account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header__avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e3f1fd;
+  color: #0b4a7a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.header__account-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.header__account-details small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+@media (max-width: 480px) {
+  .header__account-details { display: none; }
+}

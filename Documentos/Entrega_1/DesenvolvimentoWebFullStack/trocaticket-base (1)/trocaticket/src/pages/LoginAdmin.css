@@ -1,0 +1,116 @@
+.login-admin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 512px;
+  padding: clamp(20px, 6vw, 41px);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-admin);
+}
+
+.login-admin__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.login-admin__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 11px;
+  border: 1px solid rgba(0, 81, 213, 0.2);
+  border-radius: var(--radius-pill);
+  background: var(--color-info-bg);
+  font-size: var(--fs-overline);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-info-text);
+}
+
+.login-admin__header h1 {
+  padding-top: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: clamp(1.625rem, 6vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--color-text-strong);
+}
+
+.login-admin__header p {
+  max-width: 40ch;
+  font-size: var(--fs-body);
+  color: var(--color-text);
+}
+
+.login-admin__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.login-admin__it {
+  font-size: var(--fs-caption);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.login-admin__it:hover {
+  text-decoration: underline;
+}
+
+.login-admin__mfa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: var(--space-1);
+}
+
+.login-admin__mfa-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-body);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--color-text-admin);
+}
+
+.login-admin__hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  color: var(--color-text);
+}
+
+.login-admin__keep {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: var(--space-1);
+  font-size: var(--fs-caption);
+  color: var(--color-text-admin);
+  cursor: pointer;
+}
+
+.login-admin__keep input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+}
+
+.login-admin__keep small {
+  font-size: inherit;
+  color: var(--color-text);
+}

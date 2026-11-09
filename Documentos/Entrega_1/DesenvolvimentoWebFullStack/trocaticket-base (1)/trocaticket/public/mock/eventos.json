@@ -1,0 +1,8 @@
+[
+  { "id": 1, "nome": "Festival VillaMix Litoral", "local": "Allianz Parque", "uf": "SP", "status": "Em produção", "organizador": "Aurora Cultural", "data": "2026-09-12", "custoPrevisto": 480000, "custoRealizado": 312500, "cotacoesRespondidas": 4, "cotacoesTotal": 5 },
+  { "id": 2, "nome": "TechSummit Brasil 2026", "local": "Expocenter Norte", "uf": "SP", "status": "Planejamento", "organizador": "Pulso Eventos", "data": "2026-10-03", "custoPrevisto": 220000, "custoRealizado": 40000, "cotacoesRespondidas": 1, "cotacoesTotal": 4 },
+  { "id": 3, "nome": "Feira Agropecuária Regional", "local": "Parque de Exposições", "uf": "RS", "status": "Concluído", "organizador": "Lume Produções", "data": "2026-05-28", "custoPrevisto": 95000, "custoRealizado": 88200, "cotacoesRespondidas": 6, "cotacoesTotal": 6 },
+  { "id": 4, "nome": "Circuito Jazz & Vinho", "local": "Parque Ibirapuera", "uf": "SP", "status": "Em cotação", "organizador": "Norte RJ", "data": "2026-08-28", "custoPrevisto": 150000, "custoRealizado": 22000, "cotacoesRespondidas": 2, "cotacoesTotal": 5 },
+  { "id": 5, "nome": "Congresso Logística e Comércio", "local": "Centro de Convenções", "uf": "SP", "status": "Em cotação", "organizador": "Aurora Cultural", "data": "2026-11-17", "custoPrevisto": 310000, "custoRealizado": 64000, "cotacoesRespondidas": 3, "cotacoesTotal": 7 },
+  { "id": 6, "nome": "Semana do Design de Interiores", "local": "Estúdio Vértice", "uf": "RJ", "status": "Suspenso", "organizador": "Lume Produções", "data": "2026-12-09", "custoPrevisto": 130000, "custoRealizado": 0, "cotacoesRespondidas": 0, "cotacoesTotal": 3 }
+]

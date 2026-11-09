@@ -1,0 +1,67 @@
+.adm-export {
+  position: relative;
+}
+
+.adm-export__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  width: 252px;
+  padding: 6px;
+  border: 1px solid var(--adm-border);
+  border-radius: 12px;
+  background: var(--adm-card);
+  box-shadow: var(--adm-shadow-lift);
+  animation: adm-rise 0.18s ease both;
+}
+
+.adm-export__title {
+  padding: 8px 10px 6px;
+}
+
+.adm-export__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--adm-fg);
+}
+
+.adm-export__item:hover,
+.adm-export__item:focus-visible {
+  background: var(--adm-accent);
+}
+
+.adm-export__item strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.adm-export__item small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.adm-export__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.adm-export__icon--pdf {
+  color: var(--adm-danger);
+}
+.adm-export__icon--csv {
+  color: var(--adm-success);
+}
+.adm-export__icon--png {
+  color: var(--adm-brand);
+}

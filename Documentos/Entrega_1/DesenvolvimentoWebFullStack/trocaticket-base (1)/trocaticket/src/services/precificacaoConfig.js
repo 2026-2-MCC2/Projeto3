@@ -1,0 +1,16 @@
+export const MARGEM_MIN = 0;
+export const MARGEM_MAX = 0.6;
+export const MARGEM_PASSO = 0.01;
+export const MARGEM_MERCADO_MIN = 0.15;
+export const MARGEM_MERCADO_MAX = 0.25;
+export const TAXA_MIN = 0;
+export const TAXA_MAX = 0.15;
+export const TAXA_PASSO = 0.005;
+export const TAXA_PADRAO = 0.08;
+export const IMPOSTO_MIN = 0;
+export const IMPOSTO_MAX = 0.15;
+export const IMPOSTO_PASSO = 0.005;
+export const IMPOSTO_PADRAO = 0.05;
+export const PUBLICO_PASSO = 50;
+export const RISCO_BAIXO_MAX = 0.6;
+export const RISCO_MEDIO_MAX = 0.8;

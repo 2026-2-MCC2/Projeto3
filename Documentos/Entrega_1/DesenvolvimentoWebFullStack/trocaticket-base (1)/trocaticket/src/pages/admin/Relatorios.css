@@ -1,0 +1,121 @@
+.rel-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .rel-layout {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+}
+
+.rel-modelos {
+  display: grid;
+  gap: 8px;
+}
+
+.rel-modelos button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  background: var(--adm-card);
+  text-align: left;
+  cursor: pointer;
+  color: var(--adm-fg);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.rel-modelos button:hover {
+  border-color: var(--adm-brand);
+  background: var(--adm-accent);
+}
+
+.rel-modelos strong {
+  font-size: 0.875rem;
+}
+
+.rel-modelos span {
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.rel-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.rel-fieldset legend {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.rel-fontes {
+  display: grid;
+  gap: 6px;
+}
+
+.rel-fontes label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid var(--adm-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.rel-fontes label.is-on {
+  border-color: var(--adm-brand);
+  background: var(--adm-accent);
+  box-shadow: 0 0 0 1px var(--adm-brand);
+}
+
+.rel-fontes input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  cursor: pointer;
+}
+
+.rel-fontes input:focus-visible + strong {
+  text-decoration: underline;
+}
+
+.rel-fontes strong {
+  font-size: 0.875rem;
+}
+
+.rel-fontes span {
+  font-size: 0.75rem;
+  color: var(--adm-muted-fg);
+}
+
+.rel-filtros {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.rel-log-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+}
+
+.rel-log-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--adm-border);
+}

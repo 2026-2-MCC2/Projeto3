@@ -1,0 +1,8 @@
+[
+  { "id": 1, "codigo": "CT-3081", "titulo": "Montagem de palco", "evento": "Congresso Logística", "organizador": "Norte Eventos", "situacao": "Vencendo", "respostasRecebidas": 3, "respostasTotal": 5, "melhorProposta": 96400, "prazo": "2026-05-14", "prazoMensagem": "vence em 2 dias" },
+  { "id": 2, "codigo": "CT-3076", "titulo": "Iluminação e som", "evento": "Festival Sudeste Tech", "organizador": "Alvorada Eventos", "situacao": "Aberta", "respostasRecebidas": 5, "respostasTotal": 7, "melhorProposta": 143900, "prazo": "2026-05-18", "prazoMensagem": "vence em 6 dias" },
+  { "id": 3, "codigo": "CT-3069", "titulo": "Buffet e serviço", "evento": "Semana do Design", "organizador": "Estúdio Vértice", "situacao": "Vencida", "respostasRecebidas": 1, "respostasTotal": 4, "melhorProposta": 28700, "prazo": "2026-05-10", "prazoMensagem": "venceu ontem" },
+  { "id": 4, "codigo": "CT-3064", "titulo": "Transporte de equipe", "evento": "Feira Agro Nordeste", "organizador": "Planalto", "situacao": "Aberta", "respostasRecebidas": 2, "respostasTotal": 4, "melhorProposta": 41200, "prazo": "2026-05-22", "prazoMensagem": "vence em 10 dias" },
+  { "id": 5, "codigo": "CT-3058", "titulo": "Credenciamento digital", "evento": "Web Summit Sul", "organizador": "Horizonte", "situacao": "Encerrada", "respostasRecebidas": 8, "respostasTotal": 8, "melhorProposta": 67500, "prazo": "2026-05-02", "prazoMensagem": "encerrada" },
+  { "id": 6, "codigo": "CT-3052", "titulo": "Segurança e brigada", "evento": "Arena Cultural", "organizador": "Orion", "situacao": "Vencendo", "respostasRecebidas": 1, "respostasTotal": 6, "melhorProposta": null, "prazo": "2026-05-13", "prazoMensagem": "vence amanhã" }
+]
