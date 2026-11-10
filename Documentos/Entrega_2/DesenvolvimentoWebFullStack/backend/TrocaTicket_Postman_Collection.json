@@ -1,0 +1,1072 @@
+{
+  "info": {
+    "name": "TrocaTicket — Testes da API (Postman)",
+    "description": "Coleção dos testes realizados/validados no backend TrocaTicket. Configure as variáveis antes de executar. As rotas de propostas, custos e seleções não foram incluídas porque não foram testadas/confirmadas nesta etapa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "userPassword",
+      "value": "Teste123456"
+    },
+    {
+      "key": "orgEmail",
+      "value": "teste@exemplo.com"
+    },
+    {
+      "key": "orgCnpj",
+      "value": "12345678000195"
+    },
+    {
+      "key": "supplierEmail",
+      "value": "fornecedor@exemplo.com"
+    },
+    {
+      "key": "supplierCnpj",
+      "value": "11222333000181"
+    },
+    {
+      "key": "documentSupplierEmail",
+      "value": "fornecedor.documento@exemplo.com"
+    },
+    {
+      "key": "documentSupplierCnpj",
+      "value": "84454135000117"
+    },
+    {
+      "key": "documentBase64",
+      "value": "PREENCHER_COM_BASE64_DO_PDF"
+    },
+    {
+      "key": "adminEmail",
+      "value": "PREENCHER_LOCALMENTE"
+    },
+    {
+      "key": "adminPassword",
+      "value": "PREENCHER_LOCALMENTE"
+    },
+    {
+      "key": "adminMfaCode",
+      "value": "PREENCHER_LOCALMENTE"
+    },
+    {
+      "key": "organizerToken",
+      "value": ""
+    },
+    {
+      "key": "supplierToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "statusToken",
+      "value": "PREENCHER_SE_RETORNADO_NO_CADASTRO"
+    },
+    {
+      "key": "organizerId",
+      "value": ""
+    },
+    {
+      "key": "supplierId",
+      "value": ""
+    },
+    {
+      "key": "approvalId",
+      "value": "PREENCHER_ID_DE_CADASTRO_PENDENTE"
+    },
+    {
+      "key": "rejectionId",
+      "value": "PREENCHER_OUTRO_ID_PENDENTE"
+    },
+    {
+      "key": "documentUserId",
+      "value": "4"
+    },
+    {
+      "key": "documentId",
+      "value": "1"
+    },
+    {
+      "key": "managedUserId",
+      "value": "4"
+    },
+    {
+      "key": "eventId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 — Autenticação e usuário",
+      "item": [
+        {
+          "name": "Cadastrar organizador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Empresa Teste\",\n  \"email\": \"{{orgEmail}}\",\n  \"senha\": \"{{userPassword}}\",\n  \"perfil\": \"ORGANIZADOR\",\n  \"cnpj\": \"{{orgCnpj}}\",\n  \"telefone\": \"11999999999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Use um e-mail e CNPJ ainda não cadastrados. O cadastro começa PENDENTE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cadastro criado\", () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));",
+                  "const d=pm.response.json(); if(d.id) pm.collectionVariables.set(\"organizerId\", String(d.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar fornecedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fornecedor Teste\",\n  \"email\": \"{{supplierEmail}}\",\n  \"senha\": \"{{userPassword}}\",\n  \"perfil\": \"FORNECEDOR\",\n  \"cnpj\": \"{{supplierCnpj}}\",\n  \"categoria\": \"Alimentação\",\n  \"descricao\": \"Fornecedor de alimentos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Use um e-mail e CNPJ ainda não cadastrados. O cadastro começa PENDENTE."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Cadastro criado\", () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));",
+                  "const d=pm.response.json(); if(d.id) pm.collectionVariables.set(\"supplierId\", String(d.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar fornecedor com documento (opcional)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fornecedor Documento Teste\",\n  \"email\": \"{{documentSupplierEmail}}\",\n  \"senha\": \"{{userPassword}}\",\n  \"perfil\": \"FORNECEDOR\",\n  \"cnpj\": \"{{documentSupplierCnpj}}\",\n  \"categoria\": \"Alimentação\",\n  \"descricao\": \"Fornecedor com documento de teste\",\n  \"documento\": {\n    \"nome\": \"documento-teste.pdf\",\n    \"tipo\": \"application/pdf\",\n    \"conteudo\": \"{{documentBase64}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Preencha documentBase64 com o Base64 integral de um PDF pequeno, sem prefixo data:. Use e-mail/CNPJ inéditos."
+          }
+        },
+        {
+          "name": "Login organizador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{orgEmail}}\",\n  \"senha\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 2xx\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "const data = pm.response.json();",
+                  "if (data.token) pm.collectionVariables.set(\"organizerToken\", data.token);",
+                  "else if (data.accessToken) pm.collectionVariables.set(\"organizerToken\", data.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login fornecedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{supplierEmail}}\",\n  \"senha\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 2xx\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "const data = pm.response.json();",
+                  "if (data.token) pm.collectionVariables.set(\"supplierToken\", data.token);",
+                  "else if (data.accessToken) pm.collectionVariables.set(\"supplierToken\", data.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login administrador (MFA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{adminPassword}}\",\n  \"admin\": true,\n  \"mfa\": \"{{adminMfaCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Preencha adminEmail, adminPassword e adminMfaCode localmente. Não compartilhe esses valores."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 2xx\", function () { pm.expect(pm.response.code).to.be.within(200, 299); });",
+                  "const data = pm.response.json();",
+                  "if (data.token) pm.collectionVariables.set(\"adminToken\", data.token);",
+                  "else if (data.accessToken) pm.collectionVariables.set(\"adminToken\", data.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar usuário autenticado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{supplierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar documento do usuário",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/documento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me",
+                "documento"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{supplierToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar status do cadastro",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/registration-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registration-status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{statusToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Use o token de acompanhamento retornado no cadastro, se disponível na resposta."
+          }
+        },
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 — Eventos",
+      "item": [
+        {
+          "name": "Listar eventos do organizador",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "eventos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{organizerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar evento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "eventos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{organizerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Festival TrocaTicket\",\n  \"categoria\": \"Música\",\n  \"descricao\": \"Evento de teste para validação da API.\",\n  \"capa\": \"\",\n  \"dataInicio\": \"2026-12-15T18:00:00\",\n  \"dataFim\": \"2026-12-15T23:00:00\",\n  \"local\": {\n    \"nome\": \"Centro de Eventos\",\n    \"cidade\": \"São Paulo\",\n    \"uf\": \"SP\"\n  },\n  \"capacidadeAlvara\": 1000,\n  \"publico\": {\n    \"minimo\": 100,\n    \"maximo\": 1000\n  },\n  \"precificacao\": {\n    \"margem\": 20,\n    \"taxaPlataforma\": 0.08,\n    \"impostos\": 0.05,\n    \"publicoEsperado\": 500,\n    \"cenarioEscolhido\": \"esperado\"\n  },\n  \"custos\": {\n    \"fornecedores\": [],\n    \"fiscais\": [],\n    \"propostasAceitas\": []\n  },\n  \"propostas\": [],\n  \"status\": \"rascunho\",\n  \"etapaAtual\": \"cadastro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Evento criado\", () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "const d=pm.response.json(); if(d.id) pm.collectionVariables.set(\"eventId\", String(d.id)); else if(d.evento && d.evento.id) pm.collectionVariables.set(\"eventId\", String(d.evento.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Atualizar evento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/eventos/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "eventos",
+                "{{eventId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{organizerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Festival TrocaTicket - Atualizado\",\n  \"categoria\": \"Música\",\n  \"descricao\": \"Evento atualizado para teste da API.\",\n  \"capa\": \"\",\n  \"dataInicio\": \"2026-12-15T18:00:00\",\n  \"dataFim\": \"2026-12-15T23:00:00\",\n  \"local\": {\n    \"nome\": \"Centro de Eventos Atualizado\",\n    \"cidade\": \"São Paulo\",\n    \"uf\": \"SP\"\n  },\n  \"capacidadeAlvara\": 1000,\n  \"publico\": {\n    \"minimo\": 150,\n    \"maximo\": 1000\n  },\n  \"precificacao\": {\n    \"margem\": 25,\n    \"taxaPlataforma\": 0.08,\n    \"impostos\": 0.05,\n    \"publicoEsperado\": 600,\n    \"cenarioEscolhido\": \"esperado\"\n  },\n  \"custos\": {\n    \"fornecedores\": [],\n    \"fiscais\": [],\n    \"propostasAceitas\": []\n  },\n  \"propostas\": [],\n  \"status\": \"rascunho\",\n  \"etapaAtual\": \"cadastro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Atualiza o evento criado na requisição anterior."
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 — Administração e aprovação",
+      "item": [
+        {
+          "name": "Listar aprovações pendentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar cadastros aprovados/suspensos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cadastros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cadastros"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar checklist - Receita Federal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{approvalId}}/checklist/receita",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{approvalId}}",
+                "checklist",
+                "receita"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"valido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar checklist - CND",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{approvalId}}/checklist/cnd",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{approvalId}}",
+                "checklist",
+                "cnd"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"valido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar checklist - Contrato",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{approvalId}}/checklist/contrato",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{approvalId}}",
+                "checklist",
+                "contrato"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"valido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar checklist - Endereço",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{approvalId}}/checklist/endereco",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{approvalId}}",
+                "checklist",
+                "endereco"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"valido\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Aprovar cadastro",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{approvalId}}/aprovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{approvalId}}",
+                "aprovar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Execute somente depois de todos os quatro itens do checklist estarem como valido."
+          }
+        },
+        {
+          "name": "Reprovar cadastro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{rejectionId}}/rejeitar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{rejectionId}}",
+                "rejeitar"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Documentação cadastral incompleta para aprovação.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Use outro cadastro ainda PENDENTE; não reutilize o ID aprovado."
+          }
+        },
+        {
+          "name": "Consultar documento para análise",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/aprovacoes/{{documentUserId}}/documentos/{{documentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "aprovacoes",
+                "{{documentUserId}}",
+                "documentos",
+                "{{documentId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Use o ID do usuário e o ID_DOCUMENTO correspondentes ao mesmo documento."
+          }
+        },
+        {
+          "name": "Suspender cadastro aprovado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cadastros/{{managedUserId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cadastros",
+                "{{managedUserId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Suspensão temporária para teste do sistema.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "O cadastro precisa estar APROVADO. A rota alterna o status para SUSPENSO."
+          }
+        },
+        {
+          "name": "Reativar cadastro suspenso",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/cadastros/{{managedUserId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "cadastros",
+                "{{managedUserId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Reativação do cadastro após conclusão do teste.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Execute depois da suspensão; a mesma rota alterna SUSPENSO para APROVADO."
+          }
+        },
+        {
+          "name": "Consultar auditoria administrativa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/auditoria",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "auditoria"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
