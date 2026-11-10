@@ -14,7 +14,8 @@ async function findById(id) {
   const [rows] = await pool.query(
     `SELECT u.ID_USUARIO, u.NOME, u.EMAIL, u.PERFIL, u.STATUS_CADASTRO,
             u.MOTIVO_REPROVACAO,
-            o.ID_ORGANIZADOR, f.ID_FORNECEDOR
+            o.ID_ORGANIZADOR, o.TELEFONE AS TELEFONE_ORGANIZADOR,
+            f.ID_FORNECEDOR, f.CATEGORIA, f.DESCRICAO
        FROM USUARIOS u
        LEFT JOIN ORGANIZADORES o ON o.ID_USUARIO = u.ID_USUARIO
        LEFT JOIN FORNECEDORES f ON f.ID_USUARIO = u.ID_USUARIO
@@ -22,6 +23,22 @@ async function findById(id) {
     [id]
   );
   return rows[0] || null;
+}
+
+async function updateProfile(id, { nome, telefone }) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    if (nome) await conn.query('UPDATE USUARIOS SET NOME = ? WHERE ID_USUARIO = ?', [nome, id]);
+    if (telefone !== undefined) {
+      await conn.query('UPDATE ORGANIZADORES SET TELEFONE = ? WHERE ID_USUARIO = ?', [telefone, id]);
+    }
+    await conn.commit();
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally { conn.release(); }
+  return findById(id);
 }
 
 // Cria o usuário e, conforme o perfil, a linha em ORGANIZADORES ou FORNECEDORES.
@@ -85,4 +102,4 @@ async function findDocumentByUserId(id) {
   return rows[0] || null;
 }
 
-module.exports = { findByEmail, findById, create, findDocumentByUserId };
+module.exports = { findByEmail, findById, create, findDocumentByUserId, updateProfile };

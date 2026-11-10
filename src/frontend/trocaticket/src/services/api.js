@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env?.VITE_API_URL ?? "").replace(/\/$/, "");
+const API_URL = (import.meta.env?.VITE_API_URL ?? "https://trocaticket-api-production.up.railway.app").replace(/\/$/, "");
 const TOKEN_KEY = "trocaticket:token";
 
 export function getToken() {

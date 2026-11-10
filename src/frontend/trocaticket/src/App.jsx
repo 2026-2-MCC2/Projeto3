@@ -9,7 +9,6 @@ import EscolhaPerfil from "./pages/EscolhaPerfil.jsx";
 import Login from "./pages/Login.jsx";
 import LoginAdmin from "./pages/LoginAdmin.jsx";
 import Cadastro from "./pages/Cadastro.jsx";
-import EmConstrucao from "./pages/EmConstrucao.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import OrganizadorLayout from "./pages/OrganizadorLayout.jsx";
 import EventoRedirect from "./pages/EventoRedirect.jsx";
@@ -24,8 +23,11 @@ import FornecedorLayout from "./pages/FornecedorLayout.jsx";
 import PainelFornecedor from "./pages/PainelFornecedor.jsx";
 import MinhasPropostas from "./pages/MinhasPropostas.jsx";
 import MensagensFornecedor from "./pages/MensagensFornecedor.jsx";
+import MensagensConectadas from "./pages/MensagensConectadas.jsx";
 import Mensagens from "./pages/Mensagens.jsx";
 import PerfilFornecedor from "./pages/PerfilFornecedor.jsx";
+import PerfilOrganizador from "./pages/PerfilOrganizador.jsx";
+import PerfilConectado from "./pages/PerfilConectado.jsx";
 import Resumo from "./pages/Resumo.jsx";
 import SegurancaInstitucional from "./pages/SegurancaInstitucional.jsx";
 import TermosDeUso from "./pages/TermosDeUso.jsx";
@@ -85,11 +87,14 @@ export default function App() {
       <Route element={<Layout />}>
         {/* Análise Cadastral (pública, após cadastro) */}
         <Route path="/cadastro/status" element={<CadastroEmAnalise />} />
+        <Route path="/recuperar-senha" element={<Suporte />} />
+        <Route path="/politicas" element={<PoliticaPrivacidade />} />
+        <Route path="/politicas-de-concessao" element={<PoliticaPrivacidade />} />
 
         {publicas
           .filter(([path]) => path !== "/cadastro/status") // Remove a que já tem rota
           .map(([path, titulo]) => (
-            <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
+            <Route key={path} path={path} element={<NotFound />} />
           ))}
 
         {/* Outras rotas protegidas que já existem */}
@@ -100,7 +105,7 @@ export default function App() {
           return (
             <Route key={perfil} element={<ProtectedRoute perfil={perfil} />}>
               {telas.map(([path, titulo]) => (
-                <Route key={path} path={path} element={<EmConstrucao titulo={titulo} />} />
+                <Route key={path} path={path} element={<NotFound />} />
               ))}
             </Route>
           );
@@ -115,8 +120,8 @@ export default function App() {
           <Route path="/fornecedor" element={<PainelFornecedor />} />
           <Route path="/fornecedor/painel" element={<PainelFornecedor />} />
           <Route path="/fornecedor/minhas-propostas" element={<MinhasPropostas />} />
-          <Route path="/fornecedor/mensagens-fornecedor" element={<MensagensFornecedor />} />
-          <Route path="/fornecedor/perfil" element={<PerfilFornecedor />} />
+          <Route path="/fornecedor/mensagens-fornecedor" element={<MensagensConectadas />} />
+          <Route path="/fornecedor/perfil" element={<PerfilConectado />} />
         </Route>
       </Route>
 
@@ -132,8 +137,8 @@ export default function App() {
           <Route path="eventos/novo/resumo" element={<ResumoConsolidacao />} />
           <Route path="eventos/novo/publicar" element={<Publicar />} />
           <Route path="eventos" element={<Navigate to="/organizador" replace />} />
-          <Route path="mensagens" element={<Mensagens perfil="organizador" />} />
-          <Route path="perfil" element={<EmConstrucao titulo="Meu Perfil" />} />
+          <Route path="mensagens" element={<MensagensConectadas />} />
+          <Route path="perfil" element={<PerfilOrganizador />} />
           <Route path="resumo" element={<Resumo />} />
         </Route>
         <Route path="/eventos/:id/custos" element={<OrganizadorLayout />}>

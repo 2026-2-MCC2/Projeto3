@@ -88,10 +88,10 @@ async function ler(obter) {
 
 export const listarPendentes = () => apiRequest("/admin/aprovacoes");
 export const listarCadastros = () => apiRequest("/admin/cadastros");
-export const listarEventos = () => ler(() => eventosSeed);
-export const listarCotacoes = () => ler(() => cotacoesSeed);
+export const listarEventos = () => apiRequest("/admin/eventos");
+export const listarCotacoes = () => apiRequest("/admin/cotacoes");
 export const listarAuditoria = () => apiRequest("/admin/auditoria");
-export const obterSerie = (periodo) => ler(() => seriePorPeriodoSeed[periodo] ?? []);
+export const obterSerie = (periodo) => apiRequest(`/admin/series?periodo=${encodeURIComponent(periodo)}`);
 
 export async function obterEvento(id) {
   const evento = await ler(() => eventosSeed.find((e) => e.id === id) ?? null);
@@ -100,8 +100,7 @@ export async function obterEvento(id) {
 }
 
 /** Conjunto de dados que alimenta o gerador de relatórios. */
-export const obterDatasetRelatorios = () =>
-  ler(() => ({ cadastros: db.cadastros, eventos: eventosSeed, cotacoes: cotacoesSeed }));
+export const obterDatasetRelatorios = () => apiRequest("/admin/relatorios/dataset");
 
 /** Busca global da barra superior (cadastros, pendentes, eventos e cotações). */
 export async function buscarGlobal(termo) {

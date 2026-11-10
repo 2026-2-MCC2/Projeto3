@@ -66,13 +66,37 @@ async function register(req, res, next) {
       documento,
     });
 
-    return res.status(201).json({ id, nome, email, perfil });
+    const statusToken = jwt.sign(
+      { id, purpose: 'registration-status' },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    return res.status(201).json({ id, nome, email, perfil, statusToken });
   } catch (err) {
     // E-mail ou CNPJ duplicado (UNIQUE) numa corrida entre requisições
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ erro: 'E-mail ou CNPJ já cadastrado.' });
     }
     next(err);
+  }
+}
+
+async function registrationStatus(req, res, next) {
+  try {
+    const header = req.headers.authorization || '';
+    if (!header.startsWith('Bearer ')) return res.status(401).json({ erro: 'Token de acompanhamento não informado.' });
+    const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+    if (payload.purpose !== 'registration-status') return res.status(401).json({ erro: 'Token de acompanhamento inválido.' });
+    const usuario = await User.findById(payload.id);
+    if (!usuario) return res.status(404).json({ erro: 'Cadastro não encontrado.' });
+    return res.json({
+      usuarioId: usuario.ID_USUARIO,
+      status: String(usuario.STATUS_CADASTRO || 'PENDENTE').toLowerCase().replace('pendente', 'em_analise'),
+      motivo: usuario.MOTIVO_REPROVACAO || '',
+    });
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') return res.status(401).json({ erro: 'Token de acompanhamento inválido ou expirado.' });
+    return next(err);
   }
 }
 
@@ -134,10 +158,23 @@ async function me(req, res, next) {
       perfil: u.PERFIL,
       idOrganizador: u.ID_ORGANIZADOR || null,
       idFornecedor: u.ID_FORNECEDOR || null,
+      telefone: u.TELEFONE_ORGANIZADOR || null,
+      categoria: u.CATEGORIA || null,
+      descricao: u.DESCRICAO || null,
     });
   } catch (err) {
     next(err);
   }
+}
+
+async function updateMe(req, res, next) {
+  try {
+    const nome = String(req.body?.nome || '').trim();
+    const telefone = String(req.body?.telefone || '').replace(/\D/g, '');
+    if (nome.length < 2) return res.status(400).json({ erro: 'Informe um nome válido.' });
+    const usuario = await User.updateProfile(req.user.id, { nome, telefone });
+    return res.json({ id: usuario.ID_USUARIO, nome: usuario.NOME, email: usuario.EMAIL, perfil: usuario.PERFIL, idOrganizador: usuario.ID_ORGANIZADOR || null, idFornecedor: usuario.ID_FORNECEDOR || null, telefone: usuario.TELEFONE_ORGANIZADOR || null, categoria: usuario.CATEGORIA || null, descricao: usuario.DESCRICAO || null });
+  } catch (err) { return next(err); }
 }
 
 async function documentoAtual(req, res, next) {
@@ -152,4 +189,4 @@ async function documentoAtual(req, res, next) {
   }
 }
 
-module.exports = { register, login, me, documentoAtual };
+module.exports = { register, login, me, updateMe, documentoAtual, registrationStatus };

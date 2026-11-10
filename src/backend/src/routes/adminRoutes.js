@@ -8,6 +8,10 @@ const {
   reviewRegistration,
   downloadRegistrationDocument,
   listAudit,
+  listEvents,
+  listQuotes,
+  reportDataset,
+  reportSeries,
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -20,5 +24,9 @@ router.get('/aprovacoes/:id/documentos/:documentId', downloadRegistrationDocumen
 router.post('/aprovacoes/:id/aprovar', (req, res, next) => reviewRegistration(req, res, next));
 router.post('/aprovacoes/:id/rejeitar', (req, res, next) => reviewRegistration(req, res, next));
 router.get('/auditoria', listAudit);
+router.get('/eventos', listEvents);
+router.get('/cotacoes', listQuotes);
+router.get('/relatorios/dataset', reportDataset);
+router.get('/series', reportSeries);
 
 module.exports = router;

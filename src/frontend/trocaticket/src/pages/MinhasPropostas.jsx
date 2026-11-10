@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { apiRequest } from '../services/api.js';
 import './MinhasPropostas.css'; // Importa o CSS
 
 export default function MinhasPropostasFornecedor() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [propostasRemotas, setPropostasRemotas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Dados mockados baseados no HTML original
-  const allProposals = [
+  useEffect(() => {
+    apiRequest('/fornecedor/propostas')
+      .then((rows) => setPropostasRemotas(rows.map((p) => ({
+        id: `#${p.id}`,
+        date: p.criadoEm ? new Date(p.criadoEm).toLocaleDateString('pt-BR') : '',
+        event: p.evento || `Evento ${p.eventoId}`,
+        item: p.itemId,
+        value: `R$ ${Number(p.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        valid: p.validade ? new Date(p.validade).toLocaleDateString('pt-BR') : '',
+        status: ({ ENVIADA: 'Enviada', EM_ANALISE: 'Em análise', APROVADA: 'Aprovada', RECUSADA: 'Recusada' }[p.situacao] || 'Enviada'),
+      }))))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Estrutura visual mantida; os registros são carregados da API.
+  const allProposalsDemo = [
     { id: '#2081', date: '12/10/2026', event: 'Casamento Helena & Tomás', item: 'Mobiliário e louças', value: 'R$ 6.200,00', valid: '12/11/2026', status: 'Enviada' },
     { id: '#2084', date: '10/10/2026', event: 'Casamento Helena & Tomás', item: 'Decoração floral', value: 'R$ 9.850,00', valid: '10/11/2026', status: 'Em análise' },
     { id: '#2076', date: '08/10/2026', event: 'Casamento Helena & Tomás', item: 'Som e iluminação', value: 'R$ 7.400,00', valid: '14/11/2026', status: 'Aprovada' },
     { id: '#2090', date: '14/10/2026', event: 'Convenção Nimbus Tech', item: 'Coffee break duplo', value: 'R$ 18.400,00', valid: '20/11/2026', status: 'Em análise' },
     { id: '#2069', date: '05/10/2026', event: 'Aniversário 50 anos Dona Rita', item: 'Buffet coquetel', value: 'R$ 7.600,00', valid: '01/12/2026', status: 'Recusada' },
   ];
+  const allProposals = propostasRemotas;
 
   // Lógica de Filtro e Busca
   const filteredProposals = allProposals.filter(prop => {
@@ -66,6 +86,9 @@ export default function MinhasPropostasFornecedor() {
       return <button className="mprop-btn-link">Ver motivo</button>;
     }
   };
+
+  if (loading) return <main className="mprop-main"><p>Carregando propostas...</p></main>;
+  if (error) return <main className="mprop-main"><p role="alert">{error}</p></main>;
 
   return (
     <div className="mprop-layout">

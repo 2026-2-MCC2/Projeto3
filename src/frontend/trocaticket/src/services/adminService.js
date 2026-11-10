@@ -1,7 +1,8 @@
-// "API" mockada do painel do administrador: os dados ficam em public/mock/*.json
+// Compatibilidade das telas administrativas com a API real.
 // e são lidos com fetch, com uma latência simulada para exercitar os estados de
 // carregamento. Para trocar por uma API real, basta mudar a URL e o método aqui —
 // as páginas que consomem estas funções não precisam mudar.
+import { apiRequest } from "./api.js";
 const LATENCIA_MS = 700;
 
 const esperar = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -20,13 +21,13 @@ async function buscarJson(url) {
 }
 
 export async function buscarResumo() {
-  const dados = await buscarJson("/mock/resumo.json");
+  const dados = await apiRequest("/admin/relatorios/dataset");
   await esperar(LATENCIA_MS);
   return dados;
 }
 
 export async function buscarAprovacoes() {
-  const dados = await buscarJson("/mock/aprovacoes.json");
+  const dados = await apiRequest("/admin/aprovacoes");
   await esperar(LATENCIA_MS);
   return dados;
 }
@@ -35,40 +36,40 @@ export async function buscarAprovacoes() {
 // real para que a UI (botões em "loading", bloqueio de duplo clique) já nasça
 // pronta para quando a API existir.
 export async function aprovarCadastro(id) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: "aprovado" };
+  return apiRequest(`/admin/aprovacoes/${encodeURIComponent(id)}/aprovar`, { method: "POST", body: {} });
 }
 
 export async function rejeitarCadastro(id, motivo) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: "rejeitado", motivo };
+  return apiRequest(`/admin/aprovacoes/${encodeURIComponent(id)}/rejeitar`, { method: "POST", body: { motivo } });
 }
 
 export async function buscarCadastros() {
-  const dados = await buscarJson("/mock/cadastros.json");
+  const dados = await apiRequest("/admin/cadastros");
   await esperar(LATENCIA_MS);
   return dados;
 }
 
 export async function alternarSituacaoCadastro(id, situacaoAtual) {
-  await esperar(LATENCIA_MS);
-  return { id, situacao: situacaoAtual === "Ativo" ? "Suspenso" : "Ativo" };
+  return apiRequest(`/admin/cadastros/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: { motivo: `Alteração solicitada a partir de ${situacaoAtual}.` },
+  });
 }
 
 export async function buscarEventos() {
-  const dados = await buscarJson("/mock/eventos.json");
+  const dados = await apiRequest("/admin/eventos");
   await esperar(LATENCIA_MS);
   return dados;
 }
 
 export async function buscarCotacoes() {
-  const dados = await buscarJson("/mock/cotacoes.json");
+  const dados = await apiRequest("/admin/cotacoes");
   await esperar(LATENCIA_MS);
   return dados;
 }
 
 export async function buscarRelatorios() {
-  const dados = await buscarJson("/mock/relatorios.json");
+  const dados = await apiRequest("/admin/relatorios/dataset");
   await esperar(LATENCIA_MS);
   return dados;
 }

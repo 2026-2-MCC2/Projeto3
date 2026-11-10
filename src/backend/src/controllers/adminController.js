@@ -305,6 +305,95 @@ async function listAudit(req, res, next) {
   }
 }
 
+function parseJson(value) {
+  if (!value) return {};
+  if (typeof value === 'object') return value;
+  try { return JSON.parse(value); } catch { return {}; }
+}
+
+async function listEvents(req, res, next) {
+  try {
+    const [rows] = await pool.query(`
+      SELECT e.ID_EVENTO, e.NOME, e.LOCALIZACAO, e.DATA_INICIO, e.PUBLICO_MAXIMO,
+             e.STATUS, e.DADOS_JSON, u.NOME AS ORGANIZADOR
+      FROM EVENTOS e
+      JOIN ORGANIZADORES o ON o.ID_ORGANIZADOR = e.ID_ORGANIZADOR
+      JOIN USUARIOS u ON u.ID_USUARIO = o.ID_USUARIO
+      ORDER BY e.DATA_INICIO DESC
+    `);
+    return res.json(rows.map((row) => {
+      const data = parseJson(row.DADOS_JSON);
+      const custos = data.custos?.fornecedores || [];
+      const previsto = custos.reduce((total, item) => total + (Number(item.valor) || 0), 0);
+      return {
+        id: String(row.ID_EVENTO), nome: data.nome || row.NOME,
+        status: data.status || row.STATUS || 'planejamento',
+        organizador: row.ORGANIZADOR, cidade: data.local?.cidade || '', uf: data.local?.uf || '',
+        data: data.dataInicio || row.DATA_INICIO, publico: Number(data.publico?.maximo || row.PUBLICO_MAXIMO || 0),
+        previsto, realizado: 0,
+      };
+    }));
+  } catch (err) { return next(err); }
+}
+
+async function listQuotes(req, res, next) {
+  try {
+    const [rows] = await pool.query(`
+      SELECT e.ID_EVENTO, e.NOME, e.DADOS_JSON
+      FROM EVENTOS e ORDER BY e.DATA_INICIO DESC
+    `);
+    return res.json(rows.flatMap((row) => {
+      const data = parseJson(row.DADOS_JSON);
+      const itens = data.custos?.fornecedores || [];
+      return itens.map((item, index) => ({
+        id: `${row.ID_EVENTO}-${item.id || index}`, eventoId: String(row.ID_EVENTO),
+        servico: item.titulo || item.nome || 'Item de fornecedor', categoria: item.categoriaId || 'outro',
+        situacao: 'Aberta', convidados: 0, propostas: [],
+      }));
+    }));
+  } catch (err) { return next(err); }
+}
+
+async function reportDataset(req, res, next) {
+  try {
+    const [cadastros, eventos, cotacoes] = await Promise.all([
+      listRegistrationsRows(), listEventsRows(), listQuotesRows(),
+    ]);
+    return res.json({ cadastros, eventos, cotacoes });
+  } catch (err) { return next(err); }
+}
+
+async function reportSeries(req, res, next) {
+  try {
+    const [rows] = await pool.query(`
+      SELECT DATE_FORMAT(DATA_INICIO, '%Y-%m') AS periodo,
+             COUNT(*) AS eventos,
+             0 AS previsto,
+             0 AS realizado
+      FROM EVENTOS GROUP BY DATE_FORMAT(DATA_INICIO, '%Y-%m')
+      ORDER BY periodo ASC LIMIT 24
+    `);
+    const serie = rows.length ? rows : [{ periodo: new Date().toISOString().slice(0, 7), eventos: 0, previsto: 0, realizado: 0 }];
+    return res.json(serie.map((row) => ({ ...row, eventos: Number(row.eventos), previsto: Number(row.previsto), realizado: Number(row.realizado), gmv: Number(row.realizado) })));
+  } catch (err) { return next(err); }
+}
+
+async function listRegistrationsRows() {
+  const [rows] = await pool.query(`SELECT ID_USUARIO AS id, NOME AS nome, EMAIL AS email, PERFIL AS tipo, STATUS_CADASTRO AS status FROM USUARIOS ORDER BY ID_USUARIO DESC`);
+  return rows;
+}
+async function listEventsRows() {
+  const fakeReq = {};
+  let resultado;
+  await new Promise((resolve, reject) => listEvents(fakeReq, { json: (value) => { resultado = value; resolve(); } }, reject));
+  return resultado || [];
+}
+async function listQuotesRows() {
+  let resultado;
+  await new Promise((resolve, reject) => listQuotes({}, { json: (value) => { resultado = value; resolve(); } }, reject));
+  return resultado || [];
+}
+
 module.exports = {
   listPending,
   listRegistrations,
@@ -313,4 +402,8 @@ module.exports = {
   reviewRegistration,
   downloadRegistrationDocument,
   listAudit,
+  listEvents,
+  listQuotes,
+  reportDataset,
+  reportSeries,
 };

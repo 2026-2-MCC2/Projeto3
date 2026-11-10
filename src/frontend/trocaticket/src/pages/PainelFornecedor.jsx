@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "../services/api.js";
 import "./PainelFornecedor.css";
 
 /* ---------- Ícones (SVG inline, sem biblioteca) ---------- */
@@ -51,7 +52,7 @@ function Icone({ nome, className = "opp-icone" }) {
   );
 }
 
-/* ---------- Dados de exemplo (depois troque por dados da API) ---------- */
+/* ---------- Estrutura de apresentação dos itens recebidos da API ---------- */
 const EVENTOS_INICIAIS = [
   {
     id: 1,
@@ -275,14 +276,55 @@ function formatarData(iso) {
 
 /* ---------- Componente principal ---------- */
 export default function PainelFornecedor() {
-  const [eventos, setEventos] = useState(EVENTOS_INICIAIS);
-  const [eventoId, setEventoId] = useState(1);
+  const [eventos, setEventos] = useState([]);
+  const [eventoId, setEventoId] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState("");
   const [filtro, setFiltro] = useState("Todos");
   const [busca, setBusca] = useState("");
   const [guiaVisivel, setGuiaVisivel] = useState(true);
 
   // modal: null = fechado | { itemId, nome, qtd, valor, validade, obs }
   const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    let ativo = true;
+    apiRequest("/fornecedor/oportunidades")
+      .then((itens) => {
+        const agrupados = new Map();
+        for (const item of itens) {
+          const atual = agrupados.get(item.eventoId) || {
+            id: item.eventoId,
+            tipo: "Evento",
+            nome: item.evento,
+            local: item.local || "Local não informado",
+            convidados: 0,
+            data: formatarData(String(item.data || "").slice(0, 10)),
+            prazo: "Em cotação",
+            fecha: { texto: "Em cotação", tom: "neutro" },
+            organizador: "Organizador",
+            itens: [],
+          };
+          atual.itens.push({
+            id: item.itemId,
+            nome: item.nome,
+            qtd: item.qtd,
+            desc: item.descricao,
+            status: item.propostaEnviada ? "enviada" : null,
+          });
+          agrupados.set(item.eventoId, atual);
+        }
+        if (ativo) {
+          const lista = [...agrupados.values()];
+          setEventos(lista);
+          setEventoId(lista[0]?.id ?? null);
+          setErro("");
+        }
+      })
+      .catch((e) => ativo && setErro(e.message))
+      .finally(() => ativo && setCarregando(false));
+    return () => { ativo = false; };
+  }, []);
 
   const eventosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
@@ -309,8 +351,13 @@ export default function PainelFornecedor() {
     });
   }
 
-  function enviarProposta(e) {
+  async function enviarProposta(e) {
     e.preventDefault();
+    const valor = Number(String(modal.valor).replace(/\./g, "").replace(",", "."));
+    await apiRequest("/fornecedor/propostas", {
+      method: "POST",
+      body: { eventoId, itemId: modal.itemId, valor, validade: modal.validade, descricao: modal.obs },
+    });
     const hoje = new Date().toLocaleDateString("pt-BR");
     setEventos((lista) =>
       lista.map((ev) =>
@@ -336,8 +383,12 @@ export default function PainelFornecedor() {
     setModal(null);
   }
 
-  const totalCotados = contarCotados(eventoAtual);
-  const totalItens = eventoAtual.itens.length;
+  const totalCotados = eventoAtual ? contarCotados(eventoAtual) : 0;
+  const totalItens = eventoAtual?.itens.length ?? 0;
+
+  if (carregando) return <main className="opp-main"><p>Carregando oportunidades...</p></main>;
+  if (erro) return <main className="opp-main"><p role="alert">{erro}</p></main>;
+  if (!eventoAtual) return <main className="opp-main"><p>Nenhuma oportunidade aberta no momento.</p></main>;
 
   return (
     <div className="opp-page">
