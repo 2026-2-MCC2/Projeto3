@@ -8,7 +8,7 @@
 
 ## Golden Ticket
 
-## Integrantes: <a href="www.linkedin.com/in/cintya-mendoza-apaza-7691433b0">Cintya Mendoza Apaza</a>, <a href="https://www.linkedin.com/in/davi-moraes-675642260/">Davi Moraes Muniz</a>, <a href="https://www.linkedin.com/in/victorbarq/">Gustavo Cordeiro</a>, <a href="https://www.linkedin.com/in/nicolasbmoumdjian/">Nicolas Moumdjian</a>
+## Integrantes: <a href="www.linkedin.com/in/cintya-mendoza-apaza-7691433b0">Cintya Mendoza Apaza</a>, <a href="https://www.linkedin.com/in/davi-moraes-675642260/">Davi Moraes Muniz</a>, <a href="https://https://github.com/CordeiroGustavo404">Gustavo Cordeiro</a>, <a href="https://www.linkedin.com/in/nicolasbmoumdjian/">Nicolas Moumdjian</a>
 
 ## Professores Orientadores: <a href="https://www.linkedin.com/in/cristina-machado-corr%C3%AAa-leite-630309160/">Cristina Machado Corrêa Leite</a>, <a href="https://www.linkedin.com/in/dolemes/">David de Oliveira Lemes</a>, <a href="https://www.linkedin.com/in/francisco-escobar/">Francisco Escobar</a>, <a href="https://www.linkedin.com/in/jesuslisboagomes/">Jésus Gomes</a>, <a href="https://www.linkedin.com/in/katia-bossi/">Kátia Bossi</a>
 
